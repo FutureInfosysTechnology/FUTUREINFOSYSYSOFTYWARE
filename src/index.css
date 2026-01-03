@@ -1,0 +1,84 @@
+/* Reset */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+/* Make react-datepicker input same as bootstrap .form-control */
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+.react-datepicker__input-container input {
+  height: calc(1.5em + .75rem + 2px); /* same as Bootstrap input */
+  line-height: 1.5;
+  padding: .375rem .75rem;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+  font-size: 1rem;
+  width: 100%;
+}
+html, body {
+  height: 100vh;
+}
+#pdf {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.react-datepicker-popper {
+    z-index: 2000 !important;
+}
+/* Remove Edge/Chrome default glow on inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* Remove focus glow / highlight */
+.blue-selectbooking__control,
+.blue-selectbooking__control--is-focused {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.blue-selectbooking__placeholder,
+.blue-selectbooking__placeholder * {
+  color: #6c757d !important;
+  font-size: 13px !important;
+  opacity: 1 !important;         /* in case it's semi-transparent */
+}
+
+/* Make sure the control doesn't override color via inline styles */
+.blue-selectbooking__control,
+.blue-selectbooking__control * {
+  color: inherit !important;
+}
+
+/* Placeholder & Value font like HTML input */
+
+.blue-selectbooking__placeholder,.blue-selectbooking__single-value{
+  color: #6c757d !important;
+  font-size: 13px !important;
+}
+
+
+/* Hide Edge/IE reveal button */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+/* Hide WebKit (Chrome, Edge Chromium, Safari) eye */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-clear-button,
+input[type="password"]::-webkit-reveal-button {
+    display: none;
+}
+td{
+ font-weight: normal;
+ font-size:12px;
+}

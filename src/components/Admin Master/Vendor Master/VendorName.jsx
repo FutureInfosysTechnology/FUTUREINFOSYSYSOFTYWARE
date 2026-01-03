@@ -1,0 +1,713 @@
+import { saveAs } from 'file-saver';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useEffect, useState } from "react";
+import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
+import Modal from 'react-modal';
+import Select from 'react-select';
+import Swal from "sweetalert2";
+import * as XLSX from 'xlsx';
+import '../../Tabs/tabs.css';
+import { deleteApi, getApi, postApi } from "../Area Control/Zonemaster/ServicesApi";
+
+
+function VendorName() {
+    const [openRow, setOpenRow] = useState(null);
+    const [getVendor, setGetVendor] = useState([]);            // to get vendor data
+    const [international, setInternational] = useState([]);    //  to get city data
+    const [state, setState] = useState([]);                    // to get state data
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [vendorData, setVendorData] = useState({
+        vendorID: '',
+        vendorCode: '',
+        vendorName: '',
+        contactPerson: '',
+        pinCode: '',
+        vendAdd: '',
+        vendMob: '',
+        contMob: '',
+        stateCode: '',
+        email: '',
+        fuelCharge: '',
+        cityCode: '',
+        VendorWebAgent: '',
+    })                                                         // to add vendor data
+
+
+
+
+
+
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = getVendor.slice(indexOfFirstRow, indexOfLastRow);
+    const totalPages = Math.ceil(getVendor.length / rowsPerPage);
+
+    const filteredVendor = currentRows.filter((vendor) =>
+        (vendor?.Vendor_Code?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (vendor?.Vendor_Name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (vendor?.City_Name?.toLowerCase().includes(searchQuery.toLowerCase()))  ||
+        (vendor?.State_Name?.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
+    const handleSearchChange = (e) => { setSearchQuery(e.target.value); setCurrentPage(1); };
+
+
+
+    const fetchVendorData = async () => {
+        try {
+            const response = await getApi('/Master/getVendor');
+            setGetVendor(Array.isArray(response.Data) ? response.Data : []);
+        } catch (err) {
+            console.error('Fetch Error:', err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        fetchVendorData();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await getApi('/Master/getdomestic');
+                setInternational(Array.isArray(response.Data) ? response.Data : []);
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await getApi('/Master/GetState');
+                setState(Array.isArray(response.Data) ? response.Data : []);
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+
+    const handleGenerateCode = () => {
+        if(vendorData.vendorCode!='')
+            return;
+        const newCode = `${Math.floor(Math.random() * 1000)}`;
+        setVendorData({ ...vendorData, vendorCode: newCode });
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        const errors = [];
+        // if (!formData.DocketNo) errors.push("DocketNo is required");
+        if (!vendorData.vendorName) errors.push("Vendor Name is required");
+        if (!vendorData.vendorCode) errors.push("Vendor Code is required");
+        if (!vendorData.cityCode) errors.push("City Name is required");
+        if (!vendorData.stateCode) errors.push("State Name is required");
+        if (errors.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: errors.map(err => `<div>${err}</div>`).join(''),
+            });
+            return;
+        }
+        const requestBody = {
+            ID: vendorData.vendorID,
+            Vendor_Code: vendorData.vendorCode.trim(),
+            Vendor_Name: vendorData.vendorName,
+            Contact_Person: vendorData.contactPerson,
+            Vendor_Adr: vendorData.vendAdd,
+            Pin_Code: vendorData.pinCode,
+            Mobile_No: vendorData.vendMob,
+            Mobile_No_2: vendorData.contMob,
+            State_Code: vendorData.stateCode,
+            Email: vendorData.email,
+            Fuel_Charges: vendorData.fuelCharge,
+            City_Code: vendorData.cityCode,
+            VendorWebAgent:vendorData.VendorWebAgent,
+        }
+
+        try {
+            const response = await postApi('/Master/UpdateVendor', requestBody, 'POST');
+            if (response.status === 1) {
+                setGetVendor(getVendor.map((vendor) => vendor.Vendor_Code === vendorData.vendorCode ? response.Data : vendor));
+                setVendorData({
+                    vendorID: '',
+                    vendorCode: '',
+                    vendorName: '',
+                    contactPerson: '',
+                    vendAdd: '',
+                    pinCode: '',
+                    vendMob: '',
+                    contMob: '',
+                    stateCode: '',
+                    email: '',
+                    fuelCharge: '',
+                    cityCode: '',
+                    VendorWebAgent: '',
+                });
+                Swal.fire('Updated!', response.message || 'Your changes have been saved.', 'success');
+                setModalIsOpen(false);
+                await fetchVendorData();
+            } else {
+                Swal.fire('Error!', response.message || 'Failed to update the vendor.', 'error');
+            }
+        } catch (error) {
+            console.error("Failed to update Vendor:", error);
+            Swal.fire('Error', 'Failed to update vendor data', 'error');
+        }
+    }
+
+
+    const handleSaveVendor = async (e) => {
+        e.preventDefault();
+        const errors = [];
+        // if (!formData.DocketNo) errors.push("DocketNo is required");
+        if (!vendorData.vendorName) errors.push("Vendor Name is required");
+        if (!vendorData.vendorCode) errors.push("Vendor Code is required");
+        if (!vendorData.cityCode) errors.push("City Name is required");
+        if (!vendorData.stateCode) errors.push("State Name is required");
+        if (errors.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: errors.map(err => `<div>${err}</div>`).join(''),
+            });
+            return;
+        }
+        const requestBody = {
+            vendorCode: vendorData.vendorCode.trim(),
+            vendorName: vendorData.vendorName,
+            contactPerson: vendorData.contactPerson,
+            vendorAdr: vendorData.vendAdd,
+            pinCode: vendorData.pinCode,
+            mobileNo: vendorData.vendMob,
+            mobileNo2: vendorData.contMob,
+            stateCode: vendorData.stateCode,
+            email: vendorData.email,
+            fuelCharges: vendorData.fuelCharge,
+            cityCode: vendorData.cityCode,
+            VendorWebAgent: vendorData.VendorWebAgent,
+        }
+
+        try {
+            const response = await postApi('/Master/addVendor', requestBody, 'POST')
+            if (response.status === 1) {
+                setGetVendor([...getVendor, response.Data]);
+                setVendorData({
+                    vendorID: '',
+                    vendorCode: '',
+                    vendorName: '',
+                    contactPerson: '',
+                    pinCode: '',
+                    vendAdd: '',
+                    vendMob: '',
+                    contMob: '',
+                    stateCode: '',
+                    email: '',
+                    fuelCharge: '',
+                    cityCode: '',
+                    VendorWebAgent: '',
+                });
+                Swal.fire('Saved!', response.message || 'Your changes have been saved.', 'success');
+                setModalIsOpen(false);
+                await fetchVendorData();
+            } else {
+                Swal.fire('Error!', response.message || 'Your changes have been saved.', 'error');
+            }
+        } catch (err) {
+            console.error('Save Error:', err);
+            Swal.fire('Error', 'Failed to add Vendor Name', 'error');
+        }
+    };
+
+    const handleDeleteVendor = async (Customer_Code) => {
+        try {
+            const confirmation = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            });
+            if (confirmation.isConfirmed) {
+                await deleteApi(`/Master/deleteVendor?VendorCode=${Customer_Code}`);
+                setGetVendor(getVendor.filter((vendor) => vendor.VendorCode !== Customer_Code));
+                Swal.fire('Deleted!', 'Vendor has been deleted.', 'success');
+                await fetchVendorData();
+            }
+        } catch (err) {
+            console.error('Delete Error:', err);
+            Swal.fire('Error', 'Failed to delete Vendor', 'error');
+        }
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+
+        const tableColumn = [
+            "Vendor ID",
+            "Vendor Code",
+            "Vendor Name",
+            "Mobile No",
+            "Mobile No 2",
+            "Email",
+            "Fuel Charges",
+            "Address",
+            "Pin Code",
+            "Contact Person",
+            "State",
+            "City"
+        ];
+
+        const tableRows = [];
+
+        currentRows.forEach(vendor => {
+            tableRows.push([
+                vendor.ID,
+                vendor.Vendor_Code,
+                vendor.Vendor_Name,
+                vendor.Mobile_No,
+                vendor.Mobile_No_2,
+                vendor.Email,
+                vendor.Fuel_Charges,
+                vendor.Vendor_Adr,
+                vendor.Pin_Code,
+                vendor.Contact_Person,
+                vendor.State_Name,
+                vendor.City_Name,
+            ]);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+            theme: 'grid',
+            styles: { fontSize: 7, whiteSpace: "nowarp" }
+        });
+
+        doc.save("Vendor_Data.pdf");
+    };
+    const handleExportExcel = () => {
+        const exportData = currentRows.map((v, index) => ({
+            "Vendor ID": v.ID,
+            "Vendor Code": v.Vendor_Code,
+            "Vendor Name": v.Vendor_Name,
+            "Mobile No": v.Mobile_No,
+            "Mobile No 2": v.Mobile_No_2,
+            "Email": v.Email,
+            "Fuel Charges": v.Fuel_Charges,
+            "Address": v.Vendor_Adr,
+            "Pin Code": v.Pin_Code,
+            "Contact Person": v.Contact_Person,
+            "State": v.State_Name,
+            "City": v.City_Name,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Vendor Data');
+
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: 'xlsx',
+            type: 'array'
+        });
+
+        const file = new Blob([excelBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+        });
+
+        saveAs(file, 'Vendor_Data.xlsx');
+    };
+
+
+    const handlePreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+    const handleNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+
+
+
+    return (
+        <>
+
+            <div className="body">
+                <div className="container1">
+
+                    <div className="addNew">
+                        <div>
+                            <button className='add-btn' onClick={() => {
+                                setModalIsOpen(true); setIsEditMode(false);
+                                setVendorData({
+                                    vendorID: '',
+                                    vendorCode: '', vendorName: '', contactPerson: '', pinCode: '',
+                                    vendAdd: '', vendMob: '', contMob: '', stateCode: '', email: '',
+                                    fuelCharge: '', cityCode: '',VendorWebAgent: '',
+                                })
+                            }}>
+                                <i className="bi bi-plus-lg"></i>
+                                <span>ADD NEW</span>
+                            </button>
+
+                            <div className="dropdown">
+                                <button className="dropbtn"><i className="bi bi-file-earmark-arrow-down"></i> Export</button>
+                                <div className="dropdown-content">
+                                    <button onClick={handleExportExcel}>Export to Excel</button>
+                                    <button onClick={handleExportPDF}>Export to PDF</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="search-input">
+                            <input className="add-input" value={searchQuery}
+                                onChange={handleSearchChange} type="text" placeholder="search" />
+                            <button type="submit" title="search">
+                                <i className="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div className='table-container'>
+                        <table className='table table-bordered table-sm' style={{ whiteSpace: "nowrap" }}>
+                            <thead className='table-sm'>
+                                <tr>
+                                    <th scope="col" style={{ width: "250px" }}>Actions</th>
+                                    <th scope="col">Vendor_ID</th>
+                                    <th scope="col">Vendor_Code</th>
+                                    <th scope="col">Vendor_Name</th>
+                                    <th scope="col">Mobile_No</th>
+                                    <th scope="col">Mobile_No2</th>
+                                    <th scope="col">Email_Id</th>
+                                    <th scope="col">Fuel_Charges</th>
+                                    <th scope="col">Vendor_Address</th>
+                                    <th scope="col">Pin_Code</th>
+                                    <th scope="col">Contact_Person</th>
+                                    <th scope="col">State_Name</th>
+                                    <th scope="col">City_Name</th>
+                                    <th scope="col">Web Link</th>
+
+                                </tr>
+                            </thead>
+                            <tbody className='table-body'>
+                                {filteredVendor.map((vendor, index) => (
+                                    <tr key={vendor.ID} style={{ fontSize: "12px", position: "relative" }}>
+                                        <td>
+                                            <PiDotsThreeOutlineVerticalFill
+                                                style={{ fontSize: "20px", cursor: "pointer" }}
+                                                onClick={() => setOpenRow(openRow === index ? null : index)}
+                                            />
+                                            {openRow === index && (
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        flexDirection: "row",
+                                                        position: "absolute",
+                                                        alignItems: "center",
+                                                        left: "60px",
+                                                        top: "0px",
+                                                        borderRadius: "10px",
+                                                        backgroundColor: "white",
+                                                        zIndex: "999999",
+                                                        height: "30px",
+                                                        width: "50px",
+                                                        padding: "10px",
+                                                    }}
+                                                >
+
+                                                    <button className='edit-btn' onClick={() => {
+                                                        setIsEditMode(true);
+                                                        setOpenRow(null);
+                                                        setVendorData({
+                                                            vendorID: vendor.ID,
+                                                            vendorCode: vendor.Vendor_Code.trim(),
+                                                            vendorName: vendor.Vendor_Name,
+                                                            vendAdd: vendor.Vendor_Adr,
+                                                            pinCode: vendor.Pin_Code,
+                                                            contactPerson: vendor.Contact_Person,
+                                                            email: vendor.Email,
+                                                            vendMob: vendor.Mobile_No,
+                                                            contMob: vendor.Mobile_No_2,
+                                                            fuelCharge: vendor.Fuel_Charges,
+                                                            cityCode: vendor.City_Code,
+                                                            stateCode: vendor.State_Code,
+                                                            VendorWebAgent:vendor.VendorWebAgent
+                                                        });
+                                                        setModalIsOpen(true);
+                                                    }}>
+                                                        <i className='bi bi-pen'></i>
+                                                    </button>
+                                                    <button className='edit-btn' onClick={() => {
+                                                        setOpenRow(null);
+                                                        handleDeleteVendor(vendor.Vendor_Code);
+                                                    }}>
+                                                        <i className='bi bi-trash'></i>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td>{vendor.ID}</td>
+                                        <td>{vendor.Vendor_Code}</td>
+                                        <td>{vendor.Vendor_Name}</td>
+                                        <td>{vendor.Mobile_No}</td>
+                                        <td>{vendor.Mobile_No_2}</td>
+                                        <td>{vendor.Email}</td>
+                                        <td>{vendor.Fuel_Charges}</td>
+                                        <td>{vendor.Vendor_Adr}</td>
+                                        <td>{vendor.Pin_Code}</td>
+                                        <td>{vendor.Contact_Person}</td>
+                                        <td>{vendor.State_Name}</td>
+                                        <td>{vendor.City_Name}</td>
+                                        <td>{vendor.VendorWebAgent}</td>
+
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="row" style={{ whiteSpace: "nowrap" }}>
+                        <div className="pagination col-12 col-md-6 d-flex justify-content-center align-items-center mb-2 mb-md-0">
+                            <button className="ok-btn" onClick={handlePreviousPage} disabled={currentPage === 1}>
+                                {'<'}
+                            </button>
+                            <span style={{ color: "#333", padding: "5px" }}>
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button className="ok-btn" onClick={handleNextPage} disabled={currentPage === totalPages}>
+                                {'>'}
+                            </button>
+                        </div>
+
+                        <div className="rows-per-page col-12 col-md-6 d-flex justify-content-center justify-content-md-end align-items-center">
+                            <label htmlFor="rowsPerPage" className="me-2">Rows per page: </label>
+                            <select
+                                id="rowsPerPage"
+                                value={rowsPerPage}
+                                onChange={(e) => {
+                                    setRowsPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                                style={{ height: "40px", width: "50px" }}
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <Modal overlayClassName="custom-overlay" isOpen={modalIsOpen}
+                        className="custom-modal-vendor" contentLabel="Modal"
+                        style={{
+                            content: {
+                                width: '90%',
+                                top: '50%',             // Center vertically
+                                left: '50%',
+                                whiteSpace: "nowrap"
+                            },
+                        }}>
+                        <div className="custom-modal-content">
+                            <div className="header-tittle">
+                                <header>Vendor Name Master</header>
+                            </div>
+                            <div className='container2'>
+                                <form onSubmit={handleSaveVendor}>
+
+                                    <div className="fields2">
+                                        <div className="input-field3">
+                                            <label htmlFor="">Code </label>
+                                            <input type="text"
+                                                placeholder="Enter Code/ Generate Code"
+                                                value={vendorData.vendorCode}
+                                                onChange={(e) => setVendorData({ ...vendorData, vendorCode: e.target.value })}
+                                                maxLength="3" readOnly={isEditMode} />
+                                        </div>
+
+                                        {!isEditMode && (
+                                            <div className="input-field3">
+                                                <button type="button" className="ok-btn" style={{ marginTop: "18px", height: "35px" }}
+                                                    onClick={handleGenerateCode}>Generate Code</button>
+                                            </div>
+                                        )}
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Vendor Name</label>
+                                            <input type="text" placeholder="Enter Vendor Name"
+                                                value={vendorData.vendorName}
+                                                onChange={(e) => setVendorData({ ...vendorData, vendorName: e.target.value })} />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Mobile No</label>
+                                            <input type="tel" maxLength="10" id="mobile"
+                                                value={vendorData.vendMob}
+                                                onChange={(e) => setVendorData({ ...vendorData, vendMob: e.target.value })}
+                                                name="mobile" pattern="[0-9]{10}" placeholder="Enter Mobile No" />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Email ID</label>
+                                            <input type="email" placeholder="Enter Email Id"
+                                                value={vendorData.email}
+                                                onChange={(e) => setVendorData({ ...vendorData, email: e.target.value })} />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Address</label>
+                                            <input type="text" placeholder="Enter Address"
+                                                value={vendorData.vendAdd}
+                                                onChange={(e) => setVendorData({ ...vendorData, vendAdd: e.target.value })} />
+                                        </div>
+
+                                        <div className="input-field3" >
+                                            <label htmlFor="">Pin code</label>
+                                            <input type="tel" id="pincode" name="pincode" maxLength="6"
+                                                value={vendorData.pinCode}
+                                                onChange={(e) => setVendorData({ ...vendorData, pinCode: e.target.value })}
+                                                placeholder="Enter Pin Code" />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">City Name</label>
+                                            <Select
+                                                className="blue-selectbooking"
+                                                classNamePrefix="blue-selectbooking"
+                                                options={international.map((city) => ({
+                                                    value: city.City_Code,
+                                                    label: city.City_Name,
+                                                }))}
+                                                value={
+                                                    vendorData.cityCode
+                                                        ? {
+                                                            value: vendorData.cityCode,
+                                                            label:
+                                                                international.find((c) => c.City_Code === vendorData.cityCode)
+                                                                    ?.City_Name || "",
+                                                        }
+                                                        : null
+                                                }
+                                                onChange={(selected) =>
+                                                    setVendorData({
+                                                        ...vendorData,
+                                                        cityCode: selected ? selected.value : "",
+                                                    })
+                                                }
+                                                placeholder="Select City"
+                                                isSearchable={true}
+                                                isClearable={false}
+                                                menuPortalTarget={document.body}
+                                                styles={{
+                                                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                }}
+                                            />
+
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">State Name</label>
+                                            <Select
+                                                className="blue-selectbooking"
+                                                classNamePrefix="blue-selectbooking"
+                                                options={state.map((st) => ({
+                                                    value: st.State_Code,
+                                                    label: st.State_Name,
+                                                }))}
+                                                value={
+                                                    vendorData.stateCode
+                                                        ? {
+                                                            value: vendorData.stateCode,
+                                                            label:
+                                                                state.find((s) => s.State_Code === vendorData.stateCode)
+                                                                    ?.State_Name || "",
+                                                        }
+                                                        : null
+                                                }
+                                                onChange={(selected) =>
+                                                    setVendorData({
+                                                        ...vendorData,
+                                                        stateCode: selected ? selected.value : "",
+                                                    })
+                                                }
+                                                placeholder="Select State"
+                                                isSearchable={true}
+                                                isClearable={false}
+                                                menuPortalTarget={document.body}
+                                                styles={{
+                                                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                }}
+                                            />
+
+                                        </div>
+
+                                        <div className="input-field3" >
+                                            <label htmlFor="">Contact Person</label>
+                                            <input type="text" placeholder="Enter Contact Person"
+                                                value={vendorData.contactPerson}
+                                                onChange={(e) => setVendorData({ ...vendorData, contactPerson: e.target.value })} />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Mobile No</label>
+                                            <input type="tel" maxLength="10" id="mobile"
+                                                value={vendorData.contMob}
+                                                onChange={(e) => setVendorData({ ...vendorData, contMob: e.target.value })}
+                                                name="mobile" pattern="[0-9]{10}" placeholder="Enter Mobile No" />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Fuel %</label>
+                                            <input type="text" placeholder="Enter Client Fuel %"
+                                                value={vendorData.fuelCharge}
+                                                onChange={(e) => setVendorData({ ...vendorData, fuelCharge: e.target.value })} />
+                                        </div>
+
+                                        <div className="input-field3">
+                                            <label htmlFor="">Web Link</label>
+                                            <input type="text" placeholder="Enter Web Link"
+                                                value={vendorData.VendorWebAgent}
+                                                onChange={(e) => setVendorData({ ...vendorData, VendorWebAgent: e.target.value })} />
+                                        </div>
+
+                                    </div>
+
+                                    <div className='bottom-buttons'>
+                                        {!isEditMode && (<button type='submit' className='ok-btn'>Submit</button>)}
+                                        {isEditMode && (<button type='button' onClick={handleUpdate} className='ok-btn'>Update</button>)}
+                                        <button onClick={() => setModalIsOpen(false)} className='ok-btn'>close</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </Modal >
+                </div>
+            </div>
+        </>
+    );
+};
+
+export default VendorName;

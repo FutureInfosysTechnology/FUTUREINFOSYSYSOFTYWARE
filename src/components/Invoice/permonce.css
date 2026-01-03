@@ -1,0 +1,12 @@
+.slider {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background-color: #007bff;
+  transition: all 0.3s ease;
+}
+nav::before,
+nav::after {
+  content: none !important;
+  border: none !important;
+}
