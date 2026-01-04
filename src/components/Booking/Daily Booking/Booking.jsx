@@ -191,6 +191,8 @@ function Booking() {
         InvoiceNo: "",
         SkycType: "",
         SkycNo: "",
+        uploadkyc1: "",
+        uploadkyc2: "",
         Location_Code: "",
         Mode_Code: "",
         ODAChrgs: 0,
@@ -306,7 +308,12 @@ function Booking() {
 
     const [remarkData, setRemarkData] = useState({
         Remark: "",
-        MHWNo: ""
+        MHWNo: "",
+        invoiceType: "",
+        curr: "INR",
+        inco: "DDU",
+        note: "",
+        noteCont: "",
     });
     const [vendorsubmittedData, setVendorSubmittedData] = useState([]);
     const [vendorVolumetric, setVendorvolumetric] = useState({
@@ -1173,6 +1180,9 @@ function Booking() {
         setTotalVolWt1(totalVol1);
         setTotalActWt1(totalAct1);
         setTotalChargeWt1(totalCharge1);
+        if (submittedData.length == 0) {
+            return;
+        }
 
         setFormData((prev) => ({
             ...prev,
@@ -1186,7 +1196,9 @@ function Booking() {
         const total = PinvoicesubmittedData.reduce(
             (acc, d) => acc + parseFloat(d.invVal || 0), 0
         );
-
+        if (PinvoicesubmittedData.length == 0) {
+            return;
+        }
         setTotalInvoiceValue(total);
     }, [PinvoicesubmittedData]);
     useEffect(() => {
@@ -1198,6 +1210,10 @@ function Booking() {
         setTotalVolWt(totalVol);
         setTotalActWt(totalAct);
         setTotalChargeWt(totalCharge);
+
+        if (vendorsubmittedData.length == 0) {
+            return;
+        }
         setFormData((prev) => ({
             ...prev,
             VendorWt: totalAct,
@@ -2079,6 +2095,8 @@ function Booking() {
             InvoiceNo: "",
             SkycType: "",
             SkycNo: "",
+            uploadkyc1: "",
+            uploadkyc2: "",
             Location_Code: "",
             Mode_Code: "",
             ODAChrgs: 0,
@@ -2141,7 +2159,12 @@ function Booking() {
 
         setRemarkData({
             Remark: "",
-            MHWNo: ""
+            MHWNo: "",
+            invoiceType: "",
+            curr: "INR",
+            inco: "DDU",
+            note: "",
+            noteCont: "",
         });
 
         setVendorvolumetric({
@@ -2645,6 +2668,25 @@ function Booking() {
         label: p.Product_Name, // visible in dropdown
     }));
 
+    const unitTypeOptions = [
+        { value: "Pkt", label: "Pkt" },
+        { value: "Pc", label: "Pc" },
+        { value: "PCS", label: "PCS" },
+        { value: "Nos", label: "Nos" },
+        { value: "Bottle", label: "Bottle" },
+        { value: "Pair", label: "Pair" },
+        { value: "Strip", label: "Strip" },
+        { value: "Dozen", label: "Dozen" },
+        { value: "Gross", label: "Gross" },
+        { value: "Sets", label: "Sets" },
+        { value: "Box", label: "Box" },
+        { value: "KG", label: "KG" },
+        { value: "Gram", label: "Gram" },
+        { value: "Container", label: "Container" },
+        { value: "Carats", label: "Carats" }
+    ];
+
+
     const allModeOptions = getMode?.length > 0 ? getMode.map(mode => ({ label: mode.Mode_Name, value: mode.Mode_Code })) : [];
     const allCityOptions =
         getCity?.length > 0
@@ -2932,6 +2974,50 @@ function Booking() {
                                                 className="form-control custom-input"
                                             />
                                         </div>
+
+                                        <div className="input-field">
+                                            <label htmlFor="upload-kyc">Upload KYC</label>
+
+                                            <input
+                                                type="file"
+                                                id="upload-kyc"
+                                                className="form-control custom-input"
+                                                accept=".jpg,.jpeg,.png,.pdf"
+                                                style={{
+                                                    paddingTop: "8px",
+
+                                                }}
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        uploadkyc1: e.target.files[0], // ✅ store file object
+                                                    })
+                                                }
+                                            />
+                                        </div>
+
+                                        <div className="input-field">
+                                            <label htmlFor="upload-kyc">Upload KYC</label>
+
+                                            <input
+                                                type="file"
+                                                id="upload-kyc"
+                                                className="form-control custom-input"
+                                                accept=".jpg,.jpeg,.png,.pdf"
+                                                style={{
+                                                    paddingTop: "8px",
+
+                                                }}
+                                                onChange={(e) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        uploadkyc2: e.target.files[0], // ✅ store file object
+                                                    })
+                                                }
+                                            />
+                                        </div>
+
+
 
                                         <div className="input-field1">
                                             <label htmlFor="">Shipper Mobile No</label>
@@ -3633,7 +3719,7 @@ function Booking() {
 
                                     {isChecked2.Remark_SR_No && (
                                         <div className="input-field1">
-                                            <label>Content/Remark</label>
+                                            <label>Shipment Invoice</label>
                                             <button
                                                 type="button"
                                                 className="ok-btn"
@@ -4634,14 +4720,89 @@ function Booking() {
 
 
                     <Modal overlayClassName="custom-overlay" isOpen={modalIsOpen4}
-                        className="custom-modal-stock" contentLabel="Modal">
+                        className="custom-modal-stock" contentLabel="Modal"
+                        style={{
+                            content: {
+                                width: '90%',
+                                top: '50%',             // Center vertically
+                                left: '50%',
+                                height: "auto",
+                                whiteSpace: "nowrap"
+                            },
+                        }}>
                         <div className="custom-modal-content">
                             <div className="header-tittle">
-                                <header>Content/Remark</header>
+                                <header>Shipment Invoice</header>
                             </div>
                             <div className='container2'>
                                 <form>
                                     <div className="fields2">
+
+                                        <div className="input-field2">
+                                            <label htmlFor="">Invoice Type</label>
+                                            <select value={remarkData.invoiceType} onChange={(e) => setRemarkData({ ...remarkData, invoiceType: e.target.value })} >
+                                                <option value="" disabled>Select Invoice</option>
+                                                <option value="INVOICE">INVOICE</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="input-field2">
+                                            <label htmlFor="">Currency</label>
+                                            <select value={remarkData.curr} onChange={(e) => setRemarkData({ ...remarkData, curr: e.target.value })} >
+
+                                                <option value="INR">INR</option>
+                                                <option value="USD">USD</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="input-field2">
+                                            <label htmlFor="">Incoterms</label>
+                                            <select value={remarkData.inco} onChange={(e) => setRemarkData({ ...remarkData, inco: e.target.value })} >
+                                                <option value="CRF">CRF</option>
+                                                <option value="DDP">DDP</option>
+                                                <option value="DDU">DDU</option>
+
+                                            </select>
+                                        </div>
+
+                                        <div className="input-field2">
+                                            <label htmlFor="">Note</label>
+                                            <select
+                                                value={remarkData.note}
+                                                onChange={(e) => {
+                                                    const selected = e.target.value;
+                                                    let temp = "";
+
+                                                    if (selected === "GIFT") {
+                                                        temp = "UNSOLICITED GIFT SENT TO MY FRIENDS & FAMILY MEMBERS FOR THEIR PERSONAL USE ONLY";
+                                                    } else if (selected === "SAMPLE") {
+                                                        temp = "FREE TRADE SAMPLES OF NO COMMERCIAL VALUE";
+                                                    } else if (selected === "CARGO") {
+                                                        temp = "COMMERCIAL SHIPMENT";
+                                                    }
+
+                                                    setRemarkData({
+                                                        ...remarkData,
+                                                        note: selected,
+                                                        noteCont: temp, // ✅ correct field
+                                                    });
+                                                }}
+                                            >
+                                                <option value="" disabled>Select note</option>
+                                                <option value="GIFT">GIFT</option>
+                                                <option value="SAMPLE">SAMPLE</option>
+                                                <option value="CARGO">CARGO</option>
+                                            </select>
+
+                                        </div>
+
+                                        <div className="input-field1">
+                                            <label htmlFor="" style={{visibility:"hidden"}}>Note Content</label>
+                                            <input type="text" value={remarkData.noteCont}
+                                                readOnly
+                                                onChange={(e) => setRemarkData({ ...remarkData, noteCont: e.target.value })} />
+                                        </div>
+
                                         <div className="input-field">
                                             <label htmlFor="">Remark</label>
                                             <input type="text" placeholder="Remark" value={remarkData.Remark}
@@ -5504,6 +5665,7 @@ function Booking() {
 
                                                 <td>
                                                     <DatePicker
+                                                        portalId="root-portal"
                                                         selected={PinvoiceData.InvoiceDate ? new Date(PinvoiceData.InvoiceDate) : null}
                                                         onChange={(date) =>
                                                             setPinvoiceData({ ...PinvoiceData, InvoiceDate: date })
@@ -5552,15 +5714,33 @@ function Booking() {
                                                     />
                                                 </td>
 
-                                                <td>
-                                                    <input
-                                                        type="text"
-                                                        name="UnitType"
+                                                <td style={{ width: "120px" }}>
+                                                    <Select
+                                                        className="blue-selectbooking"
+                                                        classNamePrefix="blue-selectbooking"
+                                                        options={unitTypeOptions}
+                                                        value={
+                                                            PinvoiceData.UnitType
+                                                                ? unitTypeOptions.find(opt => opt.value === PinvoiceData.UnitType)
+                                                                : null
+                                                        }
+                                                        onChange={(selectedOption) => {
+                                                            setPinvoiceData(prev => ({
+                                                                ...prev,
+                                                                UnitType: selectedOption.value,
+                                                            }));
+                                                        }}
                                                         placeholder="Unit Type"
-                                                        value={PinvoiceData.UnitType}
-                                                        style={{ textAlign: "center" }}
-                                                        onChange={handlePinvoiceDetailChange}
+                                                        isSearchable
+                                                        menuPlacement="bottom"          // ✅ force dropdown below
+                                                        menuPortalTarget={document.body}
+                                                        styles={{
+                                                            menuPortal: base => ({ ...base, zIndex: 9999 })
+                                                        }}
                                                     />
+
+
+
                                                 </td>
 
                                                 <td>

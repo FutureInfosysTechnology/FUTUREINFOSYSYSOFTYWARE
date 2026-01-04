@@ -108,6 +108,24 @@ function Performa() {
     const handleOpenInvoicePrint = (docNo) => {
         navigate("/performainvoice", { state: { DocketNo: docNo, from: location.pathname, tab: "viewPerformance" } })
     };
+    const handleOpenInvoicePrint2 = async (docNo) => {
+        try {
+            const response = await getApi(`/Booking/DocketPrint_2?FromDocket=${docNo}&ToDocket=${docNo}`);
+            if (response.status === 1) {
+                console.log(response);
+                console.log(response.Data);
+                response.Data && navigate("/labelprint2", { state: { data: response.Data, path: location.pathname, tab: "viewPerformance" } });
+            }
+            else {
+                Swal.fire("Warning", `Warong Docket Number`, "warning");
+            }
+        }
+        catch (error) {
+            console.error("API Error:", error);
+        }
+        finally {
+        }
+    };
 
     return (
         <>
@@ -172,6 +190,7 @@ function Performa() {
                                         <th>Mode</th>
                                         <th>Shipper Name</th>
                                         <th>Consignee Name</th>
+                                        <th>Label</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -220,6 +239,11 @@ function Performa() {
                                             <td>{row?.Mode_Name}</td>
                                             <td>{row?.Shipper_Name}</td>
                                             <td>{row?.Consignee_Name}</td>
+                                            <td>
+                                                <button className='edit-btn' onClick={() => handleOpenInvoicePrint2(row.DocketNo)}>
+                                                    <i className='bi bi-file-earmark-pdf-fill' style={{ fontSize: "18px" }}></i>
+                                                </button>
+                                            </td>
 
                                         </tr>
                                     ))}

@@ -74,11 +74,11 @@ function PerformaPdf() {
 
         return result + " Only";
     }
-    const [totalQty, setTotalQty] = useState(0);
+    const [totalAmount, setTotalAmount] = useState(0);
     useEffect(() => {
         if (Array.isArray(getItem)) {
-            let total = getItem.reduce((sum, item) => sum + (item.QTY || 0), 0);
-            setTotalQty(total);
+            let total = getItem.reduce((sum, item) => sum + (item.Amount || 0), 0);
+            setTotalAmount(total);
         }
     }, [getItem]); // 
 
@@ -214,80 +214,80 @@ function PerformaPdf() {
                             <div className="container-3 px-0 py-0" style={{ border: "2px solid black", height: "815px" }}>
 
                                 <div className="div1" style={{ display: "flex", flexDirection: "row", borderBottom: "2px solid black", }}>
-                                    <div style={{ width: "50%", borderRight: "2px solid black", display: "flex", gap: "7px" }}>
-                                        <div style={{ width: "30%", height: "100%", padding: "10px", paddingTop: "10px", paddingBottom: "10px" }}>
-                                            <img src={invoiceData?.Branch_Logo || logoimg} alt="" style={{ height: "100%", width: "100%", borderRadius: "50%" }} />
+                                    <div style={{ width: "50%", borderRight: "2px solid black", display: "flex", gap: "10px",flexDirection:"column",paddingBottom:"20px" }}>
+                                        
+                                        <div style={{ display: "flex", width: "100%", flexDirection:"column", justifyContent: "end", paddingLeft:"10px"}}>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center" ,gap:"5px"}}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>INVOICE NO:</div>
+                                                <div>{invoiceData.InvoiceNo}</div>
+                                            </div>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center",gap:"5px" }}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>INVOICE DATE :</div>
+                                                <div>{invoiceData.InvoiceDate}</div>
+                                            </div>
                                         </div>
-                                        <div style={{ width: "70%", display: "flex", flexDirection: "column" }}>
-                                            <div style={{ fontWeight: "bolder", fontSize: "18px", marginTop: "12px" }}>{invoiceData.Company_Name}</div>
-                                            <div >{invoiceData.Branch_Add1},{invoiceData.Branch_PIN}</div>
-                                            <div style={{ width: "100%", display: "flex" }}>
-                                                <div style={{ width: "50%", display: "flex", flexDirection: "column" }}>
-                                                    <div style={{ fontSize: "12px" }}>GST No:</div>
-                                                    <div>{invoiceData.BranchGSTNo}</div>
-                                                </div>
-                                                <div style={{ width: "50%", display: "flex", flexDirection: "column" }}>
-                                                    <div style={{ fontSize: "12px" }}>Mobile No:</div>
-                                                    <div>(+91) {invoiceData.MobileNo}</div>
-                                                </div>
-                                                {/* <div style={{width:"30%",display:"flex",flexDirection:"column"}}> */}
-                                                {/* <div style={{fontWeight:"bolder"}}>Email:</div> */}
-                                                {/* <div>{getBranch.Email}</div> */}
-                                                {/* </div> */}
+                                         <div style={{ display: "flex", width: "100%", flexDirection:"column", justifyContent: "end", paddingLeft:"10px"}}>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center" ,gap:"5px"}}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>TOTAL PIECES :</div>
+                                                <div>1</div>
+                                            </div>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center" ,gap:"5px"}}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>HARGEABLE WEIGHT :</div>
+                                                <div>11</div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div style={{ width: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                        <div style={{ display: "flex", width: "80%", height: "40%", justifyContent: "space-between", alignItems: "center", marginTop: "5px" }}>
-                                            <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>Invoice No:</div>
-                                                <div>{invoiceData.InvoiceNo}</div>
+                                    <div style={{ width: "50%", display: "flex", alignItems: "center", justifyContent: "center",alignItems:"end" }}>
+                                        <div style={{ display: "flex", width: "100%", flexDirection:"column", justifyContent: "end", paddingLeft:"10px"}}>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center" ,gap:"5px"}}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>DOCKET NO:</div>
+                                                <div>{invoiceData.DocketNo}</div>
                                             </div>
-                                            <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>Invoice Date:</div>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center" }}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>OTHER REFERENCE</div>
                                                 <div>{invoiceData.InvoiceDate}</div>
                                             </div>
-                                            <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>Due Date:</div>
-                                                <div>{invoiceData.InvoiceDue}</div>
+                                            <div style={{ height: "100%", display: "flex", alignItems: "center",gap:"5px" }}>
+                                                <div style={{ fontSize: "12px", fontWeight: "bolder" }}>{invoiceData.KYC_Type}:</div>
+                                                <div>{invoiceData.KYC_No}</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="div2" style={{ display: "flex", flexDirection: "row", borderBottom: "2px solid black", }}>
                                     <div style={{ width: "50%", borderRight: "2px solid black", display: "flex", paddingBottom: "5px", flexDirection: "column", paddingLeft: "8px", paddingTop: "5px", gap: "2px" }}>
-                                        <div style={{ fontSize: "12px" }}>SHIP TO</div>
+                                        <div style={{ fontSize: "12px" }}>SHIPPER TO</div>
                                         <div style={{ fontSize: "13px", fontWeight: "bolder" }}>{invoiceData.ShipperName}</div>
                                         <div style={{ display: "flex", gap: "2px" }}>
                                             <div style={{ width: "12%" }}> Address:</div>
-                                            <div style={{ width: "80%" }}>{invoiceData.ShipperAddress},{invoiceData.Shipper_Address2},
-                                                {invoiceData.ShipperCity_Name}, {invoiceData.ShipperState_Name}, {invoiceData.ShipperPinCode}</div>
+                                            <div style={{ width: "80%" }}>{invoiceData.ShipperAdd},{invoiceData.Shipper_Add2},{invoiceData.Shipper_Add3},
+                                                {invoiceData.Shippercity}, {invoiceData.StateCode}, {invoiceData.ShipperPin}</div>
                                         </div>
                                         <div style={{ display: "flex", gap: "15px" }}>
                                             <div style={{ display: "flex", gap: "5px" }}>
                                                 <div style={{ fontWeight: "bolder" }}>GST No:</div>
-                                                <div>{invoiceData.ShipperGSTNo} </div>
+                                                <div>{invoiceData.Shipper_GstNo} </div>
                                             </div>
                                             <div style={{ display: "flex", gap: "5px" }}>
                                                 <div style={{ fontWeight: "bolder" }}> State Name:</div>
-                                                <div>{invoiceData.ShipperState_Name}</div>
+                                                <div>{invoiceData.StateCode}</div>
                                             </div>
                                         </div>
                                         <div style={{ display: "flex", gap: "15px" }}>
                                             <div style={{ display: "flex", gap: "5px" }}>
                                                 <div style={{ fontWeight: "bolder" }}> Mobile No:</div>
-                                                <div> (+91) {invoiceData.ShipperMobileNo}  </div>
+                                                <div> (+91) {invoiceData.ShipperPhone}  </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div style={{ width: "50%", paddingBottom: "5px", display: "flex", flexDirection: "column", paddingLeft: "8px", paddingTop: "5px", gap: "2px" }}>
-                                        <div style={{ fontSize: "12px" }}>BILL TO</div>
+                                        <div style={{ fontSize: "12px" }}>CONSIGNEE TO</div>
                                         
                                         <div style={{ fontSize: "13px", fontWeight: "bolder" }}>{invoiceData?.Consignee_Name}</div>
                                         <div style={{ display: "flex", gap: "2px" }}>
                                             <div style={{ width: "12%" }}> Address:</div>
                                             <div style={{ width: "80%" }}> {invoiceData?.Consignee_Add1},{invoiceData?.Consignee_Add2},
-                                                {invoiceData?.Consignee_City}, {invoiceData.ReceiverState_Name}, {invoiceData?.Consignee_Pin}</div>
+                                                {invoiceData?.Consignee_City}, {invoiceData.ConsigneeState}, {invoiceData?.Consignee_Pin}</div>
                                         </div>
                                         <div style={{ display: "flex", gap: "15px" }}>
                                             <div style={{ display: "flex", gap: "5px" }}>
@@ -296,7 +296,7 @@ function PerformaPdf() {
                                             </div>
                                             <div style={{ display: "flex", gap: "5px" }}>
                                                 <div style={{ fontWeight: "bolder" }}> State Name:</div>
-                                                <div>{invoiceData.ReceiverState_Name}</div>
+                                                <div>{invoiceData.ConsigneeState}</div>
                                             </div>
                                         </div>
                                         <div style={{ display: "flex", gap: "15px" }}>
@@ -317,11 +317,27 @@ function PerformaPdf() {
 
                                 }}>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>S.NO</div>
-                                    <div style={{ width: "40%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>ITEMS</div>
-                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>HSN</div>
+                                    <div style={{ width: "40%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>DISCRIPTION</div>
+                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>UNIT TYPE</div>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>QTY</div>
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>RATE</div>
+                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>UNIT RATE</div>
                                     <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}>AMOUNT</div>
+                                </div>
+
+                                <div className="mid" 
+                                style={{
+                                    height: "30px",
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    justifyContent:"center",
+                                    alignItems:"center",
+                                    gap:"5px",
+                                    fontSize:"15px",
+                                    fontWeight:"bold",
+                                    borderBottom:"2px solid black"
+                                }}>
+                                    <div>BOX : 1</div>
+                                    <div>, ACTUAL WEIGHT - 10.70 KG</div>
                                 </div>
 
                                 <div className="div4" style={{
@@ -347,7 +363,7 @@ function PerformaPdf() {
                                     {/* HSN */}
                                     <div style={{ width: "15%", display: "flex", flexDirection: "column", borderRight: "2px solid black", gap: "5px", paddingTop: "5px" }}>
                                         {getItem.map((item) => (
-                                            <div >{item?.HSCode}</div>
+                                            <div >{item?.UnitType}</div>
                                         ))}
                                     </div>
 
@@ -377,111 +393,47 @@ function PerformaPdf() {
                                     <div style={{ width: "40%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>IGST {invoiceData.IGST_Per}%</div>
-                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}>{invoiceData.IGST_Amount}</div>
+                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
+                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}></div>
                                 </div>
                                 <div className="div6" style={{ height: "25px", textAlign: "center", display: "flex", flexDirection: "row", }}>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "40%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>CGST {invoiceData.CGST_Per}%</div>
-                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}>{invoiceData.CGST_Amount}</div>
+                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
+                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}></div>
                                 </div>
                                 <div className="div7" style={{ height: "25px", textAlign: "center", display: "flex", flexDirection: "row", borderBottom: "2px solid black" }}>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "40%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
                                     <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>SGST {invoiceData.SGST_Per}%</div>
-                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}>{invoiceData.SGST_Amount}</div>
+                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
+                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}></div>
                                 </div>
                                 <div className="div8" style={{ height: "30px", textAlign: "center", display: "flex", flexDirection: "row", backgroundColor: "rgba(255, 192, 203, 0.1)" }}>
 
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
-                                    <div style={{ width: "40%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>TOTAL</div>
-                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>{getItem.reduce((acc, curr) => acc + curr.Qty, 0)}</div>
-                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}></div>
-                                    <div style={{ width: "15%", display: "flex", justifyContent: "center", alignItems: "center" }}>{invoiceData.GrandTotal}</div>
+                                    <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>AMOUNT CHARGEABLE</div>
+                                    <div style={{ width: "50%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>{ numberToIndianCurrency(Number(totalAmount))}</div>
+                                    <div style={{ width: "10%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>TOTAL</div>
+                                    <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center" }}>{totalAmount}</div>
                                 </div>
 
 
                             </div>
-                            <div className="second px-0 py-0 mt-2" style={{ border: "2px solid black" }}>
-                                <div className="div1" style={{
-                                    height: "40px", textAlign: "center", display: "flex", flexDirection: "row",
-                                    fontWeight: "bolder", fontSize: "11px", backgroundColor: "rgba(255, 192, 203, 0.1)", borderBottom: "2px solid black"
-                                }}>
-
-                                    <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>Taxable Value</div>
-                                    <div style={{ width: "20%", display: "flex", flexDirection: "column", borderRight: "2px solid black" }}>
-                                        <div style={{ borderBottom: "2px solid black" }}>IGST</div>
-                                        <div style={{ display: "flex", height: "100%" }}>
-                                            <div style={{ width: "40%", borderRight: "2px solid black", display: "flex", justifyContent: "center", alignItems: "center" }}>Rate</div>
-                                            <div style={{ width: "60%", display: "flex", justifyContent: "center", alignItems: "center" }}>Amount</div>
-                                        </div>
-                                    </div>
-                                    <div style={{ width: "20%", display: "flex", flexDirection: "column", borderRight: "2px solid black" }}>
-                                        <div style={{ borderBottom: "2px solid black" }}>CGST</div>
-                                        <div style={{ display: "flex", height: "100%" }}>
-                                            <div style={{ width: "40%", borderRight: "2px solid black", display: "flex", justifyContent: "center", alignItems: "center" }}>Rate</div>
-                                            <div style={{ width: "60%", display: "flex", justifyContent: "center", alignItems: "center" }}>Amount</div>
-                                        </div>
-                                    </div>
-                                    <div style={{ width: "20%", display: "flex", flexDirection: "column", borderRight: "2px solid black" }}>
-                                        <div style={{ borderBottom: "2px solid black" }}>SGST</div>
-                                        <div style={{ display: "flex", height: "100%" }}>
-                                            <div style={{ width: "40%", borderRight: "2px solid black", display: "flex", justifyContent: "center", alignItems: "center" }}>Rate</div>
-                                            <div style={{ width: "60%", display: "flex", justifyContent: "center", alignItems: "center" }}>Amount</div>
-                                        </div>
-                                    </div>
-                                    <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center" }}> Total Tax Amount</div>
+                           
+                                <div style={{display:"flex",border:"2px solid black",borderTop:"none"}}>
+                                    <div style={{width:"50%",padding:"5px",borderRight:"2px solid black"}}>NOTES</div>
+                                    <div style={{width:"50%",padding:"5px"}}> SIGNATURE / STAMP</div>
                                 </div>
-                                <div className="div2" style={{ height: "20px", textAlign: "center", display: "flex", flexDirection: "row", }}>
-                                    <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>{invoiceData.TotalAmount}</div>
-                                    <div style={{ width: "20%", display: "flex", borderRight: "2px solid black" }}>
-
-                                        <div style={{ width: "40%", borderRight: "2px solid black", paddingTop: "3px" }}> {invoiceData.IGST_Per}%</div>
-                                        <div style={{ width: "60%", paddingTop: "3px" }}> {invoiceData.IGST_Amount}</div>
-
-                                    </div>
-                                    <div style={{ width: "20%", display: "flex", borderRight: "2px solid black" }}>
-
-                                        <div style={{ width: "40%", borderRight: "2px solid black", paddingTop: "3px" }}> {invoiceData.CGST_Per}%</div>
-                                        <div style={{ width: "60%", paddingTop: "3px" }}> {invoiceData.CGST_Amount}</div>
-
-                                    </div>
-                                    <div style={{ width: "20%", display: "flex", borderRight: "2px solid black" }}>
-
-                                        <div style={{ width: "40%", borderRight: "2px solid black", paddingTop: "3px" }}> {invoiceData.SGST_Per}%</div>
-                                        <div style={{ width: "60%", paddingTop: "3px" }}> {invoiceData.SGST_Amount}</div>
-
-                                    </div>
-                                    <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center" }}>{invoiceData.GrandTotal}</div>
+                                 <div style={{display:"flex",border:"2px solid black",borderTop:"none",minHeight:"100px"}}>
+                                    <div style={{width:"50%",padding:"5px",borderRight:"2px solid black"}}>UNSOLICITED GIFT SENT TO MY FRIENDS & FAMILY
+MEMBERS FOR THERE PERSONAL USE ONL</div>
+                                    <div style={{width:"50%",padding:"5px"}}> </div>
                                 </div>
-                            </div>
-                            <div className="third px-0 py-0 mt-2" style={{ border: "2px solid black" }}>
-                                <div style={{ display: "flex", flexDirection: "column", padding: "5px", borderBottom: "2px solid black" }}>
-                                    <div style={{ fontWeight: "bolder", fontSize: "13px" }}> Total Amount (in words)
-                                    </div>
-                                    <div> {invoiceData?.GrandTotal ? numberToIndianCurrency(Number(invoiceData?.GrandTotal)) : ""}</div>
-                                </div>
-                                <div style={{ display: "flex" }}>
-                                    <div style={{ display: "flex", flexDirection: "column", fontSize: "11px", width: "50%", padding: "5px", borderRight: "2px solid black" }}>
-                                        <div style={{ fontWeight: "bolder", fontSize: "13px" }}> Bank Details</div>
-                                        <div style={{ display: "flex" }}><div style={{ width: "30%" }}>Name:</div><div>{invoiceData.Company_Name}</div></div>
-                                        <div style={{ display: "flex" }}><div style={{ width: "30%" }}>IFSC Code:</div><div>{invoiceData.IFSC_Code}</div></div>
-                                        <div style={{ display: "flex" }}><div style={{ width: "30%" }}>Account No:</div><div>{invoiceData.AccountNo}</div></div>
-                                        <div style={{ display: "flex" }}><div style={{ width: "30%" }}> Bank:</div><div>{invoiceData.Bank_Name}</div></div>
-                                    </div>
-                                    <div style={{ display: "flex", width: "50%", flexDirection: "column", justifyContent: "space-around", alignItems: "center", paddingBottom: "5px" }}>
-                                        <div style={{ fontWeight: "bolder", fontSize: "13px" }}>Authorised Signatory For
-                                        </div>
-                                        <div style={{ fontWeight: "bolder", fontSize: "13px" }}>{invoiceData.Company_Name}</div>
-                                    </div>
-                                </div>
-                            </div>
+                                
+                            
                         </div>
                     </div >
                 </div>
