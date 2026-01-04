@@ -517,7 +517,7 @@ function Booking() {
                 setSelectedOriginPinCode(data.Origin_Pincode);
                 setSelectedDestPinCode(data.Dest_PinCode);
 
-                const multiInvoice = res?.Volumetric || [];
+                const multiInvoice = res?.MultiInvoice || [];
 
                 console.log("search", multiInvoice);
                 const formattedInvoices = multiInvoice.length > 0 ? multiInvoice.map(item => ({
@@ -532,9 +532,9 @@ function Booking() {
                     InvoiceImg: item.InvoiceImg || ""
                 })) : [];
                 setInvoiceSubmittedData(formattedInvoices);
-                setSubmittedData(res?.ProformaDetail);
+                setSubmittedData(res?.Volumetric);
                 setVendorSubmittedData(res?.VendorVolumetric);
-                setPinvoiceSubmittedData(res?.MultiInvoice);
+                setPinvoiceSubmittedData(res?.ProformaDetail);
                 // ✅ allow GST calculation AFTER formData update
                 setTimeout(() => {
                     setSkipGstCalc(false);
@@ -1194,7 +1194,7 @@ function Booking() {
 
     useEffect(() => {
         const total = PinvoicesubmittedData.reduce(
-            (acc, d) => acc + parseFloat(d.invVal || 0), 0
+            (acc, d) => acc + parseFloat(d.Remark1 || 0), 0
         );
         if (PinvoicesubmittedData.length == 0) {
             return;
@@ -1370,7 +1370,7 @@ function Booking() {
         e.preventDefault();
         console.log(PinvoiceData);
 
-        if (!PinvoiceData.InvoiceNo || !PinvoiceData.InvoiceValue || !PinvoiceData.Qty || !PinvoiceData.UnitRate) {
+        if (!PinvoiceData.InvoiceNo || !PinvoiceData.Remark1 || !PinvoiceData.Qty || !PinvoiceData.UnitRate) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Missing Information',
@@ -5655,9 +5655,9 @@ function Booking() {
                                                 <td>
                                                     <input
                                                         type="text"
-                                                        name="InvoiceValue"
+                                                        name="Remark1"
                                                         placeholder="Invoice Value"
-                                                        value={PinvoiceData.InvoiceValue}
+                                                        value={PinvoiceData.Remark1}
                                                         style={{ textAlign: "center" }}
                                                         onChange={handlePinvoiceDetailChange}
                                                     />
@@ -5792,7 +5792,7 @@ function Booking() {
                                                 <tr key={index}>
 
                                                     <td>{data.InvoiceNo}</td>
-                                                    <td>{data.InvoiceValue}</td>
+                                                    <td>{data.Remark1}</td>
                                                     <td>{data.InvoiceDate ? new Date(data.InvoiceDate).toLocaleDateString("en-GB") : ""}</td>
                                                     <td>{data.Description}</td>
                                                     <td>{data.HSCode}</td>
