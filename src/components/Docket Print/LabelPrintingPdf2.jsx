@@ -25,7 +25,7 @@ function LabelPrintingPdf2() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await getApi(`/Master/getBranch?Branch_Code=${JSON.parse(localStorage.getItem("Login"))?.Branch_Code}`);
+                const response = await getApi(`/Master/getBranch?Branch_Code=${data[0]?.Branch_Code}`);
                 if (response.status === 1) {
                     console.log(response.Data);
                     setGetBranch(response.Data[0]);
@@ -198,18 +198,22 @@ function LabelPrintingPdf2() {
                                                         <div style={{ display: "flex", width: "100%", padding: "10px", justifyContent: "space-between", color: "gray" }}>
                                                             <div style={{ fontSize: "20px", color: "black", fontWeight: "bold" }}>Deliver To</div>
                                                             <div>{getBranch?.Website}</div>
-                                                            <div>1668</div>
+                                                            <div>{docket?.Customer_Code}</div>
                                                         </div>
                                                         <div style={{ display: "flex", width: "100%", padding: "10px", justifyContent: "space-between", color: "gray" }}>
                                                             <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", fontSize: "12px", gap: "20px" }}>
                                                                 <div style={{ display: "flex", flexDirection: "column" }}>
-                                                                    <div>MEGHNA ARORA</div>
-                                                                    <div>12328B 82 AVENUE</div>
+                                                                    <div>{docket?.Consignee_Name}</div>
+                                                                    <div>{docket?.Consignee_Add1},{docket?.Consignee_Add2}</div>
+                                                                    <div>{docket?.Consignee_Country}-{docket?.Consignee_State_Name}-{docket?.Consignee_Pin}</div>
                                                                 </div>
-                                                                <div>SURRREY - BC - V3W 3E7</div>
+                                                                <div style={{ display: "flex", flexDirection: "column" }}>
+                                                                <div>(+91) {docket?.Consignee_Mob}</div>
+                                                                <div>{docket?.Consignee_Email}</div>
+                                                                </div>
                                                             </div>
-                                                            <div style={{ display: "flex", flexDirection: "column", borderTop: "1px solid black", width: "30%", alignItems: "end" }}>
-                                                                <div style={{ fontSize: "20px", color: "black", fontWeight: "bold" }}>Canada</div>
+                                                            <div style={{ display: "flex", flexDirection: "column", borderTop: "1px solid black", width: "30%", alignItems: "end" ,gap:"10px"}}>
+                                                                <div style={{ fontSize: "18px", color: "black", fontWeight: "bold" ,textAlign:"center"}}>{docket?.Destination_Name}</div>
                                                                 <div style={{ color: "black" }}>{docket?.BookDate}</div>
                                                             </div>
                                                         </div>
@@ -260,12 +264,23 @@ function LabelPrintingPdf2() {
                                                             >
                                                                 <div style={{ display: "flex", justifyContent: "center", fontWeight: "bold", fontSize: "30px" }}>{i + 1} of {docket?.Qty}</div>
                                                                 <div style={{ display: "flex", justifyContent: "center", fontWeight: "bold", flexDirection: "column", alignItems: "center", fontSize: "15px" }}>
-                                                                    <div>9.26 KG</div>
-                                                                    <div style={{ marginTop: "10px" }}>44 X 30 X 36 CM = </div>
-                                                                    <div>9.50 KG</div>
+                                                                    <div>{docket?.VolumetriceData?.reduce((sum, item) => sum + (item.ChargeWt || 0), 0)} KG</div>
+                                                                    <div style={{display:"flex",flexDirection:"column", marginTop: "10px",gap:"2px"}}>
+                                                                        {
+                                                                            docket?.VolumetriceData?.map((v)=>(
+                                                                                <div style={{ fontSize:"10px"}}>{v?.Length} X {v?.Width} X {v?.Height} CM = {v?.ChargeWt} KG</div>
+                                                                            ))
+                                                                        }
+                                                                    </div>
+                                                                    
                                                                 </div>
-                                                                <div style={{ fontSize: "12px" }}> <span style={{ fontWeight: "bold" }}>Content :</span> iohfhd sdhdh jopfjjof kihvhhgf khkvjdjh kjhkdvkjhdf jkdvfvfhd
-                                                                    iohfhd sdhdh jopfjjof kihvhhgf khkvjdjh kjhkdvkjhdf jkdvfvfhd</div>
+                                                                <div style={{ fontSize: "12px" }}> <span style={{ fontWeight: "bold" }}>Content :</span> 
+                                                                {
+                                                                            docket?.PrformaDetails?.map((v)=>(
+                                                                                <span>{v?.Description} ,</span>
+                                                                            ))
+                                                                        }
+                                                                </div>
 
                                                             </div>
                                                         </div>
@@ -288,8 +303,10 @@ function LabelPrintingPdf2() {
 
                                                                     <div style={{ fontWeight: "bold", fontSize: "20px" }}>Shipper :-</div>
                                                                     <div style={{ marginTop: "10px" }}>{docket?.Shipper_Name}</div>
-                                                                    <div >{docket?.ShipperAdd},{docket?.ShipperAdd2},{docket?.ShipperAdd3}</div>
-                                                                    <div>{docket?.Shippercity} - {docket?.Shipper_State_Name}</div>
+                                                                    <div >{docket?.ShipperAdd},{docket?.ShipperAdd2}</div>
+                                                                    <div>{docket?.ShipperAdd3} - {docket?.Shipper_State_Name}</div>
+                                                                    <div style={{marginTop:"10px"}}>(+91) {docket?.ShipperPhone}</div>
+                                                                    <div>{docket?.ShipperEmail}</div>
 
 
                                                                 </div>
@@ -323,7 +340,7 @@ function LabelPrintingPdf2() {
                                                                     <div
                                                                         style={{
                                                                             width: "180px",      // 🔒 fixed width
-                                                                            height: "70px",      // 🔒 fixed height
+                                                                            height: "100px",      // 🔒 fixed height
                                                                             overflow: "hidden",  // 🔒 prevent expansion
                                                                             display: "flex",
                                                                             alignItems: "center",
@@ -331,13 +348,12 @@ function LabelPrintingPdf2() {
                                                                         }}
                                                                     >
                                                                         <BarCode
-                                                                            value={docket?.vendorAwbno || ""}
-                                                                            format="CODE128"
-                                                                            width={1}          // 🔽 thinner bars for long numbers
-                                                                            height={60}          // 🔒 fixed height
-                                                                            displayValue={false} // 🔥 remove text (saves space)
-                                                                            background="#fff"
-                                                                            lineColor="#000"
+                                                                        value={docket?.vendorAwbno}
+                                                                        format='CODE128'
+                                                                        background='#fff'
+                                                                        lineColor='#000'
+                                                                        width={1.5}
+                                                                        height={60}
                                                                         />
                                                                     </div>
 

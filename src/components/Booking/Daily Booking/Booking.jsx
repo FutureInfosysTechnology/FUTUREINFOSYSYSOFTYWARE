@@ -157,7 +157,7 @@ function Booking() {
         ConsigneeMob: "",
         ConsigneeName: "",
         ConsigneeCountry: "",
-        Customer_Code: "",
+        Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
         charge1: 0,
         charge2: 0,
         charge3: 0,
@@ -309,7 +309,7 @@ function Booking() {
     const [remarkData, setRemarkData] = useState({
         Remark: "",
         MHWNo: "",
-        invoiceType: "",
+        invoiceType: "INVOICE",
         curr: "INR",
         inco: "DDU",
         note: "",
@@ -345,7 +345,7 @@ function Booking() {
 
     const [PinvoicesubmittedData, setPinvoiceSubmittedData] = useState([]);
     const [PinvoiceData, setPinvoiceData] = useState({
-        InvoiceNo: "",
+        InvoiceNo: PinvoicesubmittedData.length + 1,
         InvoiceValue: "",
         DocketNO: "",
         InvoiceDate: getTodayDate(),
@@ -408,7 +408,7 @@ function Booking() {
                         DocketNo: data.DocketNo,
                         BookDate: data.BookDate,
                         Customer_Code: data.Customer_Code,
-                        ConsigneeName: data.Receiver_Code,
+                        ConsigneeName: data.Receiver_Code ? data.Receiver_Code : data.Consignee_Name,
                         ConsigneeAdd1: data.Consignee_Add1,
                         ConsigneeAdd2: data.Consignee_Add2,
                         ConsigneeState: data.Consignee_State,
@@ -477,7 +477,7 @@ function Booking() {
                         VendorAwbNo: data.VendorAwbNo,
                         WebAgent: "",
                         ExptDateOfDelvDt: data.ExptDateOfDelvDt,
-                        Shipper_Name: data.Shipper_Code,
+                        Shipper_Name: data.Shipper_Code ? data.Shipper_Code : data.Shipper_Name,
                         ShipperAdd: data.ShipperAdd,
                         ShipperAdd2: data.ShipperAdd2,
                         ShipperAdd3: data.ShipperAdd3,
@@ -510,10 +510,14 @@ function Booking() {
                     TotalGST: data.CGSTAMT + data.SGSTAMT + data.IGSTAMT,
                 })
                 )
-                setRemarkData({
+                setRemarkData(pre => ({
+                    ...pre,
                     Remark: data.Remark,
                     MHWNo: data.MHWNo,
-                });
+                    inco: data.Remark1,
+                    note: data.Remark2,
+                    noteCont: data.Remark3,
+                }));
                 setSelectedOriginPinCode(data.Origin_Pincode);
                 setSelectedDestPinCode(data.Dest_PinCode);
 
@@ -1194,8 +1198,23 @@ function Booking() {
 
     useEffect(() => {
         const total = PinvoicesubmittedData.reduce(
-            (acc, d) => acc + parseFloat(d.Remark1 || 0), 0
+            (acc, d) => acc + parseFloat(d.Amount || 0), 0
         );
+        setPinvoiceData({
+            InvoiceNo: PinvoicesubmittedData.length + 1,
+            InvoiceValue: "",
+            DocketNO: "",
+            InvoiceDate: getTodayDate(),
+            Remark1: "",
+            Remark2: "",
+            Remark3: "",
+            Description: "",
+            HSCode: "",
+            UnitType: "",
+            Qty: 0,
+            UnitRate: 0,
+            Amount: 0,
+        });
         if (PinvoicesubmittedData.length == 0) {
             return;
         }
@@ -1370,7 +1389,7 @@ function Booking() {
         e.preventDefault();
         console.log(PinvoiceData);
 
-        if (!PinvoiceData.InvoiceNo || !PinvoiceData.Remark1 || !PinvoiceData.Qty || !PinvoiceData.UnitRate) {
+        if (!PinvoiceData.InvoiceNo || !PinvoiceData.Qty || !PinvoiceData.UnitRate) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Missing Information',
@@ -1391,21 +1410,7 @@ function Booking() {
             setPinvoiceSubmittedData([...PinvoicesubmittedData, PinvoiceData]);
         }
 
-        setPinvoiceData({
-            InvoiceNo: "",
-            InvoiceValue: "",
-            DocketNO: "",
-            InvoiceDate: getTodayDate(),
-            Remark1: "",
-            Remark2: "",
-            Remark3: "",
-            Description: "",
-            HSCode: "",
-            UnitType: "",
-            Qty: 0,
-            UnitRate: 0,
-            Amount: 0,
-        });
+
     };
 
     // =================================close weight ==============================
@@ -1455,7 +1460,7 @@ function Booking() {
                 Shipper_Name: selectedOption.value,
                 ShipperAdd: selectedOption.shipper_Add1,
                 ShipperAdd2: selectedOption.shipper_Add2,
-                ShipperAdd3: selectedOption.shipper_Add3,
+                ShipperAdd3: selectedOption.City_Name,
                 ShipperCity: selectedOption.City_Code,
                 Shipper_StateCode: selectedOption.State_Code,
                 Shipper_GstNo: selectedOption.GSTNo,
@@ -1982,11 +1987,14 @@ function Booking() {
         const ratePerKg = parseFloat(formData.RatePerkg) || 0;
 
         const highestWeight = Math.max(actual, volumetric, manualCharged);
-        setFormData((prev) => ({
+        if(vendorsubmittedData.length===0)
+        {
+            setFormData((prev) => ({
             ...prev,
             VendorWt: highestWeight,
 
         }));
+        }
         const freightAmount = highestWeight * ratePerKg;
 
         if (freightAmount > 0) {
@@ -2061,7 +2069,7 @@ function Booking() {
             ConsigneeMob: "",
             ConsigneeName: "",
             ConsigneeCountry: "",
-            Customer_Code: "",
+            Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
             charge1: 0,
             charge2: 0,
             charge3: 0,
@@ -2134,6 +2142,8 @@ function Booking() {
             destZoneName: "",
             orgZoneName: ""
         });
+        setInputValue('');
+        setInputValue1('');
 
         setSelectedOriginPinCode('');
         setSelectedDestPinCode('');
@@ -2160,7 +2170,7 @@ function Booking() {
         setRemarkData({
             Remark: "",
             MHWNo: "",
-            invoiceType: "",
+            invoiceType: "INVOICE",
             curr: "INR",
             inco: "DDU",
             note: "",
@@ -2206,7 +2216,7 @@ function Booking() {
         });
 
         setPinvoiceData({
-            InvoiceNo: "",
+            InvoiceNo: PinvoicesubmittedData.length + 1,
             InvoiceValue: "",
             DocketNO: "",
             InvoiceDate: getTodayDate(),
@@ -2226,6 +2236,10 @@ function Booking() {
         setPinvoiceSubmittedData([]);
         setVendorSubmittedData([]);
     };
+
+    function isNumberString(value) {
+        return typeof value === "string" && /^\d+$/.test(value);
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -2253,6 +2267,12 @@ function Booking() {
             });
             return;
         }
+        let Receiver_Code = !isNumberString(formData.ConsigneeName) ? "" : formData.ConsigneeName;
+        let Consignee_Name = !isNumberString(formData.ConsigneeName) ? formData.ConsigneeName : allReceiverOption.find(x => x.value === formData.ConsigneeName)?.label;
+        let Shipper_Code = !isNumberString(formData.Shipper_Name) ? "" : formData.Shipper_Name;
+        let Shipper_Name = !isNumberString(formData.Shipper_Name) ? formData.Shipper_Name : allShipperOption.find(x => x.value === formData.Shipper_Name)?.label;
+
+
         // Step 3: Continue if no errors
         const requestBody = {
             // BASIC
@@ -2265,8 +2285,8 @@ function Booking() {
             UserName: JSON.parse(localStorage.getItem("Login"))?.Employee_Name,
 
             // CONSIGNEE
-            Receiver_Code: formData.ConsigneeName,
-            Consignee_Name: allReceiverOption.find(x => x.value === formData.ConsigneeName)?.label,
+            Receiver_Code: Receiver_Code,
+            Consignee_Name: Consignee_Name,
             Consignee_Add1: formData.ConsigneeAdd1,
             Consignee_Add2: formData.ConsigneeAdd2,
             Consignee_State: formData.ConsigneeState,
@@ -2278,8 +2298,8 @@ function Booking() {
             Consignee_Country: formData.ConsigneeCountry,
 
             // SHIPPER
-            Shipper_Code: formData.Shipper_Name,
-            Shipper_Name: allShipperOption.find(x => x.value === formData.Shipper_Name)?.label,
+            Shipper_Code: Shipper_Code,
+            Shipper_Name: Shipper_Name,
             ActualShipper: formData.ActualShipper,
             ShipperAdd: formData.ShipperAdd,
             ShipperAdd2: formData.ShipperAdd2,
@@ -2359,8 +2379,6 @@ function Booking() {
             // KYC / FLIGHT / TRAIN
             KYC_Type: formData.SkycType,
             KYC_No: formData.SkycNo,
-            C_KYC_Type: formData.CkycType,
-            C_KYC_No: formData.CkycNo,
             Flight_Code: formData.Flight_Code,
             Train_Code: formData.Train_Code,
 
@@ -2376,7 +2394,11 @@ function Booking() {
             MultiInvoice: InvoicesubmittedData,
             Volumetric: submittedData,
             Vendorvolumetric: vendorsubmittedData,
-            ProformaDetail: PinvoicesubmittedData
+            ProformaDetail: PinvoicesubmittedData,
+
+            Remark1: remarkData.inco,
+            Remark2: remarkData.note,
+            Remark3: remarkData.noteCont,
         };
 
         // Step 4: Submit
@@ -2451,6 +2473,25 @@ function Booking() {
         if (!formData.Mode_Code) errors.push("Mode_Name is required");
         if (!formData.OriginCode) errors.push("Origin_Name is required");
         if (!formData.QtyOrderEntry || parseFloat(formData.QtyOrderEntry) <= 0) errors.push("Quantity must be greater than 0");
+        // if (!formData.DoxSpx) errors.push("DoxSpx is required");
+        // if (!formData.RateType) errors.push("RateType is required");
+
+        // You can add more required validations here as needed...
+
+        // Step 2: If errors, show and return early
+        if (errors.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: errors.map(err => `<div>${err}</div>`).join(''),
+            });
+            return;
+        }
+
+        let Receiver_Code = !isNumberString(formData.ConsigneeName) ? "" : formData.ConsigneeName;
+        let Consignee_Name = !isNumberString(formData.ConsigneeName) ? formData.ConsigneeName : allReceiverOption.find(x => x.value === formData.ConsigneeName)?.label;
+        let Shipper_Code = !isNumberString(formData.Shipper_Name) ? "" : formData.Shipper_Name;
+        let Shipper_Name = !isNumberString(formData.Shipper_Name) ? formData.Shipper_Name : allShipperOption.find(x => x.value === formData.Shipper_Name)?.label;
         const requestBody = {
             // BASIC
             Location_Code: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
@@ -2462,8 +2503,8 @@ function Booking() {
             UserName: JSON.parse(localStorage.getItem("Login"))?.Employee_Name,
 
             // CONSIGNEE
-            Receiver_Code: formData.ConsigneeName,
-            Consignee_Name: allReceiverOption.find(x => x.value === formData.ConsigneeName)?.label,
+            Receiver_Code: Receiver_Code,
+            Consignee_Name: Consignee_Name,
             Consignee_Add1: formData.ConsigneeAdd1,
             Consignee_Add2: formData.ConsigneeAdd2,
             Consignee_State: formData.ConsigneeState,
@@ -2475,8 +2516,8 @@ function Booking() {
             Consignee_Country: formData.ConsigneeCountry,
 
             // SHIPPER
-            Shipper_Code: formData.Shipper_Name,
-            Shipper_Name: allShipperOption.find(x => x.value === formData.Shipper_Name)?.label,
+            Shipper_Code: Shipper_Code,
+            Shipper_Name: Shipper_Name,
             ActualShipper: formData.ActualShipper,
             ShipperAdd: formData.ShipperAdd,
             ShipperAdd2: formData.ShipperAdd2,
@@ -2572,6 +2613,10 @@ function Booking() {
             Volumetric: submittedData,
             Vendorvolumetric: vendorsubmittedData,
             ProformaDetail: PinvoicesubmittedData,
+
+            Remark1: remarkData.inco,
+            Remark2: remarkData.note,
+            Remark3: remarkData.noteCont,
         };
         try {
             const res = await putApi(`/Booking/OrderEntryUpdate`, requestBody);
@@ -2666,6 +2711,7 @@ function Booking() {
     const allProductOptions = getProduct.map(p => ({
         value: p.Product_Name,   // what you store
         label: p.Product_Name, // visible in dropdown
+        Code: p.Product_Code
     }));
 
     const unitTypeOptions = [
@@ -2894,6 +2940,31 @@ function Booking() {
                                                 className="form-control custom-input"
                                             />
                                         </div>
+
+                                        <div className="input-field">
+                                            <label htmlFor="shipper-address">Shipper Address</label>
+                                            <input
+                                                type="text"
+                                                id="shipper-address"
+                                                placeholder="Shipper Address"
+                                                value={formData.ShipperAdd2}
+                                                onChange={(e) => setFormData({ ...formData, ShipperAdd2: e.target.value })}
+                                                className="form-control custom-input"
+                                            />
+                                        </div>
+
+                                        <div className="input-field">
+                                            <label>City Name</label>
+                                            <input
+                                                type="text"
+                                                placeholder="City"
+
+                                                value={formData.ShipperAdd3}
+                                                className="form-control custom-input"
+                                                onChange={(e) => setFormData({ ...formData, ShipperAdd3: e.target.value })}
+
+                                            />
+                                        </div>
                                         <div className="input-field">
                                             <label htmlFor="">State Name</label>
                                             <Select
@@ -2930,92 +3001,7 @@ function Booking() {
 
                                         </div>
 
-                                        <div className="input-field">
-                                            <label>KYC Type</label>
 
-                                            <Select
-                                                className="blue-selectbooking"
-                                                classNamePrefix="blue-selectbooking"
-                                                options={getKyc.map(kyc => ({
-                                                    value: kyc.KYC_Code,
-                                                    label: kyc.KYC_Name
-                                                }))}
-                                                value={
-                                                    formData.SkycType
-                                                        ? {
-                                                            value: formData.SkycType,
-                                                            label: getKyc.find(kyc => kyc.KYC_Code === formData.SkycType)?.KYC_Name || ""
-                                                        }
-                                                        : null
-                                                }
-                                                onChange={(selectedOption) => {
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        SkycType: selectedOption.value
-                                                    }));
-                                                }}
-                                                placeholder="Select KYC Type"
-                                                isSearchable
-                                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
-                                                styles={{
-                                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="input-field">
-                                            <label htmlFor="kyc-no">KYC No</label>
-                                            <input
-                                                type="text"
-                                                id="shipper-adhaar"
-                                                placeholder="KYC No"
-                                                value={formData.SkycNo}
-                                                onChange={(e) => setFormData({ ...formData, SkycNo: e.target.value })}
-                                                className="form-control custom-input"
-                                            />
-                                        </div>
-
-                                        <div className="input-field">
-                                            <label htmlFor="upload-kyc">Upload KYC</label>
-
-                                            <input
-                                                type="file"
-                                                id="upload-kyc"
-                                                className="form-control custom-input"
-                                                accept=".jpg,.jpeg,.png,.pdf"
-                                                style={{
-                                                    paddingTop: "8px",
-
-                                                }}
-                                                onChange={(e) =>
-                                                    setFormData({
-                                                        ...formData,
-                                                        uploadkyc1: e.target.files[0], // ✅ store file object
-                                                    })
-                                                }
-                                            />
-                                        </div>
-
-                                        <div className="input-field">
-                                            <label htmlFor="upload-kyc">Upload KYC</label>
-
-                                            <input
-                                                type="file"
-                                                id="upload-kyc"
-                                                className="form-control custom-input"
-                                                accept=".jpg,.jpeg,.png,.pdf"
-                                                style={{
-                                                    paddingTop: "8px",
-
-                                                }}
-                                                onChange={(e) =>
-                                                    setFormData({
-                                                        ...formData,
-                                                        uploadkyc2: e.target.files[0], // ✅ store file object
-                                                    })
-                                                }
-                                            />
-                                        </div>
 
 
 
@@ -3035,7 +3021,8 @@ function Booking() {
                                             <input
                                                 type="text"
                                                 placeholder="Post / Zip Code"
-                                                maxLength={6}
+                                                maxLength={9}
+                                                pattern="[0-9]{8}"
                                                 value={formData.ShipperPin}
                                                 onChange={(e) => setFormData({ ...formData, ShipperPin: e.target.value })}
                                             />
@@ -3045,15 +3032,111 @@ function Booking() {
                                     </>}
                                     <div className="input-field1">
                                         <label htmlFor="">Booking Mode</label>
-                                        <select value={formData.BookMode} onChange={(e) => setFormData({ ...formData, BookMode: e.target.value })}>
-                                            <option value="" disabled>Select Booking Mode</option>
-                                            <option value="Cash">Cash</option>
-                                            <option value="Credit">Credit</option>
-                                            <option value="To-pay">To-pay</option>
-                                            <option value="Google Pay">Google Pay</option>
-                                            <option value="RTGS">RTGS</option>
-                                            <option value="NEFT">NEFT</option>
-                                        </select>
+                                        {
+                                            formData.Customer_Code ?
+                                                <input value={formData.BookMode} onChange={(e) => setFormData({ ...formData, BookMode: e.target.value })}
+                                                    readOnly />
+                                                :
+
+
+                                                <select value={formData.BookMode} onChange={(e) => setFormData({ ...formData, BookMode: e.target.value })}
+                                                    readOnly>
+                                                    <option value="" disabled>Select Booking Mode</option>
+                                                    <option value="Cash">Cash</option>
+                                                    <option value="Credit">Credit</option>
+                                                    <option value="To-pay">To-pay</option>
+                                                    <option value="Google Pay">Google Pay</option>
+                                                    <option value="RTGS">RTGS</option>
+                                                    <option value="NEFT">NEFT</option>
+                                                </select>
+                                        }
+                                    </div>
+
+                                    <div className="input-field">
+                                        <label>KYC Type</label>
+
+                                        <Select
+                                            className="blue-selectbooking"
+                                            classNamePrefix="blue-selectbooking"
+                                            options={getKyc.map(kyc => ({
+                                                value: kyc.KYC_Code,
+                                                label: kyc.KYC_Name
+                                            }))}
+                                            value={
+                                                formData.SkycType
+                                                    ? {
+                                                        value: formData.SkycType,
+                                                        label: getKyc.find(kyc => kyc.KYC_Code === formData.SkycType)?.KYC_Name || ""
+                                                    }
+                                                    : null
+                                            }
+                                            onChange={(selectedOption) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    SkycType: selectedOption.value
+                                                }));
+                                            }}
+                                            placeholder="Select KYC Type"
+                                            isSearchable
+                                            menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                            styles={{
+                                                menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="input-field">
+                                        <label htmlFor="kyc-no">KYC No</label>
+                                        <input
+                                            type="text"
+                                            id="shipper-adhaar"
+                                            placeholder="KYC No"
+                                            value={formData.SkycNo}
+                                            onChange={(e) => setFormData({ ...formData, SkycNo: e.target.value })}
+                                            className="form-control custom-input"
+                                        />
+                                    </div>
+
+                                    <div className="input-field">
+                                        <label htmlFor="upload-kyc">Upload KYC</label>
+
+                                        <input
+                                            type="file"
+                                            id="upload-kyc"
+                                            className="form-control custom-input"
+                                            accept=".jpg,.jpeg,.png,.pdf"
+                                            style={{
+                                                paddingTop: "8px",
+
+                                            }}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    uploadkyc1: e.target.files[0], // ✅ store file object
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="input-field">
+                                        <label htmlFor="upload-kyc">Upload KYC</label>
+
+                                        <input
+                                            type="file"
+                                            id="upload-kyc"
+                                            className="form-control custom-input"
+                                            accept=".jpg,.jpeg,.png,.pdf"
+                                            style={{
+                                                paddingTop: "8px",
+
+                                            }}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    uploadkyc2: e.target.files[0], // ✅ store file object
+                                                })
+                                            }
+                                        />
                                     </div>
 
                                     <div className="fields2" style={{ width: "100%", whiteSpace: "nowrap", paddingRight: "0.5rem" }}>
@@ -3456,13 +3539,13 @@ function Booking() {
                                                                 ConsigneeName: selectedOption.value,
                                                                 Consignee_City: selectedOption.City_Code,
                                                                 ConsigneeState: selectedOption.State_Code,
-                                                                ConsigneeCountry: "INDIA",
                                                                 ConsigneePin: selectedOption.Receiver_Pin,
                                                                 ConsigneeMob: selectedOption.Receiver_Mob,
                                                                 ConsigneeEmail: selectedOption.Receiver_Email,
                                                                 ConsigneeAdd1: selectedOption.Receiver_Add1,
                                                                 ConsigneeAdd2: selectedOption.Receiver_Add2,
                                                                 ConsigneeGST: selectedOption.GSTNo,
+                                                                ConsigneeCountry: selectedOption.City_Name
                                                             }));
                                                         }
                                                         else {
@@ -3591,10 +3674,10 @@ function Booking() {
                                         </div>
 
                                         <div className="input-field">
-                                            <label>Country</label>
+                                            <label>City Name</label>
                                             <input
                                                 type="text"
-                                                placeholder="Country"
+                                                placeholder="City"
                                                 value={formData.ConsigneeCountry}
                                                 onChange={(e) => setFormData({ ...formData, ConsigneeCountry: e.target.value })}
                                             />
@@ -3619,8 +3702,8 @@ function Booking() {
                                                 type="text"
                                                 placeholder="Post / Zip Code"
                                                 value={formData.ConsigneePin}
-                                                maxLength={6}
-                                                pattern="[0-9]{6}"
+                                                maxLength={9}
+                                                pattern="[0-9]{8}"
                                                 onChange={(e) => setFormData({ ...formData, ConsigneePin: e.target.value })}
                                             />
                                         </div>
@@ -4797,7 +4880,7 @@ function Booking() {
                                         </div>
 
                                         <div className="input-field1">
-                                            <label htmlFor="" style={{visibility:"hidden"}}>Note Content</label>
+                                            <label htmlFor="" style={{ visibility: "hidden" }}>Note Content</label>
                                             <input type="text" value={remarkData.noteCont}
                                                 readOnly
                                                 onChange={(e) => setRemarkData({ ...remarkData, noteCont: e.target.value })} />
@@ -5624,8 +5707,6 @@ function Booking() {
                                             <tr>
 
                                                 <th>Invoice No</th>
-                                                <th>Invoice Value</th>
-                                                <th>Invoice Date</th>
                                                 <th>Description</th>
                                                 <th>HS Code</th>
                                                 <th>Unit Type</th>
@@ -5648,32 +5729,12 @@ function Booking() {
                                                         placeholder="Invoice No"
                                                         value={PinvoiceData.InvoiceNo}
                                                         style={{ textAlign: "center" }}
+                                                        readOnly
                                                         onChange={handlePinvoiceDetailChange}
                                                     />
                                                 </td>
 
-                                                <td>
-                                                    <input
-                                                        type="text"
-                                                        name="Remark1"
-                                                        placeholder="Invoice Value"
-                                                        value={PinvoiceData.Remark1}
-                                                        style={{ textAlign: "center" }}
-                                                        onChange={handlePinvoiceDetailChange}
-                                                    />
-                                                </td>
 
-                                                <td>
-                                                    <DatePicker
-                                                        portalId="root-portal"
-                                                        selected={PinvoiceData.InvoiceDate ? new Date(PinvoiceData.InvoiceDate) : null}
-                                                        onChange={(date) =>
-                                                            setPinvoiceData({ ...PinvoiceData, InvoiceDate: date })
-                                                        }
-                                                        dateFormat="dd/MM/yyyy"
-                                                        placeholderText="dd/mm/yyyy"
-                                                    />
-                                                </td>
 
                                                 <td style={{ width: "200px" }}>
                                                     <Select
@@ -5689,6 +5750,7 @@ function Booking() {
                                                             setPinvoiceData(prev => ({
                                                                 ...prev,
                                                                 Description: selectedOption.value,
+                                                                HSCode: selectedOption.Code
                                                             }));
                                                         }}
                                                         placeholder="Description"
@@ -5792,8 +5854,6 @@ function Booking() {
                                                 <tr key={index}>
 
                                                     <td>{data.InvoiceNo}</td>
-                                                    <td>{data.Remark1}</td>
-                                                    <td>{data.InvoiceDate ? new Date(data.InvoiceDate).toLocaleDateString("en-GB") : ""}</td>
                                                     <td>{data.Description}</td>
                                                     <td>{data.HSCode}</td>
                                                     <td>{data.UnitType}</td>
@@ -5813,11 +5873,12 @@ function Booking() {
 
                                                         <button
                                                             className="edit-btn"
-                                                            onClick={() =>
+                                                            onClick={() => {
                                                                 setPinvoiceSubmittedData(
                                                                     PinvoicesubmittedData.filter((_, i) => i !== index)
-                                                                )
-                                                            }
+                                                                );
+
+                                                            }}
                                                         >
                                                             <i className="bi bi-trash"></i>
                                                         </button>

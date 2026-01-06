@@ -45,7 +45,7 @@ function NewPodEntry() {
     const fetchData = async (endpoint, setData) => {
         try {
             const response = await getApi(endpoint);
-            setData(Array.isArray(response.Data) ? response.Data : []);
+            setData(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             console.error('Fetch Error:', err);
             setError(err);
@@ -56,7 +56,7 @@ function NewPodEntry() {
 
     useEffect(() => {
         console.log(today.toISOString().slice(11, 16), "+", today.toLocaleTimeString().slice(0, 5));
-        fetchData('/Master/getdomestic', setGetCity);
+        fetchData(`/Master/GetInterDomestic?Product_Type=International`, setGetCity);
 
     }, []);
 

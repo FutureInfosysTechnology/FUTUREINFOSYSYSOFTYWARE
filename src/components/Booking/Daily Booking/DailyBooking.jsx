@@ -27,7 +27,6 @@ function DailyBooking() {
   // ===================== TABS LIST WITH PERMISSIONS =====================
   const tabs = [
     { id: "vendor", label: "Docket Booking", component: <Booking />, show: has("DocketBooking") },
-    { id: "print", label: "Docket Print", component: <BookingPrint />, show: has("DocketPrint1") },
     { id: "viewPerformance", label: "Performa Invoice", component: <Performa />, show: 1},
     { id: "Forwarding", label: "Forwarding international", component: <ForwardingInt />, show: 1},
     { id: "vendorrate", label: "Cash To Pay Received", component: <DailyExpenses />, show: has("CoshTopayBooking") },
