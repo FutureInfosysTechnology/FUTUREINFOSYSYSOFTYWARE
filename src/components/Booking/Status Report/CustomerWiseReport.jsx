@@ -30,13 +30,27 @@ function CustomerWiseReport() {
   { value: "RTO", label: "RTO" },
   { value: "Shipment Booked", label: "Shipment Booked" },
   ];
-  const allOptions = [
+  const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+  const allOptions =
+   JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin"
+       ?
+   [
     { label: "ALL Customer", value: "ALL Customer" },
     ...getCustomer.map((cust) => ({
       label: cust.Customer_Name,
       value: cust.Customer_Name,
     })),
-  ];
+  ]
+  :
+  Array.isArray(getCustomer) && getCustomer.length > 0
+        ? getCustomer
+        .filter(cust => cust.Customer_Code === loginCustomerCode)
+          .map(cust => ({
+            label: cust.Customer_Name,
+            value: cust.Customer_Name,
+            Customer_Code:cust.Customer_Code
+          }))
+        : []
   const branchOptions = [
     { value: "All Branch", label: "All Branch" }, // default option
     ...getBranch.map(city => ({
@@ -48,7 +62,7 @@ function CustomerWiseReport() {
   const [formData, setFormData] = useState({
     fromdt: firstDayOfMonth,
     todt: today,
-    CustomerName: "ALL Customer",
+    CustomerName: JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin" ? "ALL Customer" : allOptions.find(f=>f.Customer_Code===JSON.parse(localStorage.getItem("Login"))?.Customer_Code)?.label,
     status: "ALL Status",
     branch: "All Branch",
   });

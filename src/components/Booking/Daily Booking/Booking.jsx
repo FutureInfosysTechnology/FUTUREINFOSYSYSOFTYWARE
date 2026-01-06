@@ -21,6 +21,8 @@ function Booking() {
     const location = useLocation();
     const [inputValue, setInputValue] = useState("");
     const [inputValue1, setInputValue1] = useState("");
+    const [inputValue3, setInputValue3] = useState("");
+    const [inputValue2, setInputValue2] = useState("");
     const [skipGstCalc, setSkipGstCalc] = useState(false);
     const [UseInput, setUseInput] = useState(0);
     // Utility function to format date safely
@@ -1215,6 +1217,8 @@ function Booking() {
             UnitRate: 0,
             Amount: 0,
         });
+        setInputValue3('');
+        setInputValue2('');
         if (PinvoicesubmittedData.length == 0) {
             return;
         }
@@ -1987,13 +1991,12 @@ function Booking() {
         const ratePerKg = parseFloat(formData.RatePerkg) || 0;
 
         const highestWeight = Math.max(actual, volumetric, manualCharged);
-        if(vendorsubmittedData.length===0)
-        {
+        if (vendorsubmittedData.length === 0) {
             setFormData((prev) => ({
-            ...prev,
-            VendorWt: highestWeight,
+                ...prev,
+                VendorWt: highestWeight,
 
-        }));
+            }));
         }
         const freightAmount = highestWeight * ratePerKg;
 
@@ -2086,7 +2089,7 @@ function Booking() {
             DestinationCode: "",
             DocketChrgs: 0,
             DocketNo: "",
-            DoxSpx: "Box",
+            DoxSpx: "Dox",
             DispatchDate: getTodayDate(),
             EwayBill: "",
             ExptDateOfDelvDt: "",
@@ -2144,6 +2147,8 @@ function Booking() {
         });
         setInputValue('');
         setInputValue1('');
+        setInputValue2('');
+        setInputValue3('');
 
         setSelectedOriginPinCode('');
         setSelectedDestPinCode('');
@@ -2748,7 +2753,33 @@ function Booking() {
     const allVendorOption = getMode?.length > 0 ? getVendor.map(Vendr => ({ label: Vendr.Vendor_Name, value: Vendr.Vendor_Code })) : [];
 
 
-    const allCustomerOptions = getCustomerdata?.length > 0 ? getCustomerdata.map(cust => ({ label: cust.Customer_Name, value: cust.Customer_Code.toString(), Booking_Type: cust.Booking_Type, CustomerGst: cust.CustomerGst, CustomerFuel: cust.CustomerFuel })) : [];
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+
+    const allCustomerOptions =
+       JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin"
+       ?
+       Array.isArray(getCustomerdata) && getCustomerdata.length > 0
+            ? getCustomerdata
+                .map(cust => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code.toString(),
+                    Booking_Type: cust.Booking_Type,
+                    CustomerGst: cust.CustomerGst,
+                    CustomerFuel: cust.CustomerFuel
+                }))
+            : []
+            :
+        Array.isArray(getCustomerdata) && getCustomerdata.length > 0
+            ? getCustomerdata
+                .filter(cust => cust.Customer_Code === loginCustomerCode)
+                .map(cust => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code.toString(),
+                    Booking_Type: cust.Booking_Type,
+                    CustomerGst: cust.CustomerGst,
+                    CustomerFuel: cust.CustomerFuel
+                }))
+            : [];
 
 
 
@@ -3528,7 +3559,7 @@ function Booking() {
                                                     value={
                                                         formData.ConsigneeName
                                                             ? allReceiverOption.find((opt) => opt.value === formData.ConsigneeName) ||
-                                                            { value: formData.ConsigneeName, label: inputValue || formData.ConsigneeName }
+                                                            { value: formData.ConsigneeName, label: inputValue1 || formData.ConsigneeName }
                                                             : null
                                                     }
                                                     onChange={(selectedOption) => {
@@ -3639,37 +3670,13 @@ function Booking() {
 
                                         <div className="input-field">
                                             <label htmlFor="">State Name</label>
-                                            <Select
-                                                className="blue-selectbooking"
-                                                classNamePrefix="blue-selectbooking"
-                                                options={getState.map((st) => ({
-                                                    value: st.State_Code,
-                                                    label: st.State_Name,
-                                                }))}
-                                                value={
-                                                    formData.ConsigneeState
-                                                        ? {
-                                                            value: formData.ConsigneeState,
-                                                            label:
-                                                                getState.find((s) => s.State_Code === formData.ConsigneeState)
-                                                                    ?.State_Name || "",
-                                                        }
-                                                        : null
-                                                }
-                                                onChange={(selected) =>
-                                                    setFormData({
-                                                        ...formData,
-                                                        ConsigneeState: selected ? selected.value : "",
-                                                    })
-                                                }
-                                                placeholder="Select State"
-                                                isSearchable={true}
-                                                isClearable={false}
-                                                menuPortalTarget={document.body}
-                                                styles={{
-                                                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                                }}
+                                            <input
+                                                type="text"
+                                                placeholder="State"
+                                                value={formData.ConsigneeState}
+                                                onChange={(e) => setFormData({ ...formData, ConsigneeState: e.target.value })}
                                             />
+
 
                                         </div>
 
@@ -3862,7 +3869,7 @@ function Booking() {
                                             <select name="" id="" value={formData.DoxSpx}
                                                 onChange={(e) => setFormData({ ...formData, DoxSpx: e.target.value })}>
                                                 <option value="Dox">Dox</option>
-                                                <option value="Spx">Spx</option>
+                                                <option value="Non Dox">Non Dox</option>
                                             </select>
                                         </div>}
 
@@ -5737,14 +5744,17 @@ function Booking() {
 
 
                                                 <td style={{ width: "200px" }}>
-                                                    <Select
+                                                    <CreatableSelect
                                                         className="blue-selectbooking"
                                                         classNamePrefix="blue-selectbooking"
                                                         options={allProductOptions}
                                                         value={
                                                             PinvoiceData.Description
-                                                                ? allProductOptions.find(opt => opt.value === PinvoiceData.Description)
+                                                                ? allProductOptions.find(opt => opt.value === PinvoiceData.Description) ||
+                                                                { value: formData.Shipper_Name, label: inputValue || formData.Shipper_Name }
                                                                 : null
+
+
                                                         }
                                                         onChange={(selectedOption) => {
                                                             setPinvoiceData(prev => ({
@@ -5754,7 +5764,21 @@ function Booking() {
                                                             }));
                                                         }}
                                                         placeholder="Description"
+                                                        inputValue={inputValue3}
+                                                        onInputChange={(val, meta) => {
+                                                            if (meta.action === "input-change") {
+                                                                // ✅ Immediately reflect what user is typing
+                                                                setInputValue3(val);
 
+                                                                // ✅ Also update formData live so label and value stay in sync
+                                                                setPinvoiceData((prev) => ({
+                                                                    ...prev,
+                                                                    Description: val,
+                                                                }));
+                                                            }
+                                                        }}
+
+                                                        formatCreateLabel={(inputValue3) => `Create "${inputValue3}"`}
                                                         isSearchable
                                                         menuPortalTarget={document.body}
                                                         styles={{
@@ -5777,7 +5801,7 @@ function Booking() {
                                                 </td>
 
                                                 <td style={{ width: "120px" }}>
-                                                    <Select
+                                                    <CreatableSelect
                                                         className="blue-selectbooking"
                                                         classNamePrefix="blue-selectbooking"
                                                         options={unitTypeOptions}
@@ -5792,8 +5816,23 @@ function Booking() {
                                                                 UnitType: selectedOption.value,
                                                             }));
                                                         }}
-                                                        placeholder="Unit Type"
+                                                        inputValue={inputValue2}
+                                                        onInputChange={(val, meta) => {
+                                                            if (meta.action === "input-change") {
+                                                                // ✅ Immediately reflect what user is typing
+                                                                setInputValue2(val);
+
+                                                                // ✅ Also update formData live so label and value stay in sync
+                                                                setPinvoiceData((prev) => ({
+                                                                    ...prev,
+                                                                    UnitType: val,
+                                                                }));
+                                                            }
+                                                        }}
+
+                                                        formatCreateLabel={(inputValue2) => `Create "${inputValue2}"`}
                                                         isSearchable
+                                                        placeholder="Unit Type"
                                                         menuPlacement="bottom"          // ✅ force dropdown below
                                                         menuPortalTarget={document.body}
                                                         styles={{
@@ -5865,6 +5904,8 @@ function Booking() {
                                                             className="edit-btn"
                                                             onClick={() => {
                                                                 setPinvoiceData(data);
+                                                                // setInputValue2(data.UnitType)
+                                                                // setInputValue3(data.Description)
                                                                 setEditIndex(index);
                                                             }}
                                                         >

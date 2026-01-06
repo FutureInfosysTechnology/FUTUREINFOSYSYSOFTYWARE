@@ -114,7 +114,7 @@ function Performa() {
             if (response.status === 1) {
                 console.log(response);
                 console.log(response.Data);
-                response.Data && navigate("/labelprint2", { state: { data: response.Data, path: location.pathname, tab: "viewPerformance" } });
+                response.Data && navigate("/labelprint2", { state: { data: response.Data, BranchDetails:response.BranchDetails,path: location.pathname, tab: "viewPerformance" } });
             }
             else {
                 Swal.fire("Warning", `Warong Docket Number`, "warning");

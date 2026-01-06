@@ -14,7 +14,6 @@ import { toWords } from "number-to-words";
 function LabelPrintingPdf2() {
     const [getBranch, setGetBranch] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [total, setTotal] = useState(0);
     const navigate = useNavigate();
     const location = useLocation();
     console.log(location);
@@ -23,20 +22,21 @@ function LabelPrintingPdf2() {
     const tab = location?.state?.tab;
     const [data, setData] = useState([]);
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await getApi(`/Master/getBranch?Branch_Code=${data[0]?.Branch_Code}`);
-                if (response.status === 1) {
-                    console.log(response.Data);
-                    setGetBranch(response.Data[0]);
-                }
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
+        // const fetchData = async () => {
+        //     try {
+        //         const response = await getApi(`/Master/getBranch?Branch_Code=${data[0]?.Branch_Code}`);
+        //         if (response.status === 1) {
+        //             console.log(response.Data);
+        //             setGetBranch(response.Data[0]);
+        //         }
+        //     }
+        //     catch (error) {
+        //         console.log(error);
+        //     }
+        // }
         setData(location?.state?.data || []);
-        fetchData();
+        setGetBranch(location?.state?.BranchDetails || []);
+        // fetchData();
     }, [])
     function numberToIndianCurrency(num) {
         if (!num || isNaN(num)) return "";
@@ -193,11 +193,11 @@ function LabelPrintingPdf2() {
                                                 <div className='download'>
                                                     <div className="container" style={{ border: "1px solid black", padding: "0px", width: "450px", display: "flex", flexDirection: "column" }}>
                                                         <div style={{ display: "flex", width: "100%", padding: "10px", justifyContent: "center" }}>
-                                                            <img src={getBranch?.Branch_Logo} style={{ width: "70%", height: "120px" }} />
+                                                            <img src={getBranch[0]?.Branch_Logo} style={{ width: "70%", height: "120px" }} />
                                                         </div>
                                                         <div style={{ display: "flex", width: "100%", padding: "10px", justifyContent: "space-between", color: "gray" }}>
                                                             <div style={{ fontSize: "20px", color: "black", fontWeight: "bold" }}>Deliver To</div>
-                                                            <div>{getBranch?.Website}</div>
+                                                            <div>www.aslogisticsexpress.com</div>
                                                             <div>{docket?.Customer_Code}</div>
                                                         </div>
                                                         <div style={{ display: "flex", width: "100%", padding: "10px", justifyContent: "space-between", color: "gray" }}>
@@ -348,7 +348,7 @@ function LabelPrintingPdf2() {
                                                                         }}
                                                                     >
                                                                         <BarCode
-                                                                        value={docket?.vendorAwbno}
+                                                                        value={docket?.VendorAwbNo}
                                                                         format='CODE128'
                                                                         background='#fff'
                                                                         lineColor='#000'

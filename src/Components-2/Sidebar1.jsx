@@ -292,7 +292,7 @@ function Sidebar1() {
                 </li>
 
 
-                <li className="nav-item">
+                {show?.UserType=="Admin" &&<li className="nav-item">
                     <span className="nav-link collapsed"
                         onClick={() => toggleMenu('userControl')}>
                         <i className="bi bi-universal-access"></i>
@@ -315,7 +315,7 @@ function Sidebar1() {
                             </Link>
                         </li>
                     </ul>
-                </li>
+                </li>}
 
             </ul>
         </aside >
