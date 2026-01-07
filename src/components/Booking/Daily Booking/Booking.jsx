@@ -16,7 +16,7 @@ import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
 import { useLocation, useNavigate } from "react-router-dom";
 
 
-function Booking() {
+function Booking({ selectedDocket, setSelectedDocket }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [inputValue, setInputValue] = useState("");
@@ -384,20 +384,41 @@ function Booking() {
         }
     };
 
-    const handleSearch = async (docket) => {
-        if (!formData.DocketNo) return Swal.fire("Warning", "Enter Docket No", "warning");
-        if (fecthed === formData.DocketNo) {
-            return Swal.fire("Warning", `Docket ${formData.DocketNo} already Fetched`, "warning");
+    const handleSearch = async (docket, source) => {
+        // if (!formData.DocketNo) return Swal.fire("Warning", "Enter Docket No", "warning");
+        // if (fecthed === formData.DocketNo) {
+        //     return Swal.fire("Warning", `Docket ${formData.DocketNo} already Fetched`, "warning");
+        // }
+        const docketNo = docket || formData.DocketNo;
+        const fromPerforma = Boolean(docket); //
+
+        // 🚫 no docket
+        if (!docketNo) {
+            return Swal.fire("Warning", "Enter Docket No", "warning");
         }
+
+        // 🚫 already fetched
+        if (fecthed === docketNo) {
+            return Swal.fire(
+                "Warning",
+                `Docket ${docketNo} already Fetched`,
+                "warning"
+            );
+        }
+
         try {
             setSkipGstCalc(true);
-            const res = await getApi(`/Booking/getOrderByDocket?docketNo=${formData.DocketNo}`);
+            const res = await getApi(`/Booking/getOrderByDocket?docketNo=${docketNo}`);
             if (res.Success === 1 && res.OrderEntry) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: "Data Fecthed Successfuly",
-                    icon: 'success',
-                });
+                // ✅ SHOW SUCCESS ONLY FOR MANUAL SEARCH
+                // ✅ SHOW SUCCESS ONLY FOR MANUAL SEARCH
+                if (source === "manual") {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Data Fetched Successfully",
+                        icon: "success",
+                    });
+                }
 
                 setFecthed(docket);
                 const data = res.OrderEntry;
@@ -936,7 +957,7 @@ function Booking() {
 
 
 
-    const onToggle = () => setToggleActive(!toggleActive);
+
     const handleCheckChange = (e) => {
         const { name, checked } = e.target;
 
@@ -2047,6 +2068,30 @@ function Booking() {
 
 
 
+    useEffect(() => {
+        if (!selectedDocket) return;
+
+        // 1️⃣ set docket in form
+        setFormData(prev => ({
+            ...prev,
+            DocketNo: selectedDocket,
+        }));
+
+        // 2️⃣ force toggle ON (from Performa)
+        setToggleActive(true);
+
+        // 3️⃣ auto search (no Swal)
+        handleSearch(selectedDocket, "performa");
+
+        // 4️⃣ clear
+        setSelectedDocket(null);
+
+    }, [selectedDocket]);
+
+    useEffect(() => {
+        console.log("Active:", toggleActive);
+    }, [toggleActive])
+
 
 
 
@@ -2756,30 +2801,30 @@ function Booking() {
     const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
 
     const allCustomerOptions =
-       JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin"
-       ?
-       Array.isArray(getCustomerdata) && getCustomerdata.length > 0
-            ? getCustomerdata
-                .map(cust => ({
-                    label: cust.Customer_Name,
-                    value: cust.Customer_Code.toString(),
-                    Booking_Type: cust.Booking_Type,
-                    CustomerGst: cust.CustomerGst,
-                    CustomerFuel: cust.CustomerFuel
-                }))
-            : []
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            Array.isArray(getCustomerdata) && getCustomerdata.length > 0
+                ? getCustomerdata
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code.toString(),
+                        Booking_Type: cust.Booking_Type,
+                        CustomerGst: cust.CustomerGst,
+                        CustomerFuel: cust.CustomerFuel
+                    }))
+                : []
             :
-        Array.isArray(getCustomerdata) && getCustomerdata.length > 0
-            ? getCustomerdata
-                .filter(cust => cust.Customer_Code === loginCustomerCode)
-                .map(cust => ({
-                    label: cust.Customer_Name,
-                    value: cust.Customer_Code.toString(),
-                    Booking_Type: cust.Booking_Type,
-                    CustomerGst: cust.CustomerGst,
-                    CustomerFuel: cust.CustomerFuel
-                }))
-            : [];
+            Array.isArray(getCustomerdata) && getCustomerdata.length > 0
+                ? getCustomerdata
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code.toString(),
+                        Booking_Type: cust.Booking_Type,
+                        CustomerGst: cust.CustomerGst,
+                        CustomerFuel: cust.CustomerFuel
+                    }))
+                : [];
 
 
 
@@ -2808,7 +2853,7 @@ function Booking() {
                                             value={formData.DocketNo}
                                             onKeyDown={(e) => {
                                                 if (toggleActive && e.key === "Enter" || toggleActive && e.key === "Tab") {
-                                                    handleSearch(formData.DocketNo);
+                                                    handleSearch(formData.DocketNo, "manual");
                                                 }
                                             }}
                                             onChange={(e) => setFormData({ ...formData, DocketNo: e.target.value })}
@@ -2817,12 +2862,11 @@ function Booking() {
 
                                     <div className="toggle-button">
                                         <Toggle
-                                            onClick={onToggle}
-                                            on={<h2>ON</h2>}
-                                            off={<h2>OFF</h2>}
-                                            offstyle="danger"
-                                            active={toggleActive}
+                                            checked={toggleActive}
+                                            onChange={() => setToggleActive(prev => !prev)}
                                         />
+
+
                                     </div>
 
                                     <div className="input-field">

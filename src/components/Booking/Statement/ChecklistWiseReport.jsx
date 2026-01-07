@@ -20,6 +20,15 @@ function ChecklistWiseReport() {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const [selectedDockets, setSelectedDockets] = useState([]);
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const [formData, setFormData] = useState({
+        fromdt: firstDayOfMonth,
+        todt: today,
+        CustomerName: "",
+        booking: "ALL BOOKING TYPE",
+        branch: "All BRANCH DATA",
+    });
     const formatDate = (date) => {
         if (!date) return "";
         const year = date.getFullYear();
@@ -45,26 +54,57 @@ function ChecklistWiseReport() {
             label: city.Branch_Name,
         }))
     ];
-    const allOptions = [
-        { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
-        ...getCustomer.map((cust) => ({
-            label: cust.Customer_Name,
-            value: cust.Customer_Name,
-        })),
-    ];
+     useEffect(() => {
+            if (getCustomer.length === 0) return;
+        
+            const login = JSON.parse(localStorage.getItem("Login"));
+        
+            if (login?.UserType === "Admin") {
+              setFormData(prev => ({
+                ...prev,
+                CustomerName: "ALL CLIENT DATA",
+              }));
+            } else {
+              const customer = getCustomer.find(
+                c => c.Customer_Code === login?.Customer_Code
+              );
+        
+              if (customer) {
+                setFormData(prev => ({
+                  ...prev,
+                  CustomerName: customer.Customer_Name,
+                }));
+              }
+            }
+          }, [getCustomer]);
+        
+          const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+          const allOptions =
+            JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+              ?
+              [
+                { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
+                ...getCustomer.map((cust) => ({
+                  label: cust.Customer_Name,
+                  value: cust.Customer_Name,
+                })),
+              ]
+              :
+              Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                  .filter(cust => cust.Customer_Code === loginCustomerCode)
+                  .map(cust => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Name,
+                    Customer_Code: cust.Customer_Code
+                  }))
+                : []
+        
     const getbooking = [{ value: "ALL BOOKING TYPE", label: "ALL BOOKING TYPE" },
     { value: "Pending", label: "Pending" },
     { value: "Resolved", label: "Resolved" },
     ]
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const [formData, setFormData] = useState({
-        fromdt: firstDayOfMonth,
-        todt: today,
-        CustomerName: "ALL CLIENT DATA",
-        booking: "ALL BOOKING TYPE",
-        branch: "All BRANCH DATA",
-    });
+    
     const handleDateChange = (date, field) => {
         setFormData({ ...formData, [field]: date });
     };

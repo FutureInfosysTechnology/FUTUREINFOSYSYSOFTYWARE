@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -8,7 +8,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 
 
-function Performa() {
+function Performa({ switchToBooking }) {
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -21,10 +22,6 @@ function Performa() {
     const handleFormChange = (value, key) => {
         setFormData({ ...formData, [key]: value })
     }
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = invoice.slice(indexOfFirstRow, indexOfLastRow);
-    const totalPages = Math.ceil(invoice.length / rowsPerPage);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const [formData, setFormData] = useState({
@@ -32,6 +29,26 @@ function Performa() {
         toDate: today,
         docketNo: "",
     });
+    useEffect(() => {
+        const savedTable = JSON.parse(localStorage.getItem("PerfomaTable")) || [];
+        const savedForm = JSON.parse(localStorage.getItem("Perfomaform")) || {};
+        console.log(savedForm);
+        setInvoice(savedTable);
+        setFormData({
+            docketNo: savedForm.docketNo,
+            toDate: savedForm.toDate,
+            fromDate: savedForm.fromDate,
+        });
+    }, [])
+
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = invoice.slice(indexOfFirstRow, indexOfLastRow);
+    const totalPages = Math.ceil(invoice.length / rowsPerPage);
+
+
+
+
     const formatDate = (dateStr) => {
         if (!dateStr) return "";
         const d = new Date(dateStr);
@@ -45,12 +62,12 @@ function Performa() {
 
         try {
             const queryParams = {
-                DocketNo: formData.docketNo || "",
-                FromDate: formData.fromDate
-                    ? formData.fromDate.toISOString().split("T")[0]
+                DocketNo: formData?.docketNo || "",
+                FromDate: formData?.fromDate
+                    ? formData?.fromDate
                     : "",
-                ToDate: formData.toDate
-                    ? formData.toDate.toISOString().split("T")[0]
+                ToDate: formData?.toDate
+                    ? formData?.toDate
                     : "",
             };
 
@@ -60,6 +77,8 @@ function Performa() {
 
             if (response?.status === 1) {
                 setInvoice(response.data);
+                localStorage.setItem("PerfomaTable", JSON.stringify(response.data));
+                localStorage.setItem("Perfomaform", JSON.stringify(formData));
             } else {
                 setInvoice([]);
                 Swal.fire("Info", response?.message || "No data found", "info");
@@ -114,7 +133,7 @@ function Performa() {
             if (response.status === 1) {
                 console.log(response);
                 console.log(response.Data);
-                response.Data && navigate("/labelprint2", { state: { data: response.Data, BranchDetails:response.BranchDetails,path: location.pathname, tab: "viewPerformance" } });
+                response.Data && navigate("/labelprint2", { state: { data: response.Data, BranchDetails: response.BranchDetails, path: location.pathname, tab: "viewPerformance" } });
             }
             else {
                 Swal.fire("Warning", `Warong Docket Number`, "warning");
@@ -136,7 +155,7 @@ function Performa() {
                         <div className="fields2" style={{ display: "flex", alignItems: "center" }}>
                             <div className="input-field3">
                                 <label htmlFor="">Docket No</label>
-                                <input type="text" placeholder="Docket No" value={formData.docketNoNo} onChange={(e) => handleFormChange(e.target.value, "docketNo")} />
+                                <input type="text" placeholder="Docket No" value={formData.docketNo} onChange={(e) => handleFormChange(e.target.value, "docketNo")} />
                             </div>
                             <div className="input-field3">
                                 <label htmlFor="">From Date</label>
@@ -232,7 +251,19 @@ function Performa() {
                                             <td>{index + 1}</td>
 
                                             {/* Correct fields */}
-                                            <td>{row?.DocketNo}</td>
+                                            <td>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-link p-0"
+                                                    style={{ fontSize: "14px", fontWeight: "bold", color: "#4FD1C5" }}
+
+                                                    onClick={() => switchToBooking(row.DocketNo)}
+
+                                                >
+                                                    {row?.DocketNo}
+                                                </button>
+                                            </td>
+
                                             <td>{formatDate(row.BookDate)}</td>
                                             <td>{row?.OriginCity}</td>
                                             <td>{row?.DestinationCity}</td>

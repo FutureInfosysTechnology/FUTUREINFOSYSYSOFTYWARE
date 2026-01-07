@@ -22,6 +22,13 @@ function CustomerWiseReport() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [getBranch, setGetBranch] = useState([]);
+  const [formData, setFormData] = useState({
+    fromdt: firstDayOfMonth,
+    todt: today,
+    CustomerName: "",
+    status: "ALL Status",
+    branch: "All Branch",
+  });
 
   const getStatus = [{ value: "ALL Status", label: "ALL Status" },
   { value: "Intransit", label: "Intransit" },
@@ -30,25 +37,49 @@ function CustomerWiseReport() {
   { value: "RTO", label: "RTO" },
   { value: "Shipment Booked", label: "Shipment Booked" },
   ];
+  useEffect(() => {
+    if (getCustomer.length === 0) return;
+
+    const login = JSON.parse(localStorage.getItem("Login"));
+
+    if (login?.UserType === "Admin") {
+      setFormData(prev => ({
+        ...prev,
+        CustomerName: "ALL Customer",
+      }));
+    } else {
+      const customer = getCustomer.find(
+        c => c.Customer_Code === login?.Customer_Code
+      );
+
+      if (customer) {
+        setFormData(prev => ({
+          ...prev,
+          CustomerName: customer.Customer_Name,
+        }));
+      }
+    }
+  }, [getCustomer]);
+
   const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
   const allOptions =
-   JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin"
-       ?
-   [
-    { label: "ALL Customer", value: "ALL Customer" },
-    ...getCustomer.map((cust) => ({
-      label: cust.Customer_Name,
-      value: cust.Customer_Name,
-    })),
-  ]
-  :
-  Array.isArray(getCustomer) && getCustomer.length > 0
+    JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+      ?
+      [
+        { label: "ALL Customer", value: "ALL Customer" },
+        ...getCustomer.map((cust) => ({
+          label: cust.Customer_Name,
+          value: cust.Customer_Name,
+        })),
+      ]
+      :
+      Array.isArray(getCustomer) && getCustomer.length > 0
         ? getCustomer
-        .filter(cust => cust.Customer_Code === loginCustomerCode)
+          .filter(cust => cust.Customer_Code === loginCustomerCode)
           .map(cust => ({
             label: cust.Customer_Name,
             value: cust.Customer_Name,
-            Customer_Code:cust.Customer_Code
+            Customer_Code: cust.Customer_Code
           }))
         : []
   const branchOptions = [
@@ -59,13 +90,7 @@ function CustomerWiseReport() {
     }))
   ];
 
-  const [formData, setFormData] = useState({
-    fromdt: firstDayOfMonth,
-    todt: today,
-    CustomerName: JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin" ? "ALL Customer" : allOptions.find(f=>f.Customer_Code===JSON.parse(localStorage.getItem("Login"))?.Customer_Code)?.label,
-    status: "ALL Status",
-    branch: "All Branch",
-  });
+
 
 
   const formatDate = (date) => {
@@ -93,6 +118,7 @@ function CustomerWiseReport() {
     fetchData('/Master/getCustomerdata', setGetCustomer)
     fetchData('/Master/getAllBranchData', setGetBranch);
   }, []);
+
 
 
   const handleSearchChange = (selectedOption) => {
