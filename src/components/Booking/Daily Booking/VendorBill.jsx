@@ -35,7 +35,7 @@ function VendorBill() {
     const [getVendor, setGetVendor] = useState([]);
     const [filterData, setFilterData] = useState([]);
     const [quary, setQuary] = useState("");
-    const [getCustomerdata, setgetCustomerdata] = useState([]);
+    const [getCustomer, setGetCustomer] = useState([]);
     const [getCity, setGetCity] = useState([]);
     const [getMode, setGetMode] = useState([]);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -45,7 +45,7 @@ function VendorBill() {
     const [formData, setFormData] = useState({
         vendorId: "",
         vendorCode: "",
-        custCode: "",
+        custCode: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
         orgCode: "",
         destCode: "",
         modeCode: "",
@@ -62,6 +62,28 @@ function VendorBill() {
         sgst: 0,
         totalAmt: 0,
     });
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const customerOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+
+                    }))
+                : []
     const fetchData = async (endpoint, setData) => {
 
 
@@ -80,7 +102,7 @@ function VendorBill() {
     useEffect(() => {
 
         fetchData('/Master/getVendor', setGetVendor);
-        fetchData('/Master/getCustomerdata', setgetCustomerdata);
+        fetchData('/Master/getCustomerdata', setGetCustomer);
         fetchData('/Master/getdomestic', setGetCity);
         fetchData('/Master/getMode', setGetMode);
         fetchVendorBill();
@@ -214,7 +236,7 @@ function VendorBill() {
                 setFormData({
                     vendorId: "",
                     vendorCode: "",
-                    custCode: "",
+                    custCode: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
                     orgCode: "",
                     destCode: "",
                     modeCode: "",
@@ -273,7 +295,7 @@ function VendorBill() {
                 setFormData({
                     vendorId: "",
                     vendorCode: "",
-                    custCode: "",
+                    custCode: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
                     orgCode: "",
                     destCode: "",
                     modeCode: "",
@@ -385,7 +407,7 @@ function VendorBill() {
                                     setModalIsOpen(true);
                                     setFormData({
                                         vendorCode: "",
-                                        custCode: "",
+                                        custCode: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
                                         orgCode: "",
                                         destCode: "",
                                         modeCode: "",
@@ -640,27 +662,18 @@ function VendorBill() {
                                             <div className="input-field1">
                                                 <label htmlFor="">Customer Name</label>
                                                 <Select
-                                                    className="blue-selectbooking"
-                                                    classNamePrefix="blue-selectbooking"
-                                                    options={getCustomerdata.map(c => ({ value: c.Customer_Code, label: c.Customer_Name }))}
-                                                    value={
-                                                        formData.custCode
-                                                            ? { value: formData.custCode, label: getCustomerdata.find(opt => opt.Customer_Code === formData.custCode)?.Customer_Name || "" }
-                                                            : null
-                                                    }
-                                                    onChange={(selectedOption) => {
-                                                        setFormData(prev => ({
-                                                            ...prev,
-                                                            custCode: selectedOption.value,
-                                                        }));
-                                                    }}
-                                                    placeholder="Select Vendor Name"
-                                                    isSearchable
-                                                    menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
-                                                    styles={{
-                                                        menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
-                                                    }}
-                                                />
+                                className="blue-selectbooking"
+                                classNamePrefix="blue-selectbooking"
+                                options={customerOptions}
+                                value={customerOptions.find(c => c.value === formData.custCode) || null}
+                                onChange={(opt) =>
+                                    setFormData({ ...formData, custCode: opt?.value || "" })
+                                }
+                                placeholder="Select Customer"
+                                isSearchable
+                                menuPortalTarget={document.body}
+                                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                            />
                                             </div>
                                             <div className="input-field1">
                                                 <label>Mode</label>

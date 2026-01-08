@@ -82,6 +82,23 @@ function CreateManifest() {
         setFormData({ ...formData, [field]: date });
     };
 
+     const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+     const branchOptions =
+       JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+         ?
+         [
+           
+           ...getBranch.map(city => ({
+             value: city.Branch_Code,   // adjust keys from your API
+             label: city.Branch_Name,
+           }))
+         ] :
+         Array.isArray(getBranch) && getBranch.length > 0
+           ? getBranch
+             .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+               value: city.Branch_Code,   // adjust keys from your API
+               label: city.Branch_Name,
+             })) : [];
 
 
     const handleCheckChange = (e) => {
@@ -213,19 +230,7 @@ function CreateManifest() {
     };
 
     useEffect(() => {
-        const fetchBranch = async () => {
-            try {
-                const response = await getApi(`/Master/getBranch?Branch_Code=${JSON.parse(localStorage.getItem("Login"))?.Branch_Code}`);
-                if (response.status === 1) {
-                    console.log(response.Data);
-                    setGetBranch(response.Data);
-                }
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
-        fetchBranch();
+       
         const fetchSetup = async () => {
             try {
                 const response = await getApi(`/Master/getManifestSetup`);
@@ -268,6 +273,7 @@ function CreateManifest() {
         fetchData('/Master/gettransport', setGetTransport);
         fetchData('/Master/GetAllFlights', setGetFlight);
         fetchData('/Master/GetAllTrains', setGetTrain);
+        fetchData('/Master/GetAllBranchData', setGetBranch);
     }, []);
     useEffect(() => {
         const fetchData = async (setData, Product_Type) => {
@@ -590,18 +596,8 @@ function CreateManifest() {
                             <div className="input-field3" >
                                 <label htmlFor="">From City</label>
                                 <Select
-                                    options={getBranch.map(branch => ({
-                                        value: branch.Branch_Code,   // adjust keys from your API
-                                        label: branch.Branch_Name
-                                    }))}
-                                    value={
-                                        formData.fromDest
-                                            ? {
-                                                value: formData.fromDest,
-                                                label: getBranch.find(c => c.Branch_Code === formData.fromDest)?.Branch_Name
-                                            }
-                                            : null
-                                    }
+                                    options={branchOptions}
+                                    value={branchOptions.find(opt => opt.value === formData.fromDest) || null}
                                     onChange={(selectedOption) =>
                                         setFormData({
                                             ...formData,
@@ -1140,26 +1136,54 @@ function CreateManifest() {
                                             </tr>
                                         </thead>
                                         <tbody className='table-body'>
-                                            {filteredgetManifestData.map((manifest, index) => (
-                                                <tr key={index}>
-                                                    <td scope="col">
-                                                        <input type="checkbox" style={{ height: "15px", width: "15px" }} checked={selectedRows.includes(index)}
-                                                            onChange={() => handleRowSelect(index, manifest.DocketNo, getManifest.length)} />
-                                                    </td>
-                                                    <td>{index + 1}</td>
-                                                    <td>{manifest.DocketNo}</td>
-                                                    <td>{convertDateFormat(manifest.BookDate)}</td>
-                                                    <td>{manifest.customerName}</td>
-                                                    <td>{manifest.consigneeName}</td>
-                                                    <td>{manifest.fromDest}</td>
-                                                    <td>{manifest.toDest}</td>
-                                                    <td>{manifest.pcs}</td>
-                                                    <td>{manifest.actualWt}</td>
-                                                    <td>{manifest.invoiceNo}</td>
-                                                    <td>{manifest.invoiceValue}</td>
-                                                    <td>{manifest.eWayBillNo}</td>
-                                                </tr>
-                                            ))}
+
+
+                                            {
+                                                JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin" ?
+                                                    filteredgetManifestData.map((manifest, index) => (
+                                                        <tr key={index}>
+                                                            <td scope="col">
+                                                                <input type="checkbox" style={{ height: "15px", width: "15px" }} checked={selectedRows.includes(index)}
+                                                                    onChange={() => handleRowSelect(index, manifest.DocketNo, getManifest.length)} />
+                                                            </td>
+                                                            <td>{index + 1}</td>
+                                                            <td>{manifest.manifestNo}</td>
+                                                            <td>{convertDateFormat(manifest.BookDate)}</td>
+                                                            <td>{manifest.customerName}</td>
+                                                            <td>{manifest.consigneeName}</td>
+                                                            <td>{manifest.fromDest}</td>
+                                                            <td>{manifest.toDest}</td>
+                                                            <td>{manifest.pcs}</td>
+                                                            <td>{manifest.actualWt}</td>
+                                                            <td>{manifest.invoiceNo}</td>
+                                                            <td>{manifest.invoiceValue}</td>
+                                                            <td>{manifest.eWayBillNo}</td>
+                                                        </tr>
+
+
+                                                    )) : filteredgetManifestData.filter(f => f.CustomerCode === JSON.parse(localStorage.getItem("Login"))?.Customer_Code).map((manifest, index) => (
+                                                        <tr key={index}>
+                                                            <td scope="col">
+                                                                <input type="checkbox" style={{ height: "15px", width: "15px" }} checked={selectedRows.includes(index)}
+                                                                    onChange={() => handleRowSelect(index, manifest.DocketNo, getManifest.length)} />
+                                                            </td>
+                                                            <td>{index + 1}</td>
+                                                            <td>{manifest.manifestNo}</td>
+                                                            <td>{convertDateFormat(manifest.BookDate)}</td>
+                                                            <td>{manifest.customerName}</td>
+                                                            <td>{manifest.consigneeName}</td>
+                                                            <td>{manifest.fromDest}</td>
+                                                            <td>{manifest.toDest}</td>
+                                                            <td>{manifest.pcs}</td>
+                                                            <td>{manifest.actualWt}</td>
+                                                            <td>{manifest.invoiceNo}</td>
+                                                            <td>{manifest.invoiceValue}</td>
+                                                            <td>{manifest.eWayBillNo}</td>
+                                                        </tr>
+
+
+                                                    ))}
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -1253,8 +1277,8 @@ function CreateManifest() {
 
 
 
-                </div>
-            </div>
+                </div >
+            </div >
         </>
     );
 };

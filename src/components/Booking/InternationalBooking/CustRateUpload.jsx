@@ -17,7 +17,7 @@ function CustRateUpload() {
     const [error, setError] = useState(null);
 
     const [form, setForm] = useState({
-        Customer_Code: "",
+        Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
         mode: "",
         Dox_Spx: "",
         Rate_Mode: "",
@@ -56,10 +56,27 @@ function CustRateUpload() {
 
     /* ================= OPTIONS ================= */
 
-    const customerOptions = getCustomer.map(c => ({
-        label: c.Customer_Name,
-        value: c.Customer_Code,
-    }));
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const customerOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+
+                    }))
+                : []
 
     const modeOptions = getMode.map(p => ({
         label: p.Mode_Name,
@@ -120,17 +137,17 @@ function CustRateUpload() {
                 Swal.fire("Success", res.message, "success");
                 fileInputRef.current.value = "";
                 setForm({
-                Customer_Code: "",
-                mode: "",
-                Dox_Spx: "",
-                Rate_Mode: "",
-                FromDate: firstDayOfMonth,
-                ToDate: today,
-            })
+                    Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
+                    mode: "",
+                    Dox_Spx: "",
+                    Rate_Mode: "",
+                    FromDate: firstDayOfMonth,
+                    ToDate: today,
+                })
             }
             else {
                 Swal.fire("Warning", res.message, "warning");
-                
+
             }
 
         } catch (err) {
@@ -161,7 +178,7 @@ function CustRateUpload() {
                                 onChange={(opt) =>
                                     setForm({ ...form, Customer_Code: opt?.value || "" })
                                 }
-                                placeholder="Select Custoomer"
+                                placeholder="Select Customer"
                                 isSearchable
                                 menuPortalTarget={document.body}
                                 styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
@@ -233,7 +250,7 @@ function CustRateUpload() {
                         <div className="input-field3">
                             <label>Excel File</label>
                             <input
-                                style={{ display: "flex", justifyContent: "center",paddingTop:"7px" }}
+                                style={{ display: "flex", justifyContent: "center", paddingTop: "7px" }}
                                 type="file"
                                 ref={fileInputRef}
                                 accept=".xlsx,.xls"
@@ -248,7 +265,7 @@ function CustRateUpload() {
                                 className="ok-btn"
                                 onClick={() => {
                                     setForm({
-                                        Customer_Code: "",
+                                        Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
                                         mode: "",
                                         Dox_Spx: "",
                                         Rate_Mode: "",

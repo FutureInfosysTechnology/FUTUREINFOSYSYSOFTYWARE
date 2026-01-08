@@ -29,6 +29,65 @@ function PaymentEntry() {
         billNo: "",
 
     });
+    useEffect(() => {
+        if (getCustomer.length === 0) return;
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                customer: "ALL",
+            }));
+        } else {
+
+            setFormData(prev => ({
+                ...prev,
+                customer: login?.Customer_Code,
+            }));
+        }
+
+    }, [getCustomer]);
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allCust =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { label: "ALL CLIENT DATA", value: "ALL" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+
+                    }))
+                : []
+
+    const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+    const branchOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+
+                ...getBranch.map(city => ({
+                    value: city.Branch_Code,   // adjust keys from your API
+                    label: city.Branch_Name,
+                }))
+            ] :
+            Array.isArray(getBranch) && getBranch.length > 0
+                ? getBranch
+                    .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                        value: city.Branch_Code,   // adjust keys from your API
+                        label: city.Branch_Name,
+                    })) : [];
     const convertToDate = (ddmmyyyy) => {
         if (!ddmmyyyy) return null;
         const [day, month, year] = ddmmyyyy.split("/");
@@ -151,65 +210,65 @@ function PaymentEntry() {
 
 
     const handleUpdate = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    // ✅ Required validation
-    if (!addPayment.InvoiceNo) {
-        return Swal.fire(
-            "Warning",
-            "Invoice Number is required",
-            "warning"
-        );
-    }
-
-    try {
-        const payload = {
-            InvoiceNo: addPayment.InvoiceNo,              // 🔑 REQUIRED
-            Bank_Code: addPayment.Bank_Code || null,
-            Transation_No: addPayment.Transation_No || null,
-            Receiver_Name: addPayment.Receiver_Name || null, // if needed
-            Payment_Type: addPayment.Payment_Type || null,
-            PayReceivedDate: addPayment.PayReceivedDate || null,
-            TDS: addPayment.TDS || 0,
-            PaymentReceived: addPayment.PaymentReceived || 0,
-            OutstandingAmount: String(addPayment.OutstandingAmount) || "0",
-            Remark: addPayment.Remark || null
-        };
-
-        const response = await putApi(
-            "/Updatebillwise",
-            payload
-        );
-
-        if (!response.success) {
-            throw new Error(
-                response.message || "Failed to update payment details"
+        // ✅ Required validation
+        if (!addPayment.InvoiceNo) {
+            return Swal.fire(
+                "Warning",
+                "Invoice Number is required",
+                "warning"
             );
-            return;
         }
 
-        Swal.fire(
-            "Success",
-            response.message || "Payment updated successfully",
-            "success"
-        );
-        setModalIsOpen(false);
+        try {
+            const payload = {
+                InvoiceNo: addPayment.InvoiceNo,              // 🔑 REQUIRED
+                Bank_Code: addPayment.Bank_Code || null,
+                Transation_No: addPayment.Transation_No || null,
+                Receiver_Name: addPayment.Receiver_Name || null, // if needed
+                Payment_Type: addPayment.Payment_Type || null,
+                PayReceivedDate: addPayment.PayReceivedDate || null,
+                TDS: addPayment.TDS || 0,
+                PaymentReceived: addPayment.PaymentReceived || 0,
+                OutstandingAmount: String(addPayment.OutstandingAmount) || "0",
+                Remark: addPayment.Remark || null
+            };
 
-        // ✅ Optional: Refresh data / reset form
-        // fetchBillDetails();
-        // setAddPayment(initialState);
+            const response = await putApi(
+                "/Updatebillwise",
+                payload
+            );
 
-    } catch (error) {
-        console.error("Update error:", error);
+            if (!response.success) {
+                throw new Error(
+                    response.message || "Failed to update payment details"
+                );
+                return;
+            }
 
-        Swal.fire({
-            title: "Error!",
-            text: error.message || "Failed to update payment",
-            icon: "error",
-            confirmButtonText: "OK"
-        });
-    }
-};
+            Swal.fire(
+                "Success",
+                response.message || "Payment updated successfully",
+                "success"
+            );
+            setModalIsOpen(false);
+
+            // ✅ Optional: Refresh data / reset form
+            // fetchBillDetails();
+            // setAddPayment(initialState);
+
+        } catch (error) {
+            console.error("Update error:", error);
+
+            Swal.fire({
+                title: "Error!",
+                text: error.message || "Failed to update payment",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        }
+    };
 
 
     const handleDelete = (index) => {
@@ -285,7 +344,7 @@ function PaymentEntry() {
             "Branch Name",
             "Customer Name",
             "Total Amount",
-            
+
         ];
 
         const body = currentRows.map(row => ([
@@ -353,24 +412,16 @@ function PaymentEntry() {
                             <div className="input-field3">
                                 <label htmlFor="">Branch Name</label>
                                 <Select
-                                    options={getBranch.map(b => ({
-                                        value: b.Branch_Code,   // adjust keys from your API
-                                        label: b.Branch_Name
-                                    }))}
-                                    value={
-                                        formData.branch
-                                            ? {
-                                                value: formData.branch,
-                                                label: getBranch.find(c => c.Branch_Code === formData.branch)?.Branch_Name || ""
-                                            }
-                                            : null
-                                    }
+                                    required
+                                    options={branchOptions}
+                                    value={formData.branch ? branchOptions.find(c => c.value === formData.branch) : null}
                                     onChange={(selectedOption) =>
-                                        setFormData({
-                                            ...formData,
-                                            branch: selectedOption ? selectedOption.value : ""
-                                        })
+                                        setFormData({ ...formData, branch: selectedOption ? selectedOption.value : "" })
                                     }
+                                    placeholder="Select Branch"
+                                    isSearchable
+                                    classNamePrefix="blue-selectbooking"
+                                    className="blue-selectbooking"
                                     menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll container
                                     styles={{
                                         placeholder: (base) => ({
@@ -379,60 +430,30 @@ function PaymentEntry() {
                                             overflow: "hidden",
                                             textOverflow: "ellipsis"
                                         }),
-
                                         menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps dropdown on top
                                     }}
-                                    placeholder="Select Branch"
-                                    isSearchable
-                                    classNamePrefix="blue-selectbooking"
-                                    className="blue-selectbooking"
                                 />
 
                             </div>
 
                             <div className="input-field1">
                                 <label>Customer Name</label>
-
                                 <Select
-                                    options={[
-                                        { value: "ALL", label: "ALL CUSTOMER DATA" },
-                                        ...getCustomer.map(cust => ({
-                                            value: cust.Customer_Code,
-                                            label: cust.Customer_Name
-                                        }))
-                                    ]}
-
+                                    options={allCust}  // [{value: "", label: "All Customers"}, ...]
                                     value={
-                                        formData.customer
-                                            ? {
-                                                value: formData.customer,
-                                                label:
-                                                    formData.customer === "ALL"
-                                                        ? "ALL CUSTOMER DATA"
-                                                        : getCustomer.find(c => c.Customer_Code === formData.customer)
-                                                            ?.Customer_Name
-                                            }
-                                            : null
+                                        allCust.find((c) => c.value === formData.customer) || null
                                     }
-
                                     onChange={(selectedOption) =>
                                         setFormData({
                                             ...formData,
                                             customer: selectedOption ? selectedOption.value : ""
                                         })
                                     }
-
                                     menuPortalTarget={document.body}
                                     styles={{
-                                        placeholder: (base) => ({
-                                            ...base,
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis"
-                                        }),
+                                        container: (base) => ({ ...base, width: "100%" }),
                                         menuPortal: (base) => ({ ...base, zIndex: 9999 })
                                     }}
-
                                     placeholder="Select Customer"
                                     isSearchable
                                     classNamePrefix="blue-selectbooking"

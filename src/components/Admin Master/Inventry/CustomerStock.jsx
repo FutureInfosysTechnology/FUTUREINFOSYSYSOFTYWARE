@@ -28,6 +28,32 @@ function CustomerStock() {
         stockDate: new Date(),
     })
 
+     useEffect(() => {
+            const qty = Number(addCustStock.qty);
+            const from = Number(addCustStock.fromDocketNo);
+            if( !qty)
+            {
+                 setAddCustStock(prev => ({
+                ...prev,
+                toDocketNo: "",
+                fromDocketNo:"",
+            }));
+            }
+            else if (!from)  {
+                setAddCustStock(prev => ({
+                ...prev,
+                toDocketNo: "",
+            }));
+            }
+            else
+            {
+                setAddCustStock(prev => ({
+                ...prev,
+                toDocketNo: from + qty - 1
+            }));
+            }
+    
+        }, [addCustStock.qty, addCustStock.fromDocketNo]);
 
 
     const fetchCustomerStockData = async () => {
@@ -435,6 +461,7 @@ function CustomerStock() {
                                         <label htmlFor="">To Docket No</label>
                                         <input type="tel" placeholder="Enter To Docket No"
                                             value={addCustStock.toDocketNo}
+                                            readOnly
                                             onChange={(e) => setAddCustStock({ ...addCustStock, toDocketNo: e.target.value })} required />
                                     </div>
 

@@ -24,7 +24,7 @@ function GenerateInvoice() {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const [formData, setFormData] = useState({
-        branch: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
+        branch:"",
         BookMode: "Monthly",
         customerType: "Single",
         fromDate: firstDayOfMonth,
@@ -35,6 +35,86 @@ function GenerateInvoice() {
         mode: "",
         invoiceNo: ""
     });
+     useEffect(() => {
+           if (getCustomer.length === 0) return;
+       
+           const login = JSON.parse(localStorage.getItem("Login"));
+       
+           if (login?.UserType === "Admin") {
+             setFormData(prev => ({
+               ...prev,
+               customer: "ALL CUSTOMER DATA",
+             }));
+           } else {
+            
+               setFormData(prev => ({
+                 ...prev,
+                 customer: login?.Customer_Code,
+               }));
+             }
+       
+             
+         }, [getCustomer]);
+       
+         useEffect(() => {
+       
+           const login = JSON.parse(localStorage.getItem("Login"));
+       
+           if (login?.UserType === "Admin") {
+             setFormData(prev => ({
+               ...prev,
+               branch:"ALL BRANCH DATA"
+             }));
+           } else {
+             
+             setFormData(prev => ({
+                 ...prev,
+                 branch: login?.Branch_Code,
+               }));
+       
+             
+           }
+         }, []);
+       
+         const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+         const customerOptions =
+           JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+             ?
+             [
+               { label: "ALL CUSTOMER DATA", value: "ALL CUSTOMER DATA" },
+               ...getCustomer.map((cust) => ({
+                 label: cust.Customer_Name,
+                 value: cust.Customer_Code,
+               })),
+             ]
+             :
+             Array.isArray(getCustomer) && getCustomer.length > 0
+               ? getCustomer
+                 .filter(cust => cust.Customer_Code === loginCustomerCode)
+                 .map(cust => ({
+                   label: cust.Customer_Name,
+                   value: cust.Customer_Code,
+                   
+                 }))
+               : []
+       
+         const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+         const branchOptions =
+           JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+             ?
+             [
+               { value: "ALL BRANCH DATA", label: "ALL BRANCH DATA" }, // default option
+               ...getBranch.map(city => ({
+                 value: city.Branch_Code,   // adjust keys from your API
+                 label: city.Branch_Name,
+               }))
+             ] :
+             Array.isArray(getBranch) && getBranch.length > 0
+               ? getBranch
+                 .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                   value: city.Branch_Code,   // adjust keys from your API
+                   label: city.Branch_Name,
+                 })) : [];
     const fetchData = async (endpoint, setData) => {
         try {
             const response = await getApi(endpoint);
@@ -47,21 +127,11 @@ function GenerateInvoice() {
 
 
     useEffect(() => {
-        const fetchBranch = async () => {
-            try {
-                const response = await getApi(`/Master/getBranch?Branch_Code=${JSON.parse(localStorage.getItem("Login"))?.Branch_Code}`);
-                if (response.status === 1) {
-                    console.log(response.Data);
-                    setGetBranch(response.Data);
-                }
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
+       
         fetchData('/Master/getCustomerdata', setGetCustomer);
         fetchData('/Master/getMode', setGetMode);
-        fetchBranch();
+        fetchData('/Master/GetAllBranchData', setGetBranch);
+        
     }, []);
     const handlePreview = async (e) => {
         e.preventDefault();
@@ -134,18 +204,8 @@ function GenerateInvoice() {
                             <div className="input-field3">
                                 <label htmlFor="">Branch Name</label>
                                 <Select
-                                    options={getBranch.map(branch => ({
-                                        value: branch.Branch_Code,   // adjust keys from your API
-                                        label: branch.Branch_Name
-                                    }))}
-                                    value={
-                                        formData.branch
-                                            ? {
-                                                value: formData.branch,
-                                                label: getBranch.find(c => c.Branch_Code === formData.branch)?.Branch_Name
-                                            }
-                                            : null
-                                    }
+                                    options={branchOptions}
+                                    value={branchOptions.find(opt => opt.value === formData.branch) || null}
                                     onChange={(selectedOption) =>
                                         setFormData({
                                             ...formData,
@@ -197,20 +257,9 @@ function GenerateInvoice() {
                                 marginRight:"1.5rem"// ✅ default full width
                             }}>
                                 <label htmlFor="">Customer</label>
-                                <Select
-                                    options={getCustomer.map(cust => ({
-                                        value: cust.Customer_Code,   // adjust keys from your API
-                                        label: cust.Customer_Name
-                                    }))}
-                                    value={
-                                        formData.customer
-                                            ? {
-                                                value: formData.customer,
-                                                label: getCustomer.find(c => c.Customer_Code === formData.customer)?.Customer_Name
-                                            }
-                                            : null
-                                    }
-
+                               <Select
+                                    options={customerOptions}
+                                    value={customerOptions.find(opt => opt.value === formData.customer) || null}
                                     onChange={(selectedOption) =>
                                         setFormData({
                                             ...formData,
@@ -219,10 +268,6 @@ function GenerateInvoice() {
                                     }
                                     menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll container
                                     styles={{
-                                        container: (base) => ({
-                                            ...base,
-                                            width: "100%", // ✅ full width always
-                                        }),
                                         placeholder: (base) => ({
                                             ...base,
                                             whiteSpace: "nowrap",
@@ -236,6 +281,7 @@ function GenerateInvoice() {
                                     classNamePrefix="blue-selectbooking"
                                     className="blue-selectbooking"
                                 />
+
 
                             </div>
 

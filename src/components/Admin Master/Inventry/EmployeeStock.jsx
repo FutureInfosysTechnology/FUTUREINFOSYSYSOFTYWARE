@@ -35,6 +35,33 @@ function EmployeeStock() {
         stockDate: new Date(),
     })
 
+     useEffect(() => {
+            const qty = Number(addEmpStock.qty);
+            const from = Number(addEmpStock.fromDocketNo);
+            if( !qty)
+            {
+                 setAddEmpStock(prev => ({
+                ...prev,
+                toDocketNo: "",
+                fromDocketNo:"",
+            }));
+            }
+            else if (!from)  {
+                setAddEmpStock(prev => ({
+                ...prev,
+                toDocketNo: "",
+            }));
+            }
+            else
+            {
+                setAddEmpStock(prev => ({
+                ...prev,
+                toDocketNo: from + qty - 1
+            }));
+            }
+    
+        }, [addEmpStock.qty, addEmpStock.fromDocketNo]);
+
 
     const fetchEmployeeStockData = async () => {
         try {
@@ -473,6 +500,7 @@ function EmployeeStock() {
                                         <label htmlFor="">From Docket No</label>
                                         <input type="text" placeholder="From Docket No" required
                                             value={addEmpStock.fromDocketNo}
+                                            
                                             onChange={(e) => setAddEmpStock({ ...addEmpStock, fromDocketNo: e.target.value })} />
                                     </div>
 
@@ -480,6 +508,7 @@ function EmployeeStock() {
                                         <label htmlFor="">To Docket No</label>
                                         <input type="text" placeholder="To Docket No" required
                                             value={addEmpStock.toDocketNo}
+                                            readOnly
                                             onChange={(e) => setAddEmpStock({ ...addEmpStock, toDocketNo: e.target.value })} />
                                     </div>
 

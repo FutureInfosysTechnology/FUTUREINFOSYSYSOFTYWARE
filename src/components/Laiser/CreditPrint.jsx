@@ -25,6 +25,25 @@ function CreditPrint() {
         customer: "",
         Note_No: "",
     })
+    useEffect(() => {
+        if (getCustomer.length === 0) return;
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                customer: "ALL CLIENT DATA",
+            }));
+        } else {
+            
+                setFormData(prev => ({
+                    ...prev,
+                    customer: login?.Customer_Code,
+                }));
+            }
+        
+    }, [getCustomer]);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [openRow, setOpenRow] = useState(null);
@@ -32,13 +51,27 @@ function CreditPrint() {
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
     const currentRows = creditNotes.slice(indexOfFirstRow, indexOfLastRow);
     const totalPages = Math.ceil(creditNotes.length / rowsPerPage);
-    const allCust = [
-        { value: "", label: "All CUSTOMER DATA" },   // Add ALL option
-        ...getCustomer.map((cust) => ({
-            value: cust.Customer_Code,
-            label: cust.Customer_Name
-        }))
-    ]
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allCust =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+                        
+                    }))
+                : []
 
     const handlePreviousPage = () => {
         if (currentPage > 1) setCurrentPage(currentPage - 1);

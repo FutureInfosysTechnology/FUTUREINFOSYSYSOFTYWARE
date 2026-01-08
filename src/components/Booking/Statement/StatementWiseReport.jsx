@@ -15,93 +15,122 @@ function StatementWiseReport() {
     const [getCustomer, setGetCustomer] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-      const [EmailData, setEmailData] = useState([]);
-      const [currentPage, setCurrentPage] = useState(1);
-      const [rowsPerPage, setRowsPerPage] = useState(15);
-      const [selectedDockets, setSelectedDockets] = useState([]);
-       const formatDate = (date) => {
-    if (!date) return "";
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${day}/${month}/${year}`;
-  };
-  const today = new Date();
+    const [EmailData, setEmailData] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(15);
+    const [selectedDockets, setSelectedDockets] = useState([]);
+    const formatDate = (date) => {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${day}/${month}/${year}`;
+    };
+    const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = EmailData.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(EmailData.length / rowsPerPage);
-     const [getBranch, setGetBranch] = useState([]);
-      const [formData, setFormData] = useState({
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = EmailData.slice(indexOfFirstRow, indexOfLastRow);
+    const totalPages = Math.ceil(EmailData.length / rowsPerPage);
+    const [getBranch, setGetBranch] = useState([]);
+    const [formData, setFormData] = useState({
         fromdt: firstDayOfMonth,
         todt: today,
         CustomerName: "",
         booking: "ALL BOOKING TYPE",
-        branch: "All BRANCH DATA",
+        branch: "",
     });
-  const branchOptions = [
-    { value: "All BRANCH DATA", label: "All BRANCH DATA" }, // default option
-    ...getBranch.map(city => ({
-      value: city.Branch_Code,   // adjust keys from your API
-      label: city.Branch_Name,
-    }))
-  ];
+    useEffect(() => {
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                branch: "All BRANCH DATA"
+            }));
+        } else {
+
+            setFormData(prev => ({
+                ...prev,
+                branch: login?.Branch_Code,
+            }));
+
+
+        }
+    }, []);
+    const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+    const branchOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { value: "All BRANCH DATA", label: "All BRANCH DATA" }, // default option
+                ...getBranch.map(city => ({
+                    value: city.Branch_Code,   // adjust keys from your API
+                    label: city.Branch_Name,
+                }))
+            ] :
+            Array.isArray(getBranch) && getBranch.length > 0
+                ? getBranch
+                    .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                        value: city.Branch_Code,   // adjust keys from your API
+                        label: city.Branch_Name,
+                    })) : [];
     const handleDateChange = (date, field) => {
         setFormData({ ...formData, [field]: date });
     };
-     useEffect(() => {
+    useEffect(() => {
         if (getCustomer.length === 0) return;
-    
+
         const login = JSON.parse(localStorage.getItem("Login"));
-    
+
         if (login?.UserType === "Admin") {
-          setFormData(prev => ({
-            ...prev,
-            CustomerName: "ALL CLIENT DATA",
-          }));
-        } else {
-          const customer = getCustomer.find(
-            c => c.Customer_Code === login?.Customer_Code
-          );
-    
-          if (customer) {
             setFormData(prev => ({
-              ...prev,
-              CustomerName: customer.Customer_Name,
+                ...prev,
+                CustomerName: "ALL CLIENT DATA",
             }));
-          }
+        } else {
+            const customer = getCustomer.find(
+                c => c.Customer_Code === login?.Customer_Code
+            );
+
+            if (customer) {
+                setFormData(prev => ({
+                    ...prev,
+                    CustomerName: customer.Customer_Name,
+                }));
+            }
         }
-      }, [getCustomer]);
-    
-      const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
-      const allOptions =
+    }, [getCustomer]);
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allOptions =
         JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
-          ?
-          [
-            { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
-            ...getCustomer.map((cust) => ({
-              label: cust.Customer_Name,
-              value: cust.Customer_Name,
-            })),
-          ]
-          :
-          Array.isArray(getCustomer) && getCustomer.length > 0
-            ? getCustomer
-              .filter(cust => cust.Customer_Code === loginCustomerCode)
-              .map(cust => ({
-                label: cust.Customer_Name,
-                value: cust.Customer_Name,
-                Customer_Code: cust.Customer_Code
-              }))
-            : []
-    
+            ?
+            [
+                { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Name,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Name,
+                        Customer_Code: cust.Customer_Code
+                    }))
+                : []
+
     const getbooking = [{ value: "ALL BOOKING TYPE", label: "ALL BOOKING TYPE" },
     { value: "Pending", label: "Pending" },
     { value: "Resolved", label: "Resolved" },
     ]
-    
-   
+
+
     const handleSearchChange = (selectedOption) => {
         setFormData({ ...formData, CustomerName: selectedOption ? selectedOption.value : "" });
     };
@@ -188,33 +217,33 @@ function StatementWiseReport() {
         fetchData('/Master/getAllBranchData', setGetBranch);
     }, []);
     const handlesave = async (e) => {
-    e.preventDefault();
-    const fromdt = formatDate(formData.fromdt);
-    const todt = formatDate(formData.todt);
-    const CustomerName = formData.CustomerName || "ALL CLIENT DATA";
-    const branch = formData.branch || "ALL BRANCH DATA";
-    const booking =formData.booking || "ALL BOOKING TYPE"
+        e.preventDefault();
+        const fromdt = formatDate(formData.fromdt);
+        const todt = formatDate(formData.todt);
+        const CustomerName = formData.CustomerName || "ALL CLIENT DATA";
+        const branch = formData.branch || "ALL BRANCH DATA";
+        const booking = formData.booking || "ALL BOOKING TYPE"
 
-    if (!fromdt || !todt) {
-      Swal.fire('Error', 'Both From Date and To Date are required.', 'error');
-      return;
-    }
+        if (!fromdt || !todt) {
+            Swal.fire('Error', 'Both From Date and To Date are required.', 'error');
+            return;
+        }
 
-    try {
-      const response = await getApi(`/Booking/BookingDetailStatement?CustomerName=${encodeURIComponent(CustomerName)}&Status=ALL%20STATUS%20DATA&fromdt=${encodeURIComponent(fromdt)}&todt=${encodeURIComponent(todt)}&branchCode=${encodeURIComponent(branch)}&pageNumber=${encodeURIComponent(currentPage)}&pageSize=${encodeURIComponent(rowsPerPage)}&BookingType=${encodeURIComponent(booking)}&Vendor_Name=ALL%20VENDOR%20DATA`);
-      console.log(response);
-      if (response.status === 1) {
-        setEmailData(response.Data);
-        setSelectedDockets([]);
-        setCurrentPage(1);
-        Swal.fire('Saved!','Data has been fetched.', 'success');
-      }
-    } catch (error) {
-      console.error("API Error:", error);
-      setEmailData([]);
-     Swal.fire('No Data','No records found.', 'info');
-    }
-  };
+        try {
+            const response = await getApi(`/Booking/BookingDetailStatement?CustomerName=${encodeURIComponent(CustomerName)}&Status=ALL%20STATUS%20DATA&fromdt=${encodeURIComponent(fromdt)}&todt=${encodeURIComponent(todt)}&branchCode=${encodeURIComponent(branch)}&pageNumber=${encodeURIComponent(currentPage)}&pageSize=${encodeURIComponent(rowsPerPage)}&BookingType=${encodeURIComponent(booking)}&Vendor_Name=ALL%20VENDOR%20DATA`);
+            console.log(response);
+            if (response.status === 1) {
+                setEmailData(response.Data);
+                setSelectedDockets([]);
+                setCurrentPage(1);
+                Swal.fire('Saved!', 'Data has been fetched.', 'success');
+            }
+        } catch (error) {
+            console.error("API Error:", error);
+            setEmailData([]);
+            Swal.fire('No Data', 'No records found.', 'info');
+        }
+    };
 
     return (
         <>
@@ -222,7 +251,7 @@ function StatementWiseReport() {
             <div className="card shadow-sm p-3 mb-4 bg-white rounded">
                 <form onSubmit={handlesave}>
                     <div className="row g-3 mb-3">
-                                                <div className="col-12 col-md-4">
+                        <div className="col-12 col-md-4">
                             <h6 className="form-label mb-0" style={{ fontSize: "0.85rem", color: "#212529" }}>Select Branch</h6>
                             <Select
                                 required
@@ -334,42 +363,42 @@ function StatementWiseReport() {
 
                         {/* Buttons */}
                         <div className="col-12 col-md-6 d-flex gap-2 justify-content-md-end flex-wrap">
-          
-                                  {/* Submit Button */}
-                                  <button
-                                      type="submit"
-                                      className="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                  >
-                                      <FaPaperPlane size={16} /><span style={{marginRight:"2px"}}>Submit</span>
-                                  </button>
-          
-                                  {/* Email Button */}
-                                  <button
-                                      type="button"
-                                      className="btn btn-info btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                      // 🔹 send excel by default
-                                  >
-                                      <MdEmail size={16} /><span style={{marginRight:"2px"}}>Mail</span>
-                                  </button>
-          
-                                  {/* Excel Button */}
-                                  <button
-                                      type="button"
-                                      className="btn btn-success btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                      onClick={exportSelectedToExcel}
-                                  >
-                                      <FaFileExcel size={16} /><span style={{marginRight:"2px"}}>Excel</span>
-                                  </button>
-          
-                                  {/* PDF Button */}
-                                  <button
-                                      type="button"
-                                      className="btn btn-danger btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                      onClick={exportSelectedToPDF}
-                                  >
-                                      <FaFilePdf size={16} /><span style={{marginRight:"2px"}}>PDF</span>
-                                  </button>
-                              </div>
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                className="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                            >
+                                <FaPaperPlane size={16} /><span style={{ marginRight: "2px" }}>Submit</span>
+                            </button>
+
+                            {/* Email Button */}
+                            <button
+                                type="button"
+                                className="btn btn-info btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                            // 🔹 send excel by default
+                            >
+                                <MdEmail size={16} /><span style={{ marginRight: "2px" }}>Mail</span>
+                            </button>
+
+                            {/* Excel Button */}
+                            <button
+                                type="button"
+                                className="btn btn-success btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                                onClick={exportSelectedToExcel}
+                            >
+                                <FaFileExcel size={16} /><span style={{ marginRight: "2px" }}>Excel</span>
+                            </button>
+
+                            {/* PDF Button */}
+                            <button
+                                type="button"
+                                className="btn btn-danger btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                                onClick={exportSelectedToPDF}
+                            >
+                                <FaFilePdf size={16} /><span style={{ marginRight: "2px" }}>PDF</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -379,7 +408,7 @@ function StatementWiseReport() {
                         <thead className='green-header' style={{ position: "sticky", top: 0, zIndex: 2 }}>
                             <tr>
                                 <th>Sr.No</th>
-                                 <th>Branch</th>
+                                <th>Branch</th>
                                 <th>DocketNo</th>
                                 <th>BookDate</th>
                                 <th>Customer_Name</th>
@@ -416,7 +445,7 @@ function StatementWiseReport() {
                                 <th>SGSTAMT</th>
                                 <th>TotalAmt</th>
                                 <th>Remark</th>
-                                
+
                             </tr>
                         </thead>
                         <tbody>
@@ -497,7 +526,7 @@ function StatementWiseReport() {
                     <div className="d-flex align-items-center gap-2">
                         <button
                             className="ok-btn"
-                            style={{width:"30px"}}
+                            style={{ width: "30px" }}
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                         >
@@ -508,7 +537,7 @@ function StatementWiseReport() {
                         </span>
                         <button
                             className="ok-btn"
-                            style={{width:"30px"}}
+                            style={{ width: "30px" }}
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
                         >

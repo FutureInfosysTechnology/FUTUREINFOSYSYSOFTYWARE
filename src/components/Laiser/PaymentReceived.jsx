@@ -26,7 +26,7 @@ function PaymentReceived() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const today = new Date();
     const [addPayment, setAddPayment] = useState({
-        Customer_Code: "",
+        Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
         Branch_Code: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
         Bank_Code: "",
         Transation_No: "",
@@ -39,6 +39,28 @@ function PaymentReceived() {
         Remark: "",
         InvoiceNo: ""
     })
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allCust =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { label: "ALL CLIENT DATA", value: "ALL" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+
+                    }))
+                : []
+
     const fetchData = async (endpoint, setData) => {
         try {
             const response = await getApi(endpoint);
@@ -46,14 +68,20 @@ function PaymentReceived() {
             setData(extrectArray(response));
         } catch (err) {
             console.error('Fetch Error:', err);
-        } 
+        }
     };
 
     const fetchPaymentData = async () => {
         try {
             const response = await getApi("/getPaymentOutstandingData");
-            console.log("API Response for", response);  // 👀 Check here
-            setData(extrectArray(response));
+            console.log("API Response for", response);
+            let data = response.Data;
+            if (JSON.parse(localStorage.getItem("Login"))?.UserType === "User")
+            {
+                data = data?.filter(d => d.Customer_Code === JSON.parse(localStorage.getItem("Login"))?.Customer_Code)
+            }
+
+            setData(data);
         } catch (err) {
             console.error('Fetch Error:', err);
         } finally {
@@ -109,7 +137,7 @@ function PaymentReceived() {
 
                 // Reset form
                 setAddPayment({
-                    Customer_Code: "",
+                    Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
                     Branch_Code: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
                     Bank_Code: "",
                     Transation_No: "",
@@ -165,39 +193,39 @@ function PaymentReceived() {
     /**************** function to export table data in excel and pdf ************/
     const handleExportExcel = () => {
 
-    const excelData = currentRows.map((row) => ({
-        "Customer Name": row.Customer_Name,
-        "GST No": row.Gst_No,
-        "Booking Type": row.Booking_Type,
-        "Branch Name": getBranch.find(f => f.Branch_Code === row.Branch_Code)?.Branch_Name,
-        "Bank Name": getBankName.find(f => f.Bank_Code === row.Bank_Code)?.Bank_Name,
-        "Transaction No": row.Transation_No,
-        "Receiver Name": row.Receiver_Name,
-        "Payment Type": row.Payment_Type,
-        "Pay Received Date": ymdToDmy(row.PayReceivedDate),
-        "TDS": row.TDS,
-        "Payment Received": row.PaymentReceived,
-        "Outstanding Amount": row.OutstandingAmount,
-        "Remark": row.Remark,
-        "Total Amount": row.TotalAmount
-    }));
+        const excelData = currentRows.map((row) => ({
+            "Customer Name": row.Customer_Name,
+            "GST No": row.Gst_No,
+            "Booking Type": row.Booking_Type,
+            "Branch Name": getBranch.find(f => f.Branch_Code === row.Branch_Code)?.Branch_Name,
+            "Bank Name": getBankName.find(f => f.Bank_Code === row.Bank_Code)?.Bank_Name,
+            "Transaction No": row.Transation_No,
+            "Receiver Name": row.Receiver_Name,
+            "Payment Type": row.Payment_Type,
+            "Pay Received Date": ymdToDmy(row.PayReceivedDate),
+            "TDS": row.TDS,
+            "Payment Received": row.PaymentReceived,
+            "Outstanding Amount": row.OutstandingAmount,
+            "Remark": row.Remark,
+            "Total Amount": row.TotalAmount
+        }));
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "PaymentData");
+        XLSX.utils.book_append_sheet(workbook, worksheet, "PaymentData");
 
-    const excelBuffer = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array"
-    });
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: "xlsx",
+            type: "array"
+        });
 
-    const file = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
-    });
+        const file = new Blob([excelBuffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
+        });
 
-    saveAs(file, "PaymentMode.xlsx");
-};
+        saveAs(file, "PaymentMode.xlsx");
+    };
 
     const handleExportPDF = () => {
         const input = document.getElementById('table-to-pdf');
@@ -410,17 +438,9 @@ function PaymentReceived() {
                                         <div className="input-field3">
                                             <label htmlFor="">Customer Name</label>
                                             <Select
-                                                options={getCustomer.map(cust => ({
-                                                    value: cust.Customer_Code,   // adjust keys from your API
-                                                    label: cust.Customer_Name
-                                                }))}
+                                                options={allCust}  // [{value: "", label: "All Customers"}, ...]
                                                 value={
-                                                    addPayment.Customer_Code
-                                                        ? {
-                                                            value: addPayment.Customer_Code,
-                                                            label: getCustomer.find(c => c.Customer_Code === addPayment.Customer_Code)?.Customer_Name || ""
-                                                        }
-                                                        : null
+                                                    allCust.find((c) => c.value === addPayment.Customer_Code) || null
                                                 }
                                                 onChange={(selectedOption) =>
                                                     setAddPayment({
@@ -428,16 +448,10 @@ function PaymentReceived() {
                                                         Customer_Code: selectedOption ? selectedOption.value : ""
                                                     })
                                                 }
-                                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll container
+                                                menuPortalTarget={document.body}
                                                 styles={{
-                                                    placeholder: (base) => ({
-                                                        ...base,
-                                                        whiteSpace: "nowrap",
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis"
-                                                    }),
-
-                                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps dropdown on top
+                                                    container: (base) => ({ ...base, width: "100%" }),
+                                                    menuPortal: (base) => ({ ...base, zIndex: 9999 })
                                                 }}
                                                 placeholder="Select Customer"
                                                 isSearchable
@@ -447,7 +461,7 @@ function PaymentReceived() {
 
                                         </div>
 
-                                          <div className="input-field3">
+                                        <div className="input-field3">
                                             <label htmlFor="">Payment Type</label>
                                             <select value={addPayment.Payment_Type} onChange={(e) => setAddPayment({ ...addPayment, Payment_Type: e.target.value })}>
                                                 <option value="" disabled>Select Payment Type</option>
@@ -460,7 +474,7 @@ function PaymentReceived() {
                                             </select>
                                         </div>
 
-                                         <div className="input-field3">
+                                        <div className="input-field3">
                                             <label htmlFor="">Transation / Check No</label>
                                             <input type="tel" placeholder="Enter Transation No" value={addPayment.Transation_No}
                                                 onChange={(e) => setAddPayment({ ...addPayment, Transation_No: e.target.value })} />
@@ -530,7 +544,7 @@ function PaymentReceived() {
                                                 onChange={(e) => setAddPayment({ ...addPayment, TDS: e.target.value })} />
                                         </div>
 
-                                        
+
 
                                         <div className="input-field3">
                                             <label htmlFor="">Remark</label>
@@ -545,11 +559,11 @@ function PaymentReceived() {
                                                 onChange={(e) => setAddPayment({ ...addPayment, Receiver_Name: e.target.value })} />
                                         </div>
 
-                                      
 
-                                        
 
-                                        
+
+
+
 
                                         <div className="input-field3">
                                             <label htmlFor="">Invoice No</label>

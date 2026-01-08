@@ -34,8 +34,27 @@ function ChecklistReport() {
         todt: today,
         CustomerName: "",
         booking: "ALL BOOKING TYPE",
-        branch: "All BRANCH DATA",
+        branch: "",
     });
+    useEffect(() => {
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                branch: "All BRANCH DATA"
+            }));
+        } else {
+
+            setFormData(prev => ({
+                ...prev,
+                branch: login?.Branch_Code,
+            }));
+
+
+        }
+    }, []);
     const getAllMode = [
         { value: "ALL MODE DATA", label: "ALL MODE DATA" },
         ...getMode.map((mode) => ({
@@ -47,64 +66,74 @@ function ChecklistReport() {
     const currentRows = EmailData.slice(indexOfFirstRow, indexOfLastRow);
     const totalPages = Math.ceil(EmailData.length / rowsPerPage);
     const [getBranch, setGetBranch] = useState([]);
-    const branchOptions = [
-        { value: "All BRANCH DATA", label: "All BRANCH DATA" }, // default option
-        ...getBranch.map(city => ({
-            value: city.Branch_Code,   // adjust keys from your API
-            label: city.Branch_Name,
-        }))
-    ];
-         useEffect(() => {
-            if (getCustomer.length === 0) return;
-        
-            const login = JSON.parse(localStorage.getItem("Login"));
-        
-            if (login?.UserType === "Admin") {
-              setFormData(prev => ({
+    const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+    const branchOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { value: "All BRANCH DATA", label: "All BRANCH DATA" }, // default option
+                ...getBranch.map(city => ({
+                    value: city.Branch_Code,   // adjust keys from your API
+                    label: city.Branch_Name,
+                }))
+            ] :
+            Array.isArray(getBranch) && getBranch.length > 0
+                ? getBranch
+                    .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                        value: city.Branch_Code,   // adjust keys from your API
+                        label: city.Branch_Name,
+                    })) : [];
+    useEffect(() => {
+        if (getCustomer.length === 0) return;
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
                 ...prev,
                 CustomerName: "ALL CLIENT DATA",
-              }));
-            } else {
-              const customer = getCustomer.find(
+            }));
+        } else {
+            const customer = getCustomer.find(
                 c => c.Customer_Code === login?.Customer_Code
-              );
-        
-              if (customer) {
+            );
+
+            if (customer) {
                 setFormData(prev => ({
-                  ...prev,
-                  CustomerName: customer.Customer_Name,
+                    ...prev,
+                    CustomerName: customer.Customer_Name,
                 }));
-              }
             }
-          }, [getCustomer]);
-        
-          const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
-          const allOptions =
-            JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
-              ?
-              [
+        }
+    }, [getCustomer]);
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
                 { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
                 ...getCustomer.map((cust) => ({
-                  label: cust.Customer_Name,
-                  value: cust.Customer_Name,
-                })),
-              ]
-              :
-              Array.isArray(getCustomer) && getCustomer.length > 0
-                ? getCustomer
-                  .filter(cust => cust.Customer_Code === loginCustomerCode)
-                  .map(cust => ({
                     label: cust.Customer_Name,
                     value: cust.Customer_Name,
-                    Customer_Code: cust.Customer_Code
-                  }))
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Name,
+                        Customer_Code: cust.Customer_Code
+                    }))
                 : []
-        
+
     const getbooking = [{ value: "ALL BOOKING TYPE", label: "ALL BOOKING TYPE" },
     { value: "Pending", label: "Pending" },
     { value: "Resolved", label: "Resolved" },
     ]
-    
+
     const handleDateChange = (date, field) => {
         setFormData({ ...formData, [field]: date });
     };
@@ -215,11 +244,11 @@ function ChecklistReport() {
                 setSelectedDockets([]);
                 setCurrentPage(1);
                 Swal.fire('Saved!', 'Data has been fetched.', 'success');
-            } 
+            }
         } catch (error) {
             console.error("API Error:", error);
             setEmailData([]);
-            Swal.fire('No Data','No records found.', 'info');
+            Swal.fire('No Data', 'No records found.', 'info');
         }
     };
 
@@ -342,42 +371,42 @@ function ChecklistReport() {
 
                         {/* Buttons */}
                         <div className="col-12 col-md-6 d-flex gap-2 justify-content-md-end flex-wrap">
-          
-                                  {/* Submit Button */}
-                                  <button
-                                      type="submit"
-                                      className="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                  >
-                                      <FaPaperPlane size={16} /><span style={{marginRight:"2px"}}>Submit</span>
-                                  </button>
-          
-                                  {/* Email Button */}
-                                  <button
-                                      type="button"
-                                      className="btn btn-info btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                       // 🔹 send excel by default
-                                  >
-                                      <MdEmail size={16} /><span style={{marginRight:"2px"}}>Mail</span>
-                                  </button>
-          
-                                  {/* Excel Button */}
-                                  <button
-                                      type="button"
-                                      className="btn btn-success btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                      onClick={exportSelectedToExcel}
-                                  >
-                                      <FaFileExcel size={16} /><span style={{marginRight:"2px"}}>Excel</span>
-                                  </button>
-          
-                                  {/* PDF Button */}
-                                  <button
-                                      type="button"
-                                      className="btn btn-danger btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
-                                      onClick={exportSelectedToPDF}
-                                  >
-                                      <FaFilePdf size={16} /><span style={{marginRight:"2px"}}>PDF</span>
-                                  </button>
-                              </div>
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                className="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                            >
+                                <FaPaperPlane size={16} /><span style={{ marginRight: "2px" }}>Submit</span>
+                            </button>
+
+                            {/* Email Button */}
+                            <button
+                                type="button"
+                                className="btn btn-info btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                            // 🔹 send excel by default
+                            >
+                                <MdEmail size={16} /><span style={{ marginRight: "2px" }}>Mail</span>
+                            </button>
+
+                            {/* Excel Button */}
+                            <button
+                                type="button"
+                                className="btn btn-success btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                                onClick={exportSelectedToExcel}
+                            >
+                                <FaFileExcel size={16} /><span style={{ marginRight: "2px" }}>Excel</span>
+                            </button>
+
+                            {/* PDF Button */}
+                            <button
+                                type="button"
+                                className="btn btn-danger btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
+                                onClick={exportSelectedToPDF}
+                            >
+                                <FaFilePdf size={16} /><span style={{ marginRight: "2px" }}>PDF</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -387,7 +416,7 @@ function ChecklistReport() {
                         <thead className='green-header' style={{ position: "sticky", top: 0, zIndex: 2 }}>
                             <tr>
                                 <th>Sr.No</th>
-                                 <th>Branch</th>
+                                <th>Branch</th>
                                 <th>DocketNo</th>
                                 <th>BookDate</th>
                                 <th>Customer_Name</th>

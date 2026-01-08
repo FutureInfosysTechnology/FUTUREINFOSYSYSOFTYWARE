@@ -27,7 +27,7 @@ function CustomerWiseReport() {
     todt: today,
     CustomerName: "",
     status: "ALL Status",
-    branch: "All Branch",
+    branch: "",
   });
 
   const getStatus = [{ value: "ALL Status", label: "ALL Status" },
@@ -46,11 +46,16 @@ function CustomerWiseReport() {
       setFormData(prev => ({
         ...prev,
         CustomerName: "ALL Customer",
+        branch:"All Branch"
       }));
     } else {
       const customer = getCustomer.find(
         c => c.Customer_Code === login?.Customer_Code
       );
+      setFormData(prev => ({
+          ...prev,
+          branch: login?.Branch_Code,
+        }));
 
       if (customer) {
         setFormData(prev => ({
@@ -58,8 +63,30 @@ function CustomerWiseReport() {
           CustomerName: customer.Customer_Name,
         }));
       }
+
+      
     }
   }, [getCustomer]);
+
+  useEffect(() => {
+
+    const login = JSON.parse(localStorage.getItem("Login"));
+
+    if (login?.UserType === "Admin") {
+      setFormData(prev => ({
+        ...prev,
+        branch:"All Branch"
+      }));
+    } else {
+      
+      setFormData(prev => ({
+          ...prev,
+          branch: login?.Branch_Code,
+        }));
+
+      
+    }
+  }, []);
 
   const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
   const allOptions =
@@ -82,13 +109,24 @@ function CustomerWiseReport() {
             Customer_Code: cust.Customer_Code
           }))
         : []
-  const branchOptions = [
-    { value: "All Branch", label: "All Branch" }, // default option
-    ...getBranch.map(city => ({
-      value: city.Branch_Code,   // adjust keys from your API
-      label: city.Branch_Name,
-    }))
-  ];
+
+  const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+  const branchOptions =
+    JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+      ?
+      [
+        { value: "All Branch", label: "All Branch" }, // default option
+        ...getBranch.map(city => ({
+          value: city.Branch_Code,   // adjust keys from your API
+          label: city.Branch_Name,
+        }))
+      ] :
+      Array.isArray(getBranch) && getBranch.length > 0
+        ? getBranch
+          .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+            value: city.Branch_Code,   // adjust keys from your API
+            label: city.Branch_Name,
+          })) : [];
 
 
 

@@ -27,8 +27,27 @@ function ChecklistWiseReport() {
         todt: today,
         CustomerName: "",
         booking: "ALL BOOKING TYPE",
-        branch: "All BRANCH DATA",
+        branch: "",
     });
+    useEffect(() => {
+    
+            const login = JSON.parse(localStorage.getItem("Login"));
+    
+            if (login?.UserType === "Admin") {
+                setFormData(prev => ({
+                    ...prev,
+                    branch: "All BRANCH DATA"
+                }));
+            } else {
+    
+                setFormData(prev => ({
+                    ...prev,
+                    branch: login?.Branch_Code,
+                }));
+    
+    
+            }
+        }, []);
     const formatDate = (date) => {
         if (!date) return "";
         const year = date.getFullYear();
@@ -47,13 +66,23 @@ function ChecklistWiseReport() {
     const currentRows = EmailData.slice(indexOfFirstRow, indexOfLastRow);
     const totalPages = Math.ceil(EmailData.length / rowsPerPage);
     const [getBranch, setGetBranch] = useState([]);
-    const branchOptions = [
-        { value: "All BRANCH DATA", label: "All BRANCH DATA" }, // default option
-        ...getBranch.map(city => ({
-            value: city.Branch_Code,   // adjust keys from your API
-            label: city.Branch_Name,
-        }))
-    ];
+     const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+    const branchOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { value: "All BRANCH DATA", label: "All BRANCH DATA" }, // default option
+                ...getBranch.map(city => ({
+                    value: city.Branch_Code,   // adjust keys from your API
+                    label: city.Branch_Name,
+                }))
+            ] :
+            Array.isArray(getBranch) && getBranch.length > 0
+                ? getBranch
+                    .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                        value: city.Branch_Code,   // adjust keys from your API
+                        label: city.Branch_Name,
+                    })) : [];
      useEffect(() => {
             if (getCustomer.length === 0) return;
         

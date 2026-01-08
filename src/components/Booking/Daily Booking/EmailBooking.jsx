@@ -14,16 +14,65 @@ import { getApi, postApi } from "../../Admin Master/Area Control/Zonemaster/Serv
 import { FaPaperPlane, FaFileExcel, FaFilePdf } from "react-icons/fa";
 
 function EmailBooking() {
+   const [getCustomer, setGetCustomer] = useState([]);
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const [formData, setFormData] = useState({
     fromdt: firstDayOfMonth,
     todt: today,
-    CustomerName: "ALL CLIENT DATA"
+    CustomerName: ""
   });
+
+  useEffect(() => {
+    if (getCustomer.length === 0) return;
+
+    const login = JSON.parse(localStorage.getItem("Login"));
+
+    if (login?.UserType === "Admin") {
+      setFormData(prev => ({
+        ...prev,
+        CustomerName: "ALL CLIENT DATA",
+      }));
+    } else {
+      const customer = getCustomer.find(
+        c => c.Customer_Code === login?.Customer_Code
+      );
+      if (customer) {
+        setFormData(prev => ({
+          ...prev,
+          CustomerName: customer.Customer_Name,
+        }));
+      }
+
+
+    }
+  }, [getCustomer]);
+
+
+  const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+  const allOptions =
+    JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+      ?
+      [
+        { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
+        ...getCustomer.map((cust) => ({
+          label: cust.Customer_Name,
+          value: cust.Customer_Name,
+        })),
+      ]
+      :
+      Array.isArray(getCustomer) && getCustomer.length > 0
+        ? getCustomer
+          .filter(cust => cust.Customer_Code === loginCustomerCode)
+          .map(cust => ({
+            label: cust.Customer_Name,
+            value: cust.Customer_Name,
+            Customer_Code: cust.Customer_Code
+          }))
+        : []
   const [rowsPerPage, setRowsPerPage] = useState(15);
   const [EmailData, setEmailData] = useState([]);
-  const [getCustomer, setGetCustomer] = useState([]);
+ 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedDockets, setSelectedDockets] = useState([]);
 
@@ -49,13 +98,7 @@ function EmailBooking() {
     fetchCustomerData();
   }, []);
 
-  const allOptions = [
-    { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
-    ...getCustomer.map((cust) => ({
-      label: cust.Customer_Name,
-      value: cust.Customer_Code,
-    })),
-  ];
+  
 
   const handleSearchChange = (selectedOption) => {
     setFormData({ ...formData, CustomerName: selectedOption ? selectedOption.value : "" });
@@ -73,7 +116,7 @@ function EmailBooking() {
     }
 
     try {
-      const response = await getApi(`/Booking/AutoMailsend?CustomerName=${encodeURIComponent(allOptions.find(c=>c.value===CustomerName)?.label)}&fromdt=${fromdt}&todt=${todt}`);
+      const response = await getApi(`/Booking/AutoMailsend?CustomerName=${encodeURIComponent(allOptions.find(c => c.value === CustomerName)?.label)}&fromdt=${fromdt}&todt=${todt}`);
       if (response.status === 1) {
         setEmailData(response.Data);
         setSelectedDockets([]);
@@ -194,10 +237,9 @@ function EmailBooking() {
         return;
       }
 
-      if(!getCustomer.find(cust=>cust.Customer_Code===formData.CustomerName)?.Email)
-      {
+      if (!getCustomer.find(cust => cust.Customer_Code === formData.CustomerName)?.Email) {
         Swal.fire("Warning", "this customer has not provided email check in master", "warning");
-        return; 
+        return;
       }
 
       // Filter only selected rows
@@ -222,7 +264,7 @@ function EmailBooking() {
       console.log("Selected rows:", formattedData.length);
       const fileName = `Booking_${new Date().toISOString().slice(0, 10)}.xlsx`;
       const formDataToSend = new FormData();
-      formDataToSend.append("file", file,fileName);
+      formDataToSend.append("file", file, fileName);
       formDataToSend.append("customerCode", formData?.CustomerName || "764");
       formDataToSend.append(
         "locationCode",
@@ -277,7 +319,7 @@ function EmailBooking() {
               className="blue-selectbooking"
               classNamePrefix="blue-selectbooking"
               options={allOptions}
-              value={formData.CustomerName ? { label: allOptions.find(c=>c.value===formData.CustomerName)?.label || "", value: formData.CustomerName } : null}
+              value={formData.CustomerName ? { label: allOptions.find(c => c.value === formData.CustomerName)?.label || "", value: formData.CustomerName } : null}
               onChange={handleSearchChange}
               placeholder="Search Customer..."
               isClearable
@@ -378,7 +420,7 @@ function EmailBooking() {
               <th>Remark</th>
             </tr>
           </thead>
-          <tbody style={{fontWeight:"normal",fontSize:"8px"}}>
+          <tbody style={{ fontWeight: "normal", fontSize: "8px" }}>
             {currentRows.length === 0 ? (
               <tr>
                 <td colSpan="18" className="text-center text-danger">No Data Found</td>

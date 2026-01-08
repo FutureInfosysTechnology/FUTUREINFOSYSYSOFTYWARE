@@ -22,7 +22,7 @@ function InvoiceSum() {
     const [currentPage, setCurrentPage] = useState(1);
     const [getCustomer, setGetCustomer] = useState([]);
     const [getBranch, setGetBranch] = useState([]);
-    
+
     const extrectArray = (response) => {
         if (Array.isArray(response?.data)) return response.data;
         if (Array.isArray(response?.Data)) return response.Data;
@@ -43,6 +43,96 @@ function InvoiceSum() {
         customer: "",
         branch: "",
     });
+
+    useEffect(() => {
+        if (getCustomer.length === 0) return;
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                customer: "ALL CUSTOMER DATA",
+            }));
+        } else {
+            const customer = getCustomer.find(
+                c => c.Customer_Code === login?.Customer_Code
+            );
+            setFormData(prev => ({
+                ...prev,
+                branch: login?.Branch_Code,
+            }));
+
+            if (customer) {
+                setFormData(prev => ({
+                    ...prev,
+                    customer: customer.Customer_Name,
+                }));
+            }
+
+
+        }
+    }, [getCustomer]);
+
+    useEffect(() => {
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                branch: "ALL BRANCH DATA"
+            }));
+        } else {
+
+            setFormData(prev => ({
+                ...prev,
+                branch: login?.Branch_Code,
+            }));
+
+
+        }
+    }, []);
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const customerOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { label: "ALL CUSTOMER DATA", value: "ALL CUSTOMER DATA" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Name,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Name,
+                        Customer_Code: cust.Customer_Code
+                    }))
+                : []
+
+    const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+    const branchOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { value: "ALL BRANCH DATA", label: "ALL BRANCH DATA" }, // default option
+                ...getBranch.map(city => ({
+                    value: city.Branch_Code,   // adjust keys from your API
+                    label: city.Branch_Name,
+                }))
+            ] :
+            Array.isArray(getBranch) && getBranch.length > 0
+                ? getBranch
+                    .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                        value: city.Branch_Code,   // adjust keys from your API
+                        label: city.Branch_Name,
+                    })) : [];
     const fetchData = async (endpoint, setData) => {
         try {
             const response = await getApi(endpoint);
@@ -54,20 +144,8 @@ function InvoiceSum() {
     };
 
     useEffect(() => {
-        const fetchBranch = async () => {
-            try {
-                const response = await getApi(`/Master/getBranch?Branch_Code=${JSON.parse(localStorage.getItem("Login"))?.Branch_Code}`);
-                if (response.status === 1) {
-                    console.log(response.Data);
-                    setGetBranch(response.Data);
-                }
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
-        fetchBranch();
         fetchData('/Master/getCustomerdata', setGetCustomer);
+        fetchData('/Master/GetAllBranchData', setGetBranch);
     }, []);
     const handleDelete = (index) => {
         Swal.fire({
@@ -88,7 +166,7 @@ function InvoiceSum() {
             }
         });
     };
-   
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -146,23 +224,13 @@ function InvoiceSum() {
 
             <div className="body">
                 <div className="container1">
-                    <form style={{ margin: "0px", padding: "0px",backgroundColor:"#f2f4f3" }} onSubmit={(e) => e.preventDefault()}>
-                        <div className="fields2" style={{ display: "flex", alignItems: "center",overflow:"hidden" }}>
+                    <form style={{ margin: "0px", padding: "0px", backgroundColor: "#f2f4f3" }} onSubmit={(e) => e.preventDefault()}>
+                        <div className="fields2" style={{ display: "flex", alignItems: "center", overflow: "hidden" }}>
                             <div className="input-field3">
                                 <label htmlFor="">Branch Name</label>
                                 <Select
-                                    options={getBranch.map(branch => ({
-                                        value: branch.Branch_Code,   // adjust keys from your API
-                                        label: branch.Branch_Name
-                                    }))}
-                                    value={
-                                        formData.branch
-                                            ? {
-                                                value: formData.branch,
-                                                label: getBranch.find(c => c.Branch_Code === formData.branch)?.Branch_Name
-                                            }
-                                            : null
-                                    }
+                                    options={branchOptions}
+                                    value={branchOptions.find(opt => opt.value === formData.branch) || null}
                                     onChange={(selectedOption) =>
                                         setFormData({
                                             ...formData,
@@ -184,20 +252,14 @@ function InvoiceSum() {
                                         menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps dropdown on top
                                     }}
                                 />
+
                             </div>
 
                             <div className="input-field1">
                                 <label htmlFor="">Customer</label>
                                 <Select
-                                    options={getCustomer.map(cust => ({
-                                        value: cust.Customer_Code,   // adjust keys from your API
-                                        label: cust.Customer_Name
-                                    }))}
-                                    value={
-                                        formData.customer
-                                            ? { value: formData.customer, label: getCustomer.find(c => c.Customer_Code === formData.customer)?.Customer_Name }
-                                            : null
-                                    }
+                                    options={customerOptions}
+                                    value={customerOptions.find(opt => opt.value === formData.customer) || null}
                                     onChange={(selectedOption) =>
                                         setFormData({
                                             ...formData,
@@ -242,8 +304,8 @@ function InvoiceSum() {
                                     className="form-control form-control-sm"
                                 />
                             </div>
-                            <div className="bottom-buttons" style={{ marginTop: "20px", marginLeft: "15px"}}>
-                                <button className="ok-btn" style={{padding:"0px",margin:"0px",width:"65px"}} onClick={handleSubmit}>Submit</button>
+                            <div className="bottom-buttons" style={{ marginTop: "20px", marginLeft: "15px" }}>
+                                <button className="ok-btn" style={{ padding: "0px", margin: "0px", width: "65px" }} onClick={handleSubmit}>Submit</button>
                             </div>
 
                             <div style={{ display: "flex", flex: "1", justifyContent: "end", marginTop: "10px" }}>
@@ -256,11 +318,11 @@ function InvoiceSum() {
 
                             </div>
 
-                            
+
                         </div>
                     </form>
                     <div style={{ width: "100%", display: "flex", justifyContent: "end", marginTop: "10px" }}>
-                        
+
 
                     </div>
                     {loading ? (<div className="loader"></div>) : (

@@ -18,15 +18,38 @@ function ProductionEntry() {
     const [formData, setFormData] = useState({
         CreditNote_ID: "",
         date: new Date(),
-        customer: "",
+        customer: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
         noteNo: "",
         docketNo: "",
         parti: "",
         remark: "",
         amount: "",
     });
-
     const [getCustomer, setGetCustomer] = useState([]);
+   
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allCust =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+
+                    }))
+                : []
+
+    
     const [creditNotes, setCreditNotes] = useState([]);
     const [openRow, setOpenRow] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -60,7 +83,7 @@ function ProductionEntry() {
             setData(extractArray(response));
         } catch (err) {
             console.error("Fetch Error:", err);
-        } 
+        }
     };
 
     // 🧠 Load Customers and Credit Notes
@@ -90,7 +113,7 @@ function ProductionEntry() {
         setFormData({
             CreditNote_ID: "",
             date: new Date(),
-            customer: "",
+            customer:  JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
             noteNo: "",
             docketNo: "",
             parti: "",
@@ -213,19 +236,9 @@ function ProductionEntry() {
                             <div className="input-field1">
                                 <label>Customer Name</label>
                                 <Select
-                                    options={getCustomer.map((cust) => ({
-                                        value: cust.Customer_Code,
-                                        label: cust.Customer_Name
-                                    }))}
+                                    options={allCust}  // [{value: "", label: "All Customers"}, ...]
                                     value={
-                                        formData.customer
-                                            ? {
-                                                value: formData.customer,
-                                                label:
-                                                    getCustomer.find((c) => c.Customer_Code === formData.customer)
-                                                        ?.Customer_Name || ""
-                                            }
-                                            : null
+                                        allCust.find((c) => c.value === formData.customer) || null
                                     }
                                     onChange={(selectedOption) =>
                                         setFormData({

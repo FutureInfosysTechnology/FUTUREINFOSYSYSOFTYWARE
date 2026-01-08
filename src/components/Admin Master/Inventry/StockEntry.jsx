@@ -30,6 +30,33 @@ function StockEntry() {
         toDocketNo: "",
         stockDate: new Date(),
     })
+    useEffect(() => {
+        const qty = Number(addStock.qty);
+        const from = Number(addStock.fromDocketNo);
+        if( !qty)
+        {
+             setAddStock(prev => ({
+            ...prev,
+            toDocketNo: "",
+            fromDocketNo:"",
+        }));
+        }
+        else if (!from)  {
+            setAddStock(prev => ({
+            ...prev,
+            toDocketNo: "",
+        }));
+        }
+        else
+        {
+            setAddStock(prev => ({
+            ...prev,
+            toDocketNo: from + qty - 1
+        }));
+        }
+
+    }, [addStock.qty, addStock.fromDocketNo]);
+
 
 
     const filteredgetStock = getStockEntry.filter((stock) =>
@@ -193,7 +220,7 @@ function StockEntry() {
     const handlePreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
     const handleNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
 
-     if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
 
     return (
@@ -408,6 +435,7 @@ function StockEntry() {
                                         <div className="input-field1">
                                             <label htmlFor="">To Airway Bill No</label>
                                             <input type="text" value={addStock.toDocketNo}
+                                                readOnly
                                                 onChange={(e) => setAddStock({ ...addStock, toDocketNo: e.target.value })}
                                                 placeholder="Enter To" required />
                                         </div>

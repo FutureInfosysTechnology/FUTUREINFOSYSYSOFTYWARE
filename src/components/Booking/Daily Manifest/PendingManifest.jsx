@@ -171,7 +171,9 @@ function PendingManifest() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredgetManifestData.map((manifest, index) => (
+                            {
+                            JSON.parse(localStorage.getItem("Login"))?.UserType==="Admin"?    
+                            filteredgetManifestData.map((manifest, index) => (
                                 <tr key={index}>
                                     <td>{index + 1}</td>
                                     <td>{manifest.DocketNo}</td>
@@ -186,6 +188,25 @@ function PendingManifest() {
                                     <td>{manifest.invoiceValue}</td>
                                     <td>{manifest.eWayBillNo}</td>
                                 </tr>
+                            
+
+                            )):filteredgetManifestData.filter(f=>f.CustomerCode===JSON.parse(localStorage.getItem("Login"))?.Customer_Code).map((manifest, index) => (
+                                <tr key={index}>
+                                    <td>{index + 1}</td>
+                                    <td>{manifest.DocketNo}</td>
+                                    <td>{ymdToDmy(manifest.BookDate)}</td>
+                                    <td>{manifest.customerName}</td>
+                                    <td>{manifest.consigneeName}</td>
+                                    <td>{manifest.fromDest}</td>
+                                    <td>{manifest.toDest}</td>
+                                    <td>{manifest.pcs}</td>
+                                    <td>{manifest.actualWt}</td>
+                                    <td>{manifest.invoiceNo}</td>
+                                    <td>{manifest.invoiceValue}</td>
+                                    <td>{manifest.eWayBillNo}</td>
+                                </tr>
+                            
+
                             ))}
                         </tbody>
                     </table>

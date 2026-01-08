@@ -27,7 +27,7 @@ function ActivityUpload() {
         date: today,
         time: formatTime(today),
         exp: '',
-        location: '',
+        location: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
         AwbNo: ''
     });
     const handleSubmit = async (e) => {
@@ -219,7 +219,7 @@ function ActivityUpload() {
                                         date: today,
                                         time: formatTime(today),
                                         exp: '',
-                                        location: '',
+                                        location: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
                                         AwbNo: ''
                                     })}
                                     className="ok-btn"

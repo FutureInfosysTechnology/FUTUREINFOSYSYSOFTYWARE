@@ -43,13 +43,37 @@ function ViewInvoice() {
         fromDate: firstDayOfMonth,
         toDate: today,
         invDate: null,
-        customer: "ALL CLIENT DATA",
+        customer: "",
         invoiceNo: "",
     });
     const [modalData, setModalData] = useState({
         billNo: "",
         docketNo: "",
     });
+    useEffect(() => {
+        if (getCustomer.length === 0) return;
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                customer: "ALL CLIENT DATA",
+            }));
+        } else {
+            const customer = getCustomer.find(
+                c => c.Customer_Code === login?.Customer_Code
+            );
+            
+                setFormData(prev => ({
+                    ...prev,
+                    customer: login?.Customer_Code,
+                }));
+            
+
+
+        }
+    }, [getCustomer]);
 
     const [isAllChecked, setIsAllChecked] = useState(false);
     const [term, setTerm] = useState("");
@@ -74,13 +98,27 @@ function ViewInvoice() {
 
     const [termArr, setTermArr] = useState([]);
     const [editIndex, setEditIndex] = useState(null);
-    const allOptions = [
-        { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
-        ...getCustomer.map((cust) => ({
-            label: cust.Customer_Name,
-            value: cust.Customer_Code,
-        })),
-    ];
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Code,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Code,
+                    }))
+                : []
+
     useEffect(() => {
         const fetchSetup = async () => {
             try {
@@ -105,7 +143,7 @@ function ViewInvoice() {
                         Insurance_Charges: setup.Insurance_Charges,
                         Actual_Weight: setup.Actual_Weight,
                         Rate_Per_Kg: setup.Rate_Per_Kg,
-                        Term_And_Conditions:true
+                        Term_And_Conditions: true
                     };
 
                     setIsChecked(updatedChecks);
@@ -131,56 +169,56 @@ function ViewInvoice() {
             setData(extrectArray(response));
         } catch (err) {
             console.error('Fetch Error:', err);
-            
-        } 
+
+        }
     };
 
     const handleUpdate = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    try {
-        // Prepare payload for API
-        const requestPayload = {
-            ID: 1, // Or your manifest/invoice ID dynamically
-            Delivery_Charges: isChecked.Delivery_Charges ? 1 : 0,
-            Hamali_Charges: isChecked.Hamali_Charges ? 1 : 0,
-            ODA_Charges: isChecked.ODA_Charges ? 1 : 0,
-            Charged_Weight: isChecked.Charged_Weight ? 1 : 0,
-            Consignee_Name: isChecked.Consignee_Name ? 1 : 0,
-            Fov_Charges: isChecked.Fov_Charges ? 1 : 0,
-            Packing_Charges: isChecked.Packing_Charges ? 1 : 0,
-            Other_Charges: isChecked.Other_Charges ? 1 : 0,
-            Fuel_Charges: isChecked.Fuel_Charges ? 1 : 0,
-            Volumetric_Weight: isChecked.Volumetric_Weight ? 1 : 0,
-            Docket_Charges: isChecked.Docket_Charges ? 1 : 0,
-            Green_Charges: isChecked.Green_Charges ? 1 : 0,
-            Insurance_Charges: isChecked.Insurance_Charges ? 1 : 0,
-            Actual_Weight: isChecked.Actual_Weight ? 1 : 0,
-            Rate_Per_Kg: isChecked.Rate_Per_Kg ? 1 : 0,
-            Terms_Conditions: isChecked.Term_And_Conditions ? 1 : 0,
-            Terms1_Conditions: termArr || [] // Array of terms if any
-        };
+        try {
+            // Prepare payload for API
+            const requestPayload = {
+                ID: 1, // Or your manifest/invoice ID dynamically
+                Delivery_Charges: isChecked.Delivery_Charges ? 1 : 0,
+                Hamali_Charges: isChecked.Hamali_Charges ? 1 : 0,
+                ODA_Charges: isChecked.ODA_Charges ? 1 : 0,
+                Charged_Weight: isChecked.Charged_Weight ? 1 : 0,
+                Consignee_Name: isChecked.Consignee_Name ? 1 : 0,
+                Fov_Charges: isChecked.Fov_Charges ? 1 : 0,
+                Packing_Charges: isChecked.Packing_Charges ? 1 : 0,
+                Other_Charges: isChecked.Other_Charges ? 1 : 0,
+                Fuel_Charges: isChecked.Fuel_Charges ? 1 : 0,
+                Volumetric_Weight: isChecked.Volumetric_Weight ? 1 : 0,
+                Docket_Charges: isChecked.Docket_Charges ? 1 : 0,
+                Green_Charges: isChecked.Green_Charges ? 1 : 0,
+                Insurance_Charges: isChecked.Insurance_Charges ? 1 : 0,
+                Actual_Weight: isChecked.Actual_Weight ? 1 : 0,
+                Rate_Per_Kg: isChecked.Rate_Per_Kg ? 1 : 0,
+                Terms_Conditions: isChecked.Term_And_Conditions ? 1 : 0,
+                Terms1_Conditions: termArr || [] // Array of terms if any
+            };
 
-        const response = await putApi('/Master/updateInvoicesSetup', requestPayload);
+            const response = await putApi('/Master/updateInvoicesSetup', requestPayload);
 
-        if (response.status === 1) {
-            setModalIsOpen(false)
-        } else {
+            if (response.status === 1) {
+                setModalIsOpen(false)
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.message || 'Something went wrong.'
+                });
+            }
+        } catch (error) {
+            console.error("Error updating invoice setup:", error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: response.message || 'Something went wrong.'
+                text: 'Something went wrong while updating. Please try again.'
             });
         }
-    } catch (error) {
-        console.error("Error updating invoice setup:", error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Something went wrong while updating. Please try again.'
-        });
-    }
-};
+    };
 
 
     const handleCheckChange = (e) => {
@@ -561,7 +599,7 @@ function ViewInvoice() {
                                 top: '50%',             // Center vertically
                                 left: '50%',
                                 whiteSpace: "nowrap",
-                                height:"80%"
+                                height: "80%"
 
                             },
                         }}>
@@ -609,7 +647,7 @@ function ViewInvoice() {
 
                                     </div>
                                     <div className='bottom-buttons'>
-                                        <button  className='ok-btn'>Submit</button>
+                                        <button className='ok-btn'>Submit</button>
                                         <button type="button" onClick={(e) => { setModalIsOpen(false) }} className='ok-btn'>Close</button>
                                     </div>
                                 </form>

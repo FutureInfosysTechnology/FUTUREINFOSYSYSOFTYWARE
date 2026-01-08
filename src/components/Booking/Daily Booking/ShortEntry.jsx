@@ -26,7 +26,7 @@ function ShortEntry() {
   };
   const onToggle = () => setToggleActive(!toggleActive);
   const [formData, setFormData] = useState({
-    Customer_Code: '',
+    Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
     Customer_Name: '',
     Origin_code: '',
     Destination_Code: '',
@@ -50,7 +50,27 @@ function ShortEntry() {
 
   const allModeOptions = getMode.map(mode => ({ label: mode.Mode_Name, value: mode.Mode_Code }));
   const allDesOptions = getDest.map(dest => ({ label: dest.City_Name, value: dest.City_Code }));
-  const allCustomerOptions = getCustomer.map(cust => ({ label: cust.Customer_Name, value: cust.Customer_Code.toString() }));
+  const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+  const allCustomerOptions =
+    JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+      ?
+      [
+        
+        ...getCustomer.map((cust) => ({
+          label: cust.Customer_Name,
+          value: cust.Customer_Code.toString(),
+        })),
+      ]
+      :
+      Array.isArray(getCustomer) && getCustomer.length > 0
+        ? getCustomer
+          .filter(cust => cust.Customer_Code === loginCustomerCode)
+          .map(cust => ({
+            label: cust.Customer_Name,
+            value: cust.Customer_Code.toString(),
+           
+          }))
+        : []
 
   useEffect(() => {
     const RateFunc = () => {
@@ -135,7 +155,7 @@ function ShortEntry() {
   const resetForm = () => {
     setFormData((prev) => ({
       ...prev,
-      Customer_Code: '',
+      Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
       Customer_Name: '',
       Origin_code: '',
       Destination_Code: '',

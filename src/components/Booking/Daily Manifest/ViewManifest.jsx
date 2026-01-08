@@ -74,7 +74,7 @@
             setIsLoading(true);
 
             const params = {
-                sessionLocationCode: 'MUM',
+                sessionLocationCode: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
                 manifestNo: formValues.manifestNo,
                 manifestDest: formValues.manifestDest,
                 fromDate: formValues.fromDate,
@@ -109,7 +109,7 @@
         console.log(currentPage);
         const handlePreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
         const handleNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-
+        
 
         const handleDelete = async (e) => {
             e.preventDefault();
@@ -324,7 +324,7 @@
                                                 <td>{index + 1}</td>
                                                 <td>{manifest.manifestNo}</td>
                                                 <td>{manifest.manifestDt}</td>
-                                                <td>{manifest.Client_Name}</td>
+                                                <td>{manifest.Customer_Name}</td>
                                                 <td>{manifest.Consignee_Name}</td>
                                                 <td>{manifest.fromDest}</td>
                                                 <td>{manifest.toDest}</td>

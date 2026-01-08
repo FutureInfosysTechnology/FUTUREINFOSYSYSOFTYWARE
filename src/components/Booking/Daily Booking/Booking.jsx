@@ -198,7 +198,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         Location_Code: "",
         Mode_Code: "",
         ODAChrgs: 0,
-        OriginCode: JSON.parse(localStorage.getItem("Login"))?.City_Code || "",
+        OriginCode: "",
         Origin_Zone: "",
         OtherCharges: 0,
         PackingChrgs: 0,

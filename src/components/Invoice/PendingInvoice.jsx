@@ -47,26 +47,94 @@ function PendingInvoice() {
     const [formData, setFormData] = useState({
         fromDate: firstDayOfMonth,
         toDate: today,
-        customer: "ALL CUSTOMER DATA",
-        branch: "ALL BRANCH DATA",
+        customer: "",
+        branch: "",
         mode: "ALL MODE DATA",
     });
     // Merge static + API
-    const customerOptions = [
-        { value: "ALL CUSTOMER DATA", label: "ALL CUSTOMER DATA" },
-        ...getCustomer.map(cust => ({
-            value: cust.Customer_Code,
-            label: cust.Customer_Name
-        }))
-    ];
+    
+    useEffect(() => {
+       if (getCustomer.length === 0) return;
+   
+       const login = JSON.parse(localStorage.getItem("Login"));
+   
+       if (login?.UserType === "Admin") {
+         setFormData(prev => ({
+           ...prev,
+           customer: "ALL CUSTOMER DATA",
+         }));
+       } else {
+        
+           setFormData(prev => ({
+             ...prev,
+             customer: login.Customer_Code,
+           }));
 
-    const branchOptions = [
-        { value: "ALL BRANCH DATA", label: "ALL BRANCH DATA" },
-        ...getBranch.map(branch => ({
-            value: branch.Branch_Code,
-            label: branch.Branch_Name
-        }))
-    ];
+   
+         
+       }
+     }, [getCustomer]);
+   
+     useEffect(() => {
+   
+       const login = JSON.parse(localStorage.getItem("Login"));
+   
+       if (login?.UserType === "Admin") {
+         setFormData(prev => ({
+           ...prev,
+           branch:"ALL BRANCH DATA"
+         }));
+       } else {
+         
+         setFormData(prev => ({
+             ...prev,
+             branch: login?.Branch_Code,
+           }));
+   
+         
+       }
+     }, []);
+   
+     const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+     const customerOptions =
+       JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+         ?
+         [
+           { label: "ALL CUSTOMER DATA", value: "ALL CUSTOMER DATA" },
+           ...getCustomer.map((cust) => ({
+             label: cust.Customer_Name,
+             value: cust.Customer_Code,
+           })),
+         ]
+         :
+         Array.isArray(getCustomer) && getCustomer.length > 0
+           ? getCustomer
+             .filter(cust => cust.Customer_Code === loginCustomerCode)
+             .map(cust => ({
+               label: cust.Customer_Name,
+               value: cust.Customer_Code,
+               
+             }))
+           : []
+   
+     const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+     const branchOptions =
+       JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+         ?
+         [
+           { value: "ALL BRANCH DATA", label: "ALL BRANCH DATA" }, // default option
+           ...getBranch.map(city => ({
+             value: city.Branch_Code,   // adjust keys from your API
+             label: city.Branch_Name,
+           }))
+         ] :
+         Array.isArray(getBranch) && getBranch.length > 0
+           ? getBranch
+             .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+               value: city.Branch_Code,   // adjust keys from your API
+               label: city.Branch_Name,
+             })) : [];
+   
 
     const modeOptions = [
         { value: "ALL MODE DATA", label: "ALL MODE DATA" },

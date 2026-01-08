@@ -18,6 +18,33 @@ function VendorWiseReport() {
     const [loading, setLoading] = useState(true);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const [formData, setFormData] = useState({
+        fromdt: firstDayOfMonth,
+        todt: today,
+        vendorCode: "ALL VENDOR",
+        status: "ALL STATUS",
+        branch: "",
+    });
+    useEffect(() => {
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                branch: "All BRANCH"
+            }));
+        } else {
+
+            setFormData(prev => ({
+                ...prev,
+                branch: login?.Branch_Code,
+            }));
+
+
+        }
+    }, []);
     const getStatus = [{ value: "ALL STATUS", label: "ALL STATUS" },
     { value: "Intransit", label: "Intransit" },
     { value: "OutForDelivery", label: "OutForDelivery" },
@@ -25,14 +52,23 @@ function VendorWiseReport() {
     { value: "RTO", label: "RTO" },
     { value: "Shipment Booked", label: "Shipment Booked" },
     ];
-    const branchOptions = [
-        { value: "ALL BRANCH", label: "ALL BRANCH" }, // default option
-        ...getBranch.map(city => ({
-            value: city.Branch_Code,   // adjust keys from your API
-            label: city.Branch_Name,
-        }))
-    ];
-
+    const loginBranchCode = JSON.parse(localStorage.getItem("Login"))?.Branch_Code;
+    const branchOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { value: "All BRANCH", label: "All BRANCH" }, // default option
+                ...getBranch.map(city => ({
+                    value: city.Branch_Code,   // adjust keys from your API
+                    label: city.Branch_Name,
+                }))
+            ] :
+            Array.isArray(getBranch) && getBranch.length > 0
+                ? getBranch
+                    .filter(city => city.Branch_Code === loginBranchCode).map(city => ({
+                        value: city.Branch_Code,   // adjust keys from your API
+                        label: city.Branch_Name,
+                    })) : [];
     const allOptions = [
         { label: "ALL VENDOR", value: "ALL VENDOR" },
         ...getVendor.map(vendor => ({
@@ -40,13 +76,7 @@ function VendorWiseReport() {
             label: vendor.Vendor_Name
         }))
     ];
-    const [formData, setFormData] = useState({
-        fromdt: firstDayOfMonth,
-        todt: today,
-        vendorCode: "ALL VENDOR",
-        status: "ALL STATUS",
-        branch: "ALL BRANCH",
-    });
+
 
     const [EmailData, setEmailData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -79,44 +109,45 @@ function VendorWiseReport() {
         fetchData('/Master/getAllBranchData', setGetBranch);
     }, []);
 
+
     const handleSearchChange = (selectedOption) => {
         setFormData({ ...formData, CustomerName: selectedOption ? selectedOption.value : "" });
     };
 
     const handlesave = async (e) => {
-  e.preventDefault();
+        e.preventDefault();
 
-  const fromdt = formatDate(formData.fromdt);
-  const todt = formatDate(formData.todt);
-  const Vendor_Name = formData.vendorCode || "ALL VENDOR";
-  const Status = formData.status || "ALL STATUS";
-  const Branch_Name = formData.branch || "ALL BRANCH";
+        const fromdt = formatDate(formData.fromdt);
+        const todt = formatDate(formData.todt);
+        const Vendor_Name = formData.vendorCode || "ALL VENDOR";
+        const Status = formData.status || "ALL STATUS";
+        const Branch_Name = formData.branch || "ALL BRANCH";
 
-  if (!fromdt || !todt) {
-    Swal.fire('Error', 'Both From Date and To Date are required.', 'error');
-    return;
-  }
+        if (!fromdt || !todt) {
+            Swal.fire('Error', 'Both From Date and To Date are required.', 'error');
+            return;
+        }
 
-  try {
-    const response = await getApi(
-      `Booking/VendorDeliveryReport?Vendor_Name=${encodeURIComponent(Vendor_Name)}&Status=${encodeURIComponent(Status)}&fromdt=${encodeURIComponent(fromdt)}&todt=${encodeURIComponent(todt)}&Branch_Name=${encodeURIComponent(Branch_Name)}&pageNumber=${encodeURIComponent(currentPage)}&pageSize=${encodeURIComponent(rowsPerPage)}`
-    );
+        try {
+            const response = await getApi(
+                `Booking/VendorDeliveryReport?Vendor_Name=${encodeURIComponent(Vendor_Name)}&Status=${encodeURIComponent(Status)}&fromdt=${encodeURIComponent(fromdt)}&todt=${encodeURIComponent(todt)}&Branch_Name=${encodeURIComponent(Branch_Name)}&pageNumber=${encodeURIComponent(currentPage)}&pageSize=${encodeURIComponent(rowsPerPage)}`
+            );
 
-    if (response.status === 1) {
-      setEmailData(response.Data);
-      setSelectedDockets([]);
-      setCurrentPage(1);
-      Swal.fire('Saved!', 'Data has been fetched.', 'success');
-    } else {
-      Swal.fire('No Data', response.message || 'No records found.', 'info');
-      setEmailData([]);
-    }
-  } catch (error) {
-    console.error("API Error:", error);
-    Swal.fire('Error', 'Something went wrong while fetching data.', 'error');
-    setEmailData([]);
-  }
-};
+            if (response.status === 1) {
+                setEmailData(response.Data);
+                setSelectedDockets([]);
+                setCurrentPage(1);
+                Swal.fire('Saved!', 'Data has been fetched.', 'success');
+            } else {
+                Swal.fire('No Data', response.message || 'No records found.', 'info');
+                setEmailData([]);
+            }
+        } catch (error) {
+            console.error("API Error:", error);
+            Swal.fire('Error', 'Something went wrong while fetching data.', 'error');
+            setEmailData([]);
+        }
+    };
 
 
     const indexOfLastRow = currentPage * rowsPerPage;
@@ -260,7 +291,7 @@ function VendorWiseReport() {
                             options={allOptions}
                             value={
                                 formData.vendorCode
-                                    ? {value:formData.vendorCode,label:formData.vendorCode}
+                                    ? { value: formData.vendorCode, label: formData.vendorCode }
                                     : null
                             }
                             onChange={(selectedOption) =>
@@ -345,7 +376,7 @@ function VendorWiseReport() {
                             type="submit"
                             className="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
                         >
-                            <FaPaperPlane size={16} /><span style={{marginRight:"2px"}}>Submit</span>
+                            <FaPaperPlane size={16} /><span style={{ marginRight: "2px" }}>Submit</span>
                         </button>
 
                         {/* Email Button */}
@@ -354,7 +385,7 @@ function VendorWiseReport() {
                             className="btn btn-info btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
                             onClick={() => handleSendEmailWithAttachment("excel")} // 🔹 send excel by default
                         >
-                            <MdEmail size={16} /><span style={{marginRight:"2px"}}>Mail</span>
+                            <MdEmail size={16} /><span style={{ marginRight: "2px" }}>Mail</span>
                         </button>
 
                         {/* Excel Button */}
@@ -363,7 +394,7 @@ function VendorWiseReport() {
                             className="btn btn-success btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
                             onClick={exportSelectedToExcel}
                         >
-                            <FaFileExcel size={16} /><span style={{marginRight:"2px"}}>Excel</span>
+                            <FaFileExcel size={16} /><span style={{ marginRight: "2px" }}>Excel</span>
                         </button>
 
                         {/* PDF Button */}
@@ -372,7 +403,7 @@ function VendorWiseReport() {
                             className="btn btn-danger btn-sm d-flex align-items-center gap-2 rounded-pill shadow-sm"
                             onClick={exportSelectedToPDF}
                         >
-                            <FaFilePdf size={16} /><span style={{marginRight:"2px"}}>PDF</span>
+                            <FaFilePdf size={16} /><span style={{ marginRight: "2px" }}>PDF</span>
                         </button>
                     </div>
                 </div>

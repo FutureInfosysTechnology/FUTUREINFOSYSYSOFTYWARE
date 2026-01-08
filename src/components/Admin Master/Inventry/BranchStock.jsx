@@ -28,6 +28,32 @@ function BranchStock() {
         toDocketNo: "",
         stockDate: new Date(),
     })
+     useEffect(() => {
+            const qty = Number(addBranchStock.qty);
+            const from = Number(addBranchStock.fromDocketNo);
+            if( !qty)
+            {
+                 setAddBranchStock(prev => ({
+                ...prev,
+                toDocketNo: "",
+                fromDocketNo:"",
+            }));
+            }
+            else if (!from)  {
+                setAddBranchStock(prev => ({
+                ...prev,
+                toDocketNo: "",
+            }));
+            }
+            else
+            {
+                setAddBranchStock(prev => ({
+                ...prev,
+                toDocketNo: from + qty - 1
+            }));
+            }
+    
+        }, [addBranchStock.qty, addBranchStock.fromDocketNo]);
 
     const filteredgetBranch = getBranchStock.filter((branch) =>
         (branch?.City_Name && branch?.City_Name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -383,6 +409,7 @@ function BranchStock() {
                                             <label htmlFor="">To Docket No</label>
                                             <input type="tel" placeholder="Enter To Docket No" required
                                                 value={addBranchStock.toDocketNo}
+                                                readOnly
                                                 onChange={(e) => setAddBranchStock({ ...addBranchStock, toDocketNo: e.target.value })} />
                                         </div>
 

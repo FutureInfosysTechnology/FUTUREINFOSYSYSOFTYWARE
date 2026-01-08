@@ -9,7 +9,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
 import 'react-toggle/style.css';
-import { getApi, deleteApi,putApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi, deleteApi, putApi, postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -48,7 +48,7 @@ function BillView() {
         fromDate: firstDayOfMonth,
         toDate: today,
         invDate: null,
-        customer: "ALL CLIENT DATA",
+        customer: "",
         invoiceNo: "",
     });
     const [modalData, setModalData] = useState({
@@ -75,13 +75,52 @@ function BillView() {
     const [term, setTerm] = useState("");
     const [termArr, setTermArr] = useState([]);
     const [editIndex, setEditIndex] = useState(null);
-    const allOptions = [
-    { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
-    ...getCustomer.map((cust) => ({
-      label: cust.Customer_Name,
-      value: cust.Customer_Code,
-    })),
-  ];
+    useEffect(() => {
+        if (getCustomer.length === 0) return;
+
+        const login = JSON.parse(localStorage.getItem("Login"));
+
+        if (login?.UserType === "Admin") {
+            setFormData(prev => ({
+                ...prev,
+                customer: "ALL CLIENT DATA",
+            }));
+        } else {
+            const customer = getCustomer.find(
+                c => c.Customer_Code === login?.Customer_Code
+            );
+
+            if (customer) {
+                setFormData(prev => ({
+                    ...prev,
+                    customer: customer.Customer_Name,
+                }));
+            }
+        }
+    }, [getCustomer]);
+
+    const loginCustomerCode = JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
+    const allOptions =
+        JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
+            ?
+            [
+                { label: "ALL CLIENT DATA", value: "ALL CLIENT DATA" },
+                ...getCustomer.map((cust) => ({
+                    label: cust.Customer_Name,
+                    value: cust.Customer_Name,
+                })),
+            ]
+            :
+            Array.isArray(getCustomer) && getCustomer.length > 0
+                ? getCustomer
+                    .filter(cust => cust.Customer_Code === loginCustomerCode)
+                    .map(cust => ({
+                        label: cust.Customer_Name,
+                        value: cust.Customer_Name,
+                        Customer_Code: cust.Customer_Code
+                    }))
+                : []
+
     const fetchData = async (endpoint, setData) => {
         try {
             const response = await getApi(endpoint);
@@ -359,7 +398,7 @@ function BillView() {
                 pageNumber: currentPage,
             });
 
-            const response = await postApi(`/Smart/getInvoiceGenerateData`,payload);
+            const response = await postApi(`/Smart/getInvoiceGenerateData`, payload);
             console.log(response);
 
             if (response?.status === 1 && Array.isArray(response.Data)) {
@@ -417,33 +456,33 @@ function BillView() {
         }
         setTerm("");
     };
-    const handleDocketUpdate = async (action, docketNo, billNo,e) => {
+    const handleDocketUpdate = async (action, docketNo, billNo, e) => {
         e.preventDefault();
-    try {
-        if (!docketNo || !billNo) {
-            return Swal.fire("Missing Fields", "Docket No & Bill No are required", "warning");
+        try {
+            if (!docketNo || !billNo) {
+                return Swal.fire("Missing Fields", "Docket No & Bill No are required", "warning");
+            }
+
+            const endpoint =
+                action === "add"
+                    ? "/Smart/AddMissingDocketToBill"
+                    : "/Smart/RemoveDocketFromBill";
+
+            const response = await putApi(
+                `${endpoint}?DocketNo=${docketNo}&BillNo=${billNo}`
+            );
+
+            if (response.status === 1 || response.Status === 1) {
+                Swal.fire("Success", response.message || response.Message, "success");
+                setEditIsOpen(false);
+            } else {
+                Swal.fire("Failed", response.message || response.Message, "error");
+            }
+
+        } catch (error) {
+            Swal.fire("Error", error.message, "error");
         }
-
-        const endpoint =
-            action === "add"
-                ? "/Smart/AddMissingDocketToBill"
-                : "/Smart/RemoveDocketFromBill";
-
-        const response = await putApi(
-            `${endpoint}?DocketNo=${docketNo}&BillNo=${billNo}`
-        );
-
-        if (response.status === 1 || response.Status === 1) {
-            Swal.fire("Success", response.message || response.Message, "success");
-            setEditIsOpen(false);
-        } else {
-            Swal.fire("Failed", response.message || response.Message, "error");
-        }
-
-    } catch (error) {
-        Swal.fire("Error", error.message, "error");
-    }
-};
+    };
 
     return (
         <>
@@ -458,7 +497,7 @@ function BillView() {
                                     options={allOptions}
                                     value={
                                         formData.customer
-                                            ? allOptions.find(c=>c.value===formData.customer)
+                                            ? allOptions.find(c => c.value === formData.customer)
                                             : null
                                     }
                                     onChange={(selectedOption) =>
@@ -505,7 +544,7 @@ function BillView() {
                                     className="form-control form-control-sm"
                                 />
                             </div>
-                            
+
                             <div className="input-field3">
                                 <label htmlFor="">Invoice No</label>
                                 <input type="text" placeholder="Invoice No" value={formData.invoiceNo} onChange={(e) => handleFormChange(e.target.value, "invoiceNo")} />
@@ -583,14 +622,14 @@ function BillView() {
                                                             padding: "10px",
                                                         }}
                                                     >
-                                                        <button className="edit-btn" onClick={() => {setEditIsOpen(true);setOpenRow(null);setModalData({billNo:row?.BillNo,docketNo:""})}}>
+                                                        <button className="edit-btn" onClick={() => { setEditIsOpen(true); setOpenRow(null); setModalData({ billNo: row?.BillNo, docketNo: "" }) }}>
                                                             <i className="bi bi-pen" style={{ fontSize: "18px" }}></i>
                                                         </button>
 
-                                                        <button className="edit-btn" onClick={() =>{;setOpenRow(null); handleOpenInvoicePrint(row.BillNo)}}>
+                                                        <button className="edit-btn" onClick={() => { ; setOpenRow(null); handleOpenInvoicePrint(row.BillNo) }}>
                                                             <i className="bi bi-file-earmark-pdf-fill" style={{ fontSize: "18px" }}></i>
                                                         </button>
-                                                        <button onClick={() =>{;setOpenRow(null); handleDelete(row.BillNo)}} className="edit-btn">
+                                                        <button onClick={() => { ; setOpenRow(null); handleDelete(row.BillNo) }} className="edit-btn">
                                                             <i className="bi bi-trash" style={{ fontSize: "18px" }}></i>
                                                         </button>
                                                     </div>
@@ -913,10 +952,10 @@ function BillView() {
                                                 onChange={(e) => setModalData({ ...modalData, docketNo: e.target.value })}
                                             />
                                         </div>
-                                        <div className='bottom-buttons' style={{display:"flex",alignItems:"end",marginTop:"20px",marginLeft:"10px",flexWrap:"wrap"}}>
-                                            <button type="submit" className='ok-btn' onClick={(e)=>handleDocketUpdate("add", modalData.docketNo, modalData.billNo,e)}>Add</button>
-                                            <button type="submit" className='ok-btn' onClick={(e)=>handleDocketUpdate("remove", modalData.docketNo, modalData.billNo,e)}>Remove</button>
-                                            <button type="button" className='ok-btn' onClick={()=>setEditIsOpen(false)}>close</button>
+                                        <div className='bottom-buttons' style={{ display: "flex", alignItems: "end", marginTop: "20px", marginLeft: "10px", flexWrap: "wrap" }}>
+                                            <button type="submit" className='ok-btn' onClick={(e) => handleDocketUpdate("add", modalData.docketNo, modalData.billNo, e)}>Add</button>
+                                            <button type="submit" className='ok-btn' onClick={(e) => handleDocketUpdate("remove", modalData.docketNo, modalData.billNo, e)}>Remove</button>
+                                            <button type="button" className='ok-btn' onClick={() => setEditIsOpen(false)}>close</button>
                                         </div>
                                     </div>
 
