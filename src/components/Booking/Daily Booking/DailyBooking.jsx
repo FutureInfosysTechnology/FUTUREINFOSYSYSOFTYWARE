@@ -10,6 +10,7 @@ import "./DailyBooking.css";
 import { useLocation } from "react-router-dom";
 import Performa from "./Performa";
 import ForwardingInt from "./ForwardingInt";
+import RateCal from "./RateCal";
 
 function DailyBooking() {
   const location = useLocation();
@@ -51,6 +52,12 @@ function DailyBooking() {
       id: "Forwarding",
       label: "Forwarding international",
       component: <ForwardingInt />,
+      show: 1,
+    },
+    {
+      id: "rate",
+      label: "Rate Calculator",
+      component: <RateCal />,
       show: 1,
     },
     {

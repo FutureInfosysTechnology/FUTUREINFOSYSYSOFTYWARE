@@ -28,7 +28,7 @@ function CustomerRate() {
     const [getMode, setGetMode] = useState([]);               // To Get Mode Data
     const [getZone, setGetZone] = useState([]);               // To Get Zone Data        // To Get Country Data
     const [getState, setGetState] = useState([]);             // To Get State Data
-    
+
     const [error, setError] = useState(null);
     const [filteredCity, setFilteredCity] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -70,38 +70,38 @@ function CustomerRate() {
     const totalPages = Math.ceil(getCustRate.length / rowsPerPage);
 
     const fetchCustomerRateData = async () => {
-    setLoading(true);
-    try {
-        const queryParams = new URLSearchParams({
-            pageNumber: currentPage,
-            pageSize: rowsPerPage,
-            // search: searchValue || ""   // enable if needed
-        }).toString();
+        setLoading(true);
+        try {
+            const queryParams = new URLSearchParams({
+                pageNumber: currentPage,
+                pageSize: rowsPerPage,
+                // search: searchValue || ""   // enable if needed
+            }).toString();
 
-        const response = await getApi(
-            `/Master/GetRateMasterData?${queryParams}`
-        );
+            const response = await getApi(
+                `/Master/GetRateMasterData?${queryParams}`
+            );
 
-        if (response.status !== 1) {
-            throw new Error(response.message || "Failed to fetch rate master data");
+            if (response.status !== 1) {
+                throw new Error(response.message || "Failed to fetch rate master data");
+            }
+
+            setGetCustRate(Array.isArray(response.data) ? response.data : []);
+
+            // Optional: backend already returns pageNumber
+            // setCurrentPage(response.pageNumber);
+
+        } catch (err) {
+            console.error(err);
+            setError(err.message || "Something went wrong");
+        } finally {
+            setLoading(false);
         }
+    };
 
-        setGetCustRate(Array.isArray(response.data) ? response.data : []);
-
-        // Optional: backend already returns pageNumber
-        // setCurrentPage(response.pageNumber);
-
-    } catch (err) {
-        console.error(err);
-        setError(err.message || "Something went wrong");
-    } finally {
-        setLoading(false);
-    }
-};
-
-    useEffect(()=>{
+    useEffect(() => {
         fetchCustomerRateData();
-    },[rowsPerPage])
+    }, [rowsPerPage])
 
     const fetchCustomerData = async () => {
         try {
@@ -115,15 +115,21 @@ function CustomerRate() {
     };
 
     const fetchCityData = async () => {
+
         try {
-            const response = await getApi('/Master/getdomestic');
-            setGetCity(Array.isArray(response.Data) ? response.Data : []);
+            const response = await getApi(`/Master/GetInterDomestic?Product_Type=International`);
+            const data = response.data
+            // Check if the response contains data, then update the corresponding state
+            if (data) {
+                setGetCity(Array.isArray(data) ? data : []);
+            } else {
+                setGetCity([]);
+            }
         } catch (err) {
-            console.error('Fetch Error:', err);
-            setError(err);
-        } finally {
-            setLoading(false);
+            console.error(`Error fetching data from /Master/GetInterDomestic:`, err);
+
         }
+
     };
 
     const fetchModeData = async () => {
@@ -150,32 +156,32 @@ function CustomerRate() {
         }
     };
 
-    
- const filterCities = (zoneCodes = [], stateCodes = []) => {
-  return getCity.filter(city => {
-    const hasZone = zoneCodes.length > 0;
-    const hasState = stateCodes.length > 0;
 
-    if (hasZone && hasState) {
-      // 🔹 both zone and state filters applied
-      return zoneCodes.includes(city.Zone_Code) && stateCodes.includes(city.State_Code);
-    } else if (hasZone) {
-      // 🔹 only zone filter
-      return zoneCodes.includes(city.Zone_Code);
-    } else if (hasState) {
-      // 🔹 only state filter
-      return stateCodes.includes(city.State_Code);
-    } else {
-      // 🔹 no filters → return all cities
-      return true;
-    }
-  });
-};
+    const filterCities = (zoneCodes = [], stateCodes = []) => {
+        return getCity.filter(city => {
+            const hasZone = zoneCodes.length > 0;
+            const hasState = stateCodes.length > 0;
 
-  useEffect(() => {
-  const cities = filterCities(formdata.Zone_Code, formdata.State_Code);
-  setFilteredCity(cities);
-}, [formdata.Zone_Code, formdata.State_Code]);
+            if (hasZone && hasState) {
+                // 🔹 both zone and state filters applied
+                return zoneCodes.includes(city.Zone_Code) && stateCodes.includes(city.State_Code);
+            } else if (hasZone) {
+                // 🔹 only zone filter
+                return zoneCodes.includes(city.Zone_Code);
+            } else if (hasState) {
+                // 🔹 only state filter
+                return stateCodes.includes(city.State_Code);
+            } else {
+                // 🔹 no filters → return all cities
+                return true;
+            }
+        });
+    };
+
+    useEffect(() => {
+        const cities = filterCities(formdata.Zone_Code, formdata.State_Code);
+        setFilteredCity(cities);
+    }, [formdata.Zone_Code, formdata.State_Code]);
     const parseDate = (date) => {
         if (!date) return null;
         // handles both ISO & dd/MM/yyyy
@@ -194,7 +200,7 @@ function CustomerRate() {
 
                 // 🧠 set formdata using API response
                 setFormdata({
-                    Client_Code: d.Client_Code|| "",
+                    Client_Code: d.Client_Code || "",
                     Club_No: d.Club_No || "",
                     Mode_Code: d.Mode_Codes || [],
                     Zone_Code: d.Zone_Codes || [],
@@ -250,8 +256,8 @@ function CustomerRate() {
             [name]: value,
         }));
     };
-   
-   
+
+
     const handleAddRow = (e) => {
         e.preventDefault();
 
@@ -277,7 +283,7 @@ function CustomerRate() {
             On_Addition: 0,
             Lower_Wt: 0,
             Upper_Wt: 0,
-            Rate:0,
+            Rate: 0,
         });
     };
     const formatDate = (date) => {
@@ -298,7 +304,7 @@ function CustomerRate() {
                 confirmButtonText: 'OK',
             });
         }
-        if (submittedData.length<1) {
+        if (submittedData.length < 1) {
             return Swal.fire({
                 icon: 'warning',
                 title: 'Empty Rate Detail',
@@ -361,26 +367,25 @@ function CustomerRate() {
                 Swal.fire('Saved!', response.message || 'Your changes have been saved.', 'success');
                 setModalIsOpen(false);
             }
-            else
-            {
+            else {
                 Swal.fire('Error!', response.message, 'error');
             }
         } catch (error) {
             console.error('Unable to save Customer Rate:', error);
         }
     };
-   const handleUpdate = async (e) => {
-    e.preventDefault();
+    const handleUpdate = async (e) => {
+        e.preventDefault();
 
-    if (!formdata.Client_Code || !formdata.Mode_Code) {
-        return Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            text: 'Please fill in the empty fields.',
-            confirmButtonText: 'OK',
-        });
-    }
-    if (submittedData.length<1) {
+        if (!formdata.Client_Code || !formdata.Mode_Code) {
+            return Swal.fire({
+                icon: 'warning',
+                title: 'Missing Information',
+                text: 'Please fill in the empty fields.',
+                confirmButtonText: 'OK',
+            });
+        }
+        if (submittedData.length < 1) {
             return Swal.fire({
                 icon: 'warning',
                 title: 'Empty Rate Detail',
@@ -389,72 +394,72 @@ function CustomerRate() {
             });
         }
 
-    // ✅ Match backend key names exactly
-    const requestBody = {
-        Club_No: formdata.Club_No, // required for update
-        Client_Code: formdata.Client_Code?.toString(),
-        Vendor_Code: formdata.Vendor_Code || null,
-        Flag: "Active",
-        Mode_Codes: formdata.Mode_Code || [],          // ✅ plural
-        Zone_Codes: formdata.Zone_Code || [],          // ✅ plural
-        State_Codes: formdata.State_Code || [],        // ✅ plural
-        Destination_Codes: formdata.Destination_Code || [], // ✅ plural
-        Origin_Code: formdata.Origin_Code,
-        Method: "Credit",
-        Dox_Spx: formdata.Dox_Box || "Dox",           // ✅ backend key
-        Active_Date: formatDate(formdata.Active_Date),
-        Closing_Date: formatDate(formdata.Closing_Date),
-        Amount: formdata.Amount || 0,
-        Weight: formdata.Weight || 0,
-        ConnectingHub: JSON.parse(localStorage.getItem("Login"))?.Branch_Code || null,
-        RatePer: 100,
-        RateDetails: submittedData.map((data) => ({
-            Club_No:formdata.Club_No,
-            On_Addition:Number(data.On_Addition),
-            Lower_Wt: Number(data.Lower_Wt),
-            Upper_Wt: Number(data.Upper_Wt),
-            Rate: Number(data.Rate),
-            Rate_Flag: data.Rate_Flag,
-        })),
-    };
+        // ✅ Match backend key names exactly
+        const requestBody = {
+            Club_No: formdata.Club_No, // required for update
+            Client_Code: formdata.Client_Code?.toString(),
+            Vendor_Code: formdata.Vendor_Code || null,
+            Flag: "Active",
+            Mode_Codes: formdata.Mode_Code || [],          // ✅ plural
+            Zone_Codes: formdata.Zone_Code || [],          // ✅ plural
+            State_Codes: formdata.State_Code || [],        // ✅ plural
+            Destination_Codes: formdata.Destination_Code || [], // ✅ plural
+            Origin_Code: formdata.Origin_Code,
+            Method: "Credit",
+            Dox_Spx: formdata.Dox_Box || "Dox",           // ✅ backend key
+            Active_Date: formatDate(formdata.Active_Date),
+            Closing_Date: formatDate(formdata.Closing_Date),
+            Amount: formdata.Amount || 0,
+            Weight: formdata.Weight || 0,
+            ConnectingHub: JSON.parse(localStorage.getItem("Login"))?.Branch_Code || null,
+            RatePer: 100,
+            RateDetails: submittedData.map((data) => ({
+                Club_No: formdata.Club_No,
+                On_Addition: Number(data.On_Addition),
+                Lower_Wt: Number(data.Lower_Wt),
+                Upper_Wt: Number(data.Upper_Wt),
+                Rate: Number(data.Rate),
+                Rate_Flag: data.Rate_Flag,
+            })),
+        };
 
-    try {
-        const response = await putApi('Master/updateRateMasterMultiple', requestBody, 'PUT');
+        try {
+            const response = await putApi('Master/updateRateMasterMultiple', requestBody, 'PUT');
 
-        if (response.status === 1) {
-            setFormdata({
-                Client_Code: "",
-                Club_No: "",
-                Mode_Code: [],
-                Zone_Code: [],
-                State_Code: [],
-                Destination_Code: [],
-                Origin_Code: "",
-                Active_Date: firstDayOfMonth,
-                Closing_Date: today,
-                Dox_Box: "Box",
-                Amount: "",
-                Weight: "",
-            });
-            setTableRowData({
-                On_Addition: 0,
-                Lower_Wt: 0,
-                Upper_Wt: 0,
-                Rate: 0,
-                Rate_Flag: ""
-            });
-            setSubmittedData([]);
+            if (response.status === 1) {
+                setFormdata({
+                    Client_Code: "",
+                    Club_No: "",
+                    Mode_Code: [],
+                    Zone_Code: [],
+                    State_Code: [],
+                    Destination_Code: [],
+                    Origin_Code: "",
+                    Active_Date: firstDayOfMonth,
+                    Closing_Date: today,
+                    Dox_Box: "Box",
+                    Amount: "",
+                    Weight: "",
+                });
+                setTableRowData({
+                    On_Addition: 0,
+                    Lower_Wt: 0,
+                    Upper_Wt: 0,
+                    Rate: 0,
+                    Rate_Flag: ""
+                });
+                setSubmittedData([]);
 
-            Swal.fire('Updated!', response.message || 'Rate master updated successfully.', 'success');
-            setModalIsOpen(false);
-            await fetchCustomerRateData();
-        } else {
-            Swal.fire('Error', response.message || 'Failed to update rate master.', 'error');
+                Swal.fire('Updated!', response.message || 'Rate master updated successfully.', 'success');
+                setModalIsOpen(false);
+                await fetchCustomerRateData();
+            } else {
+                Swal.fire('Error', response.message || 'Failed to update rate master.', 'error');
+            }
+        } catch (error) {
+            console.error('Unable to update Customer Rate:', error);
         }
-    } catch (error) {
-        console.error('Unable to update Customer Rate:', error);
-    }
-};
+    };
 
 
 

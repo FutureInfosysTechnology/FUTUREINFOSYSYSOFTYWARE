@@ -83,36 +83,36 @@ function PerformaPdf() {
     }, [getItem]); // 
 
     const generatePDF = async () => {
-  if (!pageRef.current) return;
+        if (!pageRef.current) return;
 
-  const canvas = await html2canvas(pageRef.current, {
-    scale: 2,            // high enough quality
-    useCORS: true,
-    logging: false,
-  });
+        const canvas = await html2canvas(pageRef.current, {
+            scale: 2,            // high enough quality
+            useCORS: true,
+            logging: false,
+        });
 
-  const imgData = canvas.toDataURL("image/jpeg", 0.7);
+        const imgData = canvas.toDataURL("image/jpeg", 0.7);
 
-  const pdf = new jsPDF("p", "mm", "a4");
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = pdf.internal.pageSize.getHeight();
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  const imgWidth = pdfWidth;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  let finalWidth = imgWidth;
-  let finalHeight = imgHeight;
+        let finalWidth = imgWidth;
+        let finalHeight = imgHeight;
 
-  // 🔹 If image height exceeds page, scale it down
-  if (imgHeight > pdfHeight) {
-    const scale = pdfHeight / imgHeight;
-    finalWidth *= scale;
-    finalHeight *= scale;
-  }
+        // 🔹 If image height exceeds page, scale it down
+        if (imgHeight > pdfHeight) {
+            const scale = pdfHeight / imgHeight;
+            finalWidth *= scale;
+            finalHeight *= scale;
+        }
 
-  pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
-  pdf.save(`Performa_${DocketNo}.pdf`);
-};
+        pdf.addImage(imgData, "JPEG", 0, 0, finalWidth, finalHeight);
+        pdf.save(`Performa_${DocketNo}.pdf`);
+    };
 
 
 
@@ -120,65 +120,29 @@ function PerformaPdf() {
 
     return (
         <>
+
             <style>
                 {`
-@media print {
-  /* ---------- Page & Body ---------- */
-  @page {
-    size: A4;
-    margin: 10mm;
-  }
-
+   @media print {
   body {
-    margin: 0;
-    padding: 0;
-    background: #fff;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact; /* Chrome/Safari */
+    color-adjust: exact;               /* Firefox */
   }
 
-  /* ---------- PDF Container ---------- */
   #pdf {
-    width: 190mm;            /* A4 width minus margins */
-    min-height: 277mm;       /* A4 height minus margins */
-    margin: 0 auto;
-    background: #fff;
-    box-sizing: border-box;
+    display: block;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
   }
 
-  /* ---------- Tables ---------- */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    border: 2px solid #000;  /* Strong outer border */
+  /* Keep your content visible */
+  #pdf * {
+    visibility: visible;
   }
+}
 
-  th,
-  td {
-    border: 1px solid #000;
-    padding: 4px;
-    font-size: 10px;
-    line-height: 1.3;
-    vertical-align: middle;
-  }
-
-  /* Ensure right edge never collapses */
-  th:last-child,
-  td:last-child {
-    border-right: 2px solid #000;
-  }
-
-  /* ---------- Hide UI Elements ---------- */
-  button,
-  .header,
-  .sidebar {
-    display: none !important;
-  }
-                }`}
-</style>
-
-
+  `}
+            </style>
 
             <Header />
             <Sidebar1 />
@@ -210,13 +174,13 @@ function PerformaPdf() {
 
                 <div className="container-2" ref={pageRef} id="pdf" style={{
                     borderRadius: "0px", paddingLeft: "20px", paddingRight: "20px", paddingTop: "20px"
-                    , paddingBottom: "20px", width: "813px", direction: "flex", fontFamily: '"Times New Roman", Times, serif',
+                    , paddingBottom: "20px", width: "813px", direction: "flex", fontFamily: "Arial, Helvetica, sans-serif",
                     flexDirection: "column", gap: "5px", fontSize: "10px", fontWeight: "bold", border: "none"
                 }}>
 
                     <div className="" style={{ borderRadius: "0px", border: "none", width: "772px", display: "flex", flexDirection: "column" }}>
                         < div id="printable-section" className="container-3" style={{ padding: "0px", border: "none" }}>
-                            <div className=" px-0 py-0" style={{ border: "2px solid black"}}>
+                            <div className=" px-0 py-0" style={{ border: "2px solid black" }}>
 
                                 <div className="div1" style={{ display: "flex", flexDirection: "row", borderBottom: "2px solid black", fontSize: "14px" }}>
                                     <div style={{ width: "50%", borderRight: "2px solid black", display: "flex", gap: "10px", flexDirection: "column", padding: "10px" }}>
@@ -319,7 +283,7 @@ function PerformaPdf() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="div3" style={{
+                                <div className="div3 rgba" style={{
                                     height: "30px",
                                     textAlign: "center",
                                     display: "flex",
@@ -340,64 +304,75 @@ function PerformaPdf() {
 
 
 
-                                <div className="div4" style={{
-                                    height: "690px",
-                                    textAlign: "center",
-                                    display: "flex",
-                                    flexDirection: "row",
-                                    borderBottom: "2px solid black",
-                                    fontSize: "12px"
-                                }}>
+                                <div style={{ position: "relative", height: "670px", borderBottom: "2px solid black" }}>
+                                    {/* BELOW (Header / Skeleton) */}
+                                    <div
+                                        className="below"
+                                        style={{
+                                            height: "100%",
+                                            display: "flex",
+                                            flexDirection: "row",
+                                            fontSize: "12px",
+                                            position: "absolute",
+                                            top: 0,
+                                            left: 0,
+                                            width: "100%",
+                                            zIndex: 1, // background
+                                        }}
+                                    >
+                                        <div style={{ width: "50%", borderRight: "2px solid black" }}></div>
+                                        <div style={{ width: "10%", borderRight: "2px solid black" }}></div>
+                                        <div style={{ width: "10%", borderRight: "2px solid black" }}></div>
+                                        <div style={{ width: "10%", borderRight: "2px solid black" }}></div>
+                                        <div style={{ width: "10%" }}></div>
+                                    </div>
 
-
-                                    {/* ITEMS */}
-                                    <div style={{ width: "50%", display: "flex", flexDirection: "column", borderRight: "2px solid black", gap: "5px", paddingTop: "5px", textAlign: "start", paddingLeft: "10px" }}>
+                                    {/* ABOVE (Dynamic rows) */}
+                                    <div
+                                        className="above"
+                                        style={{
+                                            height: "100%",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            fontSize: "12px",
+                                            position: "absolute", // make it overlap
+                                            top: 0,
+                                            left: 0,
+                                            width: "100%",
+                                            zIndex: 2, // render on top
+                                        }}
+                                    >
                                         {getItem.map((item, i) => (
-                                            <>
-                                                Box No : {invoiceData?.VolumetricDetails?.[i]?.Qty} [A.Wt:{invoiceData?.VolumetricDetails?.[i]?.ActualWt} KG ]
-                                                [{invoiceData?.VolumetricDetails?.[i]?.Length} X {invoiceData?.VolumetricDetails?.[i]?.Width} X {invoiceData?.VolumetricDetails?.[i]?.Height} CM ]
-                                                <div >{item?.Description} </div></>
-                                        ))}
-                                    </div>
-
-                                    {/* HSN */}
-
-                                    <div style={{ width: "10%", display: "flex", flexDirection: "column", borderRight: "2px solid black", gap: "5px", paddingTop: "5px" }}>
-                                        {getItem.map((item) => (
-                                            <div >{item?.HSCode}</div>
-                                        ))}
-                                    </div>
-                                    <div style={{ width: "10%", display: "flex", flexDirection: "column", borderRight: "2px solid black", gap: "5px", paddingTop: "5px" }}>
-                                        {getItem.map((item) => (
-                                            <div >{item?.UnitType}</div>
-                                        ))}
-                                    </div>
-
-                                    {/* QTY */}
-                                    <div style={{ width: "10%", display: "flex", flexDirection: "column", borderRight: "2px solid black", gap: "5px", paddingTop: "5px" }}>
-                                        {getItem.map((item) => (
-                                            <div >{item?.Qty}</div>
-                                        ))}
-                                    </div>
-
-                                    {/* RATE */}
-                                    <div style={{ width: "10%", display: "flex", flexDirection: "column", borderRight: "2px solid black", gap: "5px", paddingTop: "5px" }}>
-                                        {getItem.map((item) => (
-                                            <div >{item?.UnitRate}</div>
-                                        ))}
-                                    </div>
-
-                                    {/* AMOUNT */}
-                                    <div style={{ width: "10%", display: "flex", flexDirection: "column", gap: "5px", paddingTop: "5px" }}>
-                                        {getItem.map((item) => (
-                                            <div >{item?.Amount}</div>
+                                            <div
+                                                key={i}
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "row",
+                                                    borderBottom: "2px solid black",
+                                                    minHeight: "40px",
+                                                }}
+                                            >
+                                                <div style={{ width: "50%", borderRight: "2px solid black", padding: "5px 10px", lineHeight: "1.2" }}>
+                                                    Box No : {invoiceData?.VolumetricDetails?.[i]?.Qty} [A.Wt:{invoiceData?.VolumetricDetails?.[i]?.ActualWt} KG]
+                                                    [{invoiceData?.VolumetricDetails?.[i]?.Length} X {invoiceData?.VolumetricDetails?.[i]?.Width} X {invoiceData?.VolumetricDetails?.[i]?.Height} CM]
+                                                    <div>{item?.Description}</div>
+                                                </div>
+                                                <div style={{ width: "10%", borderRight: "2px solid black", padding: "5px" }}>{item?.HSCode}</div>
+                                                <div style={{ width: "10%", borderRight: "2px solid black", padding: "5px" }}>{item?.UnitType}</div>
+                                                <div style={{ width: "10%", borderRight: "2px solid black", padding: "5px" }}>{item?.Qty}</div>
+                                                <div style={{ width: "10%", borderRight: "2px solid black", padding: "5px" }}>{item?.UnitRate}</div>
+                                                <div style={{ width: "10%", padding: "5px" }}>{item?.Amount}</div>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
 
 
 
-                                <div className="div8" style={{ height: "30px", textAlign: "center", display: "flex", flexDirection: "row", backgroundColor: "rgba(255, 192, 203, 0.1)", fontSize: "12px" }}>
+
+
+
+                                <div className="div8 rgba" style={{ height: "30px", textAlign: "center", display: "flex", flexDirection: "row", backgroundColor: "rgba(255, 192, 203, 0.1)", fontSize: "12px" }}>
 
                                     <div style={{ width: "20%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>AMOUNT CHARGEABLE</div>
                                     <div style={{ width: "50%", display: "flex", justifyContent: "center", alignItems: "center", borderRight: "2px solid black" }}>{numberToIndianCurrency(Number(totalAmount))}</div>

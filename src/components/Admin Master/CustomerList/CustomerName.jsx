@@ -81,6 +81,31 @@ function CustomerName() {
         DepartmentCode: '1',
         multiBranch: '',
     })
+
+    useEffect(() => {
+        const amount = Number(contractData.contractAmount);
+        const advance = Number(contractData.advAmt);
+        if (!amount) {
+            setContractData(prev => ({
+                ...prev,
+                advAmt: 0,
+                balance: 0,
+            }));
+        }
+        else if (!advance) {
+            setContractData(prev => ({
+                ...prev,
+                balance: 0,
+                
+            }));
+        }
+        else {
+            setContractData(prev => ({
+                ...prev,
+                balance: amount - advance
+            }));
+        }
+    }, [contractData.contractAmount, contractData.advAmt])
     console.log(addCustData);
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);

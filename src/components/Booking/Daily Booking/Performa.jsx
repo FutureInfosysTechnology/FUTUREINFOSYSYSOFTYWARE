@@ -195,7 +195,7 @@ function Performa({ switchToBooking }) {
                         </div>
                     </form>
 
-                    {loading ? (<div className="loader"></div>) : (
+                    
                         <div className='table-container' style={{ margin: "0px" }}>
                             <table className='table table-bordered table-sm' style={{ whiteSpace: "nowrap" }}>
                                 <thead className='table-sm'>
@@ -280,8 +280,7 @@ function Performa({ switchToBooking }) {
                                     ))}
                                 </tbody>
                             </table>
-                        </div >)
-                    }
+                        </div >
 
                     <div style={{ display: "flex", flexDirection: "row" }}>
                         <div className="pagination">

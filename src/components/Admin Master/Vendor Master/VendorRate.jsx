@@ -80,15 +80,21 @@ function VendorRate() {
         }
     };
     const fetchCityData = async () => {
+
         try {
-            const response = await getApi('/Master/getdomestic');
-            setGetCity(Array.isArray(response.Data) ? response.Data : []);
+            const response = await getApi(`/Master/GetInterDomestic?Product_Type=International`);
+            const data = response.data
+            // Check if the response contains data, then update the corresponding state
+            if (data) {
+                setGetCity(Array.isArray(data) ? data : []);
+            } else {
+                setGetCity([]);
+            }
         } catch (err) {
-            console.error('Fetch Error:', err);
-            setError(err);
-        } finally {
-            setLoading(false);
+            console.error(`Error fetching data from /Master/GetInterDomestic:`, err);
+
         }
+
     };
 
     const fetchModeData = async () => {

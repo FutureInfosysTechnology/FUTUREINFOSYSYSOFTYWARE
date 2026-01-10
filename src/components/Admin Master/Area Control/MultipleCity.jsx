@@ -69,11 +69,33 @@ function MultipleCity() {
     useEffect(() => {
         fetchData('/Master/getCountry', setGetCountry);
         fetchData('/Master/GetState', setGetState);
-        fetchData('/Master/getdomestic', setGetCity);
         fetchData('/Master/getVendor', setGetVendor);
         fetchData('/Master/getMode', setGetMode);
         fetchData('/Master/getZone', setGetZone);
     }, []);
+
+    useEffect(() => {
+        const fetchData = async (setData, Product_Type) => {
+
+
+            try {
+                const response = await getApi(`/Master/GetInterDomestic?Product_Type=${Product_Type}`);
+                const data = response.Data || response.data
+                // Check if the response contains data, then update the corresponding state
+                if (data) {
+                    setData(Array.isArray(data) ? data : []);
+                } else {
+                    setData([]);
+                }
+            } catch (err) {
+                console.error(`Error fetching data from /Master/GetInterDomestic:`, err);
+
+            }
+
+        };
+        const Product_Type = addCity.ProductType ? addCity.ProductType : "International";
+        fetchData(setGetCity, Product_Type);
+    }, [addCity.ProductType])
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -431,12 +453,43 @@ function MultipleCity() {
                     className="custom-modal-volumetric" contentLabel="Modal">
                     <div className="custom-modal-content">
                         <div className="header-tittle">
-                            <header>Multiple City Master</header>
+                            <header>International Zone Master</header>
                         </div>
 
                         <div className='container2'>
                             <form onSubmit={handleSave}>
-                                <div className="fields2" style={{whiteSpace:"nowrap"}}>
+                                <div className="fields2" style={{ whiteSpace: "nowrap" }}>
+
+                                    {/* Product Type */}
+                                    <div className="input-field1">
+                                        <label>Product Type</label>
+                                        <Select
+                                            className="blue-selectbooking"
+                                            classNamePrefix="blue-selectbooking"
+                                            options={[
+                                                { value: "International", label: "International" },
+                                                { value: "Domestic", label: "Domestic" },
+                                            ]}
+                                            value={
+                                                addCity.ProductType
+                                                    ? {
+                                                        value: addCity.ProductType,
+                                                        label: addCity.ProductType,
+                                                    }
+                                                    : null
+                                            }
+                                            onChange={(selected) =>
+                                                setAddCity({
+                                                    ...addCity,
+                                                    ProductType: selected ? selected.value : "",
+                                                })
+                                            }
+                                            placeholder="Select Product Type"
+                                            isSearchable={true}
+                                            menuPortalTarget={document.body}
+                                            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                        />
+                                    </div>
 
                                     {/* City Name */}
                                     <div className="input-field1">
@@ -624,36 +677,7 @@ function MultipleCity() {
                                         />
                                     </div>
 
-                                    {/* Product Type */}
-                                    <div className="input-field1">
-                                        <label>Product Type</label>
-                                        <Select
-                                            className="blue-selectbooking"
-                                            classNamePrefix="blue-selectbooking"
-                                            options={[
-                                                { value: "International", label: "International" },
-                                                { value: "Domestic", label: "Domestic" },
-                                            ]}
-                                            value={
-                                                addCity.ProductType
-                                                    ? {
-                                                        value: addCity.ProductType,
-                                                        label: addCity.ProductType,
-                                                    }
-                                                    : null
-                                            }
-                                            onChange={(selected) =>
-                                                setAddCity({
-                                                    ...addCity,
-                                                    ProductType: selected ? selected.value : "",
-                                                })
-                                            }
-                                            placeholder="Select Product Type"
-                                            isSearchable={true}
-                                            menuPortalTarget={document.body}
-                                            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
-                                        />
-                                    </div>
+
                                 </div>
 
                                 <div className='bottom-buttons'>
