@@ -20,6 +20,7 @@ import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
 
 function CustomerName() {
     const [openRow, setOpenRow] = useState(null);
+    const [openRow1, setOpenRow1] = useState(null);
     const [error, setError] = useState(null);
     const [getCity, setGetCity] = useState([]);                     //To Get City Data
     const [loading, setLoading] = useState(true);
@@ -41,14 +42,6 @@ function CustomerName() {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const [contractData, setContractData] = useState({
-        creditDate: firstDayOfMonth,
-        dueDate: today,
-        contractAmount: 0,
-        depositAmount: 0,
-        balance: 0,
-        advAmt: 0
-    });
     const [addCustData, setAddCustData] = useState({
         custCode: '',
         custName: '',
@@ -82,31 +75,152 @@ function CustomerName() {
         multiBranch: '',
     })
 
-    useEffect(() => {
-        const amount = Number(contractData.contractAmount);
-        const advance = Number(contractData.advAmt);
-        if (!amount) {
-            setContractData(prev => ({
-                ...prev,
-                advAmt: 0,
-                balance: 0,
-            }));
+    const [walletData, setWalletData] = useState([]);
+    const [formData, setFormData] = useState({
+        CustomerCode: '',
+        CustomerName: '',
+        Transation_No:'',
+        bookingType: '',
+        remark: '',
+        amount: '',
+        date: new Date(),
+
+    })
+    useEffect(()=>
+    {
+        console.log(formData);
+    },[formData])
+
+    const handleDateChange1 = (date, field) => {
+        setFormData(prev => ({ ...prev, [field]: date }));
+    };
+    const getWalletLedger = async (CustomerCode) => {
+        if(!CustomerCode) return;
+        try {
+            const response = await getApi(`/Master/getWalletLedger?Customer_Code=${CustomerCode}`);
+            if (response.status === 1) {
+                setWalletData(response.Data); // backend se jo array aa rahi ho
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: response.message
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: "Failed to fetch wallet ledger"
+            });
         }
-        else if (!advance) {
-            setContractData(prev => ({
-                ...prev,
-                balance: 0,
-                
-            }));
+    };
+
+    const handleDeleteWallet = async (id,CustomerCode) => {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This wallet entry will be deleted permanently!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await deleteApi(
+                        `/Master/deleteWalletLedgerById?Id=${id}`
+                    );
+
+                    if (response.status === 1) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted",
+                            text: response.message
+                        });
+                        getWalletLedger(CustomerCode)
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message
+                        });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Server Error",
+                        text: "Failed to delete wallet entry"
+                    });
+                }
+            }
+        });
+    };
+
+    const handleSaveWallet = async (e) => {
+        e.preventDefault();
+
+        // 🔹 Validation
+        if (!formData.CustomerCode || !formData.date) {
+            Swal.fire({
+                icon: "warning",
+                title: "Validation Error",
+                text: "Customer Code is required"
+            });
+            return;
         }
-        else {
-            setContractData(prev => ({
-                ...prev,
-                balance: amount - advance
-            }));
+
+        if (!formData.amount || Number(formData.amount) <= 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Validation Error",
+                text: "Amount must be greater than 0"
+            });
+            return;
         }
-    }, [contractData.contractAmount, contractData.advAmt])
-    console.log(addCustData);
+
+        try {
+            const payload = {
+                Customer_Code: formData.CustomerCode,
+                CreditDate: formData.date,       
+                DueDate: null,
+                CreditAmount: formData.amount,
+                DebitAmount: 0,
+                Remark: formData.remark || "",
+                Payment_Type: formData.bookingType || "",
+                Transation_No: formData.Transation_No || ""
+            };
+
+            const response = await postApi(
+                "/Master/walletLedgerEntrysave",
+                payload
+            );
+
+            if (response.status === 1) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: response.message || "Wallet updated successfully"
+                });
+                getWalletLedger(formData.CustomerCode);
+                setFormData(pre=>({...pre,amount: "", bookingType: "" ,remark:"",Transation_No:""}));
+
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: response.message || "Failed to update wallet"
+                });
+            }
+
+        } catch (error) {
+            console.error(error);
+
+        }
+    };
+
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
@@ -152,6 +266,8 @@ function CustomerName() {
     useEffect(() => {
         fetchCustomerData();
     }, [])
+
+    
 
 
     useEffect(() => {
@@ -203,13 +319,6 @@ function CustomerName() {
     }, []);
 
 
-
-    const handleContractSubmit = (e) => {
-        e.preventDefault();
-        setAddCustData({ ...addCustData, ...contractData });
-        setModalIsOpen1(false);
-    };
-
     const handleUpdate = async (e) => {
         e.preventDefault();
         const errors = [];
@@ -254,12 +363,12 @@ function CustomerName() {
             CustomerStatus: addCustData.custStatus,
             ContactPerson: addCustData.contactPerson,
             ContactPersonMob: addCustData.contactPersonMob,
-            AdvanceAmt: contractData.advAmt,
-            CreditDate: contractData.creditDate,
-            DueDate: contractData.dueDate,
-            ContactAmount: contractData.contractAmount,
-            DepositAmount: contractData.depositAmount,
-            BalanceAmount: contractData.balance,
+            advanceAmt: 0,
+            creditDate: null,
+            dueDate: null,
+            contactAmount: 0,
+            depositAmount: 0,
+            balanceAmount: 0,
             Description: addCustData.description,
             SMS: addCustData.sms,
             Email: addCustData.email,
@@ -305,14 +414,6 @@ function CustomerName() {
                     Password: '',
                     DepartmentCode: '',
                     multiBranch: ''
-                });
-                setContractData({
-                    creditDate: firstDayOfMonth,
-                    dueDate: today,
-                    contractAmount: '0',
-                    depositAmount: '0',
-                    balance: '0',
-                    advAmt: '0'
                 });
                 setGstOption("Yes");
                 setFuelOption("No");
@@ -374,12 +475,12 @@ function CustomerName() {
             contactPerson: addCustData.contactPerson,
             contactPersonMob: addCustData.contactPersonMob.trim(),
             bankBranch: addCustData.bankBranch,
-            advanceAmt: contractData.advAmt,
-            creditDate: contractData.creditDate,
-            dueDate: contractData.dueDate,
-            contactAmount: contractData.contractAmount,
-            depositAmount: contractData.depositAmount,
-            balanceAmount: contractData.balance,
+            advanceAmt: 0,
+            creditDate: null,
+            dueDate: null,
+            contactAmount: 0,
+            depositAmount: 0,
+            balanceAmount: 0,
             description: addCustData.description,
             sms: addCustData.sms,
             email: addCustData.email,
@@ -427,14 +528,6 @@ function CustomerName() {
                     DepartmentCode: '',
                     multiBranch: '',
                 });
-                setContractData({
-                    creditDate: firstDayOfMonth,
-                    dueDate: today,
-                    contractAmount: '0',
-                    depositAmount: '0',
-                    balance: '0',
-                    advAmt: '0'
-                });
                 setGstOption("Yes");
                 setFuelOption("No");
                 setPasswordVisible(false);
@@ -448,9 +541,6 @@ function CustomerName() {
             console.error('Save Error:', err);
             Swal.fire('Error', 'Failed to add Customer data', 'error');
         }
-    };
-    const handleDateChange = (field, date) => {
-        setContractData({ ...contractData, [field]: date });
     };
     const handleDeleteCustName = async (Customer_Code) => {
         try {
@@ -528,7 +618,6 @@ function CustomerName() {
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
     const currentRows = filteredgetCustomer.slice(indexOfFirstRow, indexOfLastRow);
     const totalPages = Math.ceil(filteredgetCustomer.length / rowsPerPage);
-    console.log(currentRows);
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
@@ -582,14 +671,6 @@ function CustomerName() {
                                     Password: '',
                                     DepartmentCode: '1',
                                     multiBranch: '',
-                                });
-                                setContractData({
-                                    creditDate: firstDayOfMonth,
-                                    dueDate: today,
-                                    contractAmount: 0,
-                                    depositAmount: 0,
-                                    balance: 0,
-                                    advAmt: 0
                                 });
                                 setGstOption("Yes");
                                 setFuelOption("No");
@@ -700,16 +781,17 @@ function CustomerName() {
                                                             multiBranch: cust.Manage_Code
 
                                                         });
+                                                        setFormData(pre=>({
+                                                            ...pre,
+                                                            CustomerCode: cust.Customer_Code,
+                                                            CustomerName: cust.Customer_Name,
+                                                            date:new Date(),
+                                                        }))
+
+                                                        getWalletLedger(cust.Customer_Code);
+
                                                         setGstOption(cust.Gst_Yes_No);
                                                         setFuelOption(cust.Fuel_Yes_No1);
-                                                        setContractData({
-                                                            contractAmount: cust.Contact_Amount,
-                                                            creditDate: cust.Credit_Date === null ? firstDayOfMonth : cust.Credit_Date,
-                                                            dueDate: cust.Due_Date === null ? today : cust.Due_Date,
-                                                            advAmt: cust.AdvanceAmt,
-                                                            balance: cust.Balance_Amount,
-                                                            depositAmount: cust.Deposit_Amount
-                                                        })
                                                         setModalIsOpen(true);
                                                     }}>
                                                         <i className='bi bi-pen'></i>
@@ -1141,15 +1223,15 @@ function CustomerName() {
 
                                                 </div>
 
-                                                <div className="input-field3">
+                                                {isEditMode && <div className="input-field3">
                                                     <label htmlFor="">Wallet Amount</label>
                                                     <div className="dropdown">
-                                                        <button onClick={(e) => { e.preventDefault(); setModalIsOpen1(true); }} type="button" className="ok-btn"
-                                                            style={{ height: "35px", fontSize: "14px", width: "100%" }}>
-                                                            {contractData.contractAmount ? `Amount: ${contractData.contractAmount}` : 'Wallet Amount'}
+                                                        <button onClick={(e) => {setModalIsOpen1(true); }} type="button" className="ok-btn"
+                                                            style={{ height: "35px", width: "100%" }}>
+                                                            <i className="bi bi-cash-coin" style={{ fontSize: "24px",color:"white" }}></i>
                                                         </button>
                                                     </div>
-                                                </div>
+                                                </div>}
 
                                                 <div className="input-field3">
                                                     <label htmlFor="">Customer Status</label>
@@ -1326,82 +1408,184 @@ function CustomerName() {
                     </Modal >
 
 
-                    <Modal overlayClassName="custom-overlay" isOpen={modalIsOpen1}
+                    <Modal id="modal" overlayClassName="custom-overlay" isOpen={modalIsOpen1}
                         className="custom-modal"
                         style={{
                             content: {
-
+                                // width: '90%',
                                 top: '50%',             // Center vertically
                                 left: '50%',
                                 whiteSpace: "nowrap"
                             },
-                        }}>
-                        <div className="custom-modal-content">
+                        }}
+                        contentLabel="Modal">
+                        <div className="custom-modal-content" style={{}}>
                             <div className="header-tittle">
-                                <header>Wallet Details</header>
+                                <header>Wallet Entry</header>
                             </div>
 
                             <div className='container2'>
-                                <form onSubmit={handleContractSubmit}>
+                                <form onSubmit={handleSaveWallet}>
+
                                     <div className="fields2">
 
-                                        <div className="input-field1">
-                                            <label htmlFor="">Credit Date</label>
+                                        <div className="input-field">
+                                            <label htmlFor="">Customer Name</label>
+                                            <input type="tel" value={formData.CustomerName}
+                                                readOnly
+                                                onChange={(e) => setFormData({ ...formData, CustomerName: e.target.value })}
+                                                placeholder="Enter Customer Name" />
+
+                                        </div>
+                                        <div className="input-field">
+                                            <label htmlFor="">Date</label>
                                             <DatePicker
                                                 portalId="root-portal"
-                                                selected={contractData.creditDate}
-                                                onChange={(date) => handleDateChange("creditDate", date)}
+                                                selected={formData.date}
+                                                onChange={(date) => handleDateChange1(date, "date")}
                                                 dateFormat="dd/MM/yyyy"
                                                 className="form-control form-control-sm"
                                             />
                                         </div>
+                                        <div className="input-field">
+                                            <label htmlFor="">Booking Mode</label>
+                                            <Select
+                                                className="blue-selectbooking"
+                                                classNamePrefix="blue-selectbooking"
+                                                options={[
+                                                    { value: "Cash", label: "Cash" },
+                                                    { value: "Credit", label: "Credit" },
+                                                    { value: "To-pay", label: "To-pay" },
+                                                    { value: "Google Pay", label: "Google Pay" },
+                                                    { value: "RTGS", label: "RTGS" },
+                                                    { value: "NEFT", label: "NEFT" }
+                                                ]}
 
-                                        <div className="input-field1">
-                                            <label htmlFor="">Due Date</label>
-                                            <DatePicker
-                                                portalId="root-portal"
-                                                selected={contractData.dueDate}
-                                                onChange={(date) => handleDateChange("dueDate", date)}
-                                                dateFormat="dd/MM/yyyy"
-                                                className="form-control form-control-sm"
+                                                value={
+                                                    formData.bookingType
+                                                        ? { value: formData.bookingType, label: formData.bookingType }
+                                                        : null
+                                                }
+                                                onChange={(selected) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        bookingType: selected ? selected.value : "",
+                                                    })
+                                                }
+                                                placeholder="Select Booking Mode"
+                                                isSearchable={false}
+                                                isClearable={false}
+                                                menuPortalTarget={document.body}
+                                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                                             />
+
                                         </div>
 
-                                        <div className="input-field1">
-                                            <label htmlFor="">Wallet Amount</label>
-                                            <input type="text" placeholder="Enter Wallet Amount"
-                                                value={contractData.contractAmount}
-                                                onChange={(e) => setContractData({ ...contractData, contractAmount: e.target.value })} />
+                                        <div className="input-field">
+                                            <label htmlFor="">Transaction No</label>
+                                            <input type="tel" value={formData.Transation_No}
+                                                onChange={(e) => setFormData({ ...formData, Transation_No: e.target.value })}
+                                                placeholder="Enter Transaction No" />
                                         </div>
 
-                                        <div className="input-field1">
-                                            <label htmlFor="">Advance Amount</label>
-                                            <input type="text" placeholder="Advance Amount"
-                                                value={contractData.advAmt}
-                                                onChange={(e) => setContractData({ ...contractData, advAmt: e.target.value })} />
+                                        <div className="input-field">
+                                            <label htmlFor="">Remark</label>
+                                            <input type="tel" value={formData.remark}
+                                                onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
+                                                placeholder="Enter Remark" />
                                         </div>
-
-                                        <div className="input-field1">
-                                            <label htmlFor="">Deposit Amount</label>
-                                            <input type="text" placeholder="Enter Deposit Amount"
-                                                value={contractData.depositAmount}
-                                                onChange={(e) => setContractData({ ...contractData, depositAmount: e.target.value })} />
-                                        </div>
-
-                                        <div className="input-field1">
-                                            <label htmlFor="">Balance</label>
-                                            <input type="text" placeholder="Enter Balance"
-                                                value={contractData.balance}
-                                                onChange={(e) => setContractData({ ...contractData, balance: e.target.value })} />
+                                        <div className="input-field">
+                                            <label htmlFor="">Amount</label>
+                                            <input type="tel" value={formData.amount}
+                                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                                placeholder="Enter Amount" />
                                         </div>
                                     </div>
+
                                     <div className='bottom-buttons'>
                                         <button type='submit' className='ok-btn'>Submit</button>
-                                        <button onClick={() => setModalIsOpen1(false)} className='ok-btn'>close</button>
+                                        <button type="button" onClick={() => setModalIsOpen1(false)} className='ok-btn'>close</button>
                                     </div>
-
                                 </form>
                             </div>
+                            <div className='container2' style={{ width: "100%" }}>
+                                <div className="table-container1" style={{ width: "100%" }}>
+                                    <table className="table table-bordered table-sm" style={{ width: "97%", whiteSpace: "nowrap" }}>
+                                        <thead>
+                                            <tr>
+                                                <th>Action</th>
+                                                <th>Sr.No</th>
+                                                <th>Date</th>
+                                                <th>Customer Name</th>
+                                                <th>Type</th>
+                                                <th>Transaction No</th>
+                                                <th>Amount</th>
+                                                <th>Balance</th>
+                                                <th>Remark</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            {walletData.length > 0 ? (
+                                                walletData.map((item, index) => {
+                                                    return (
+                                                        <tr key={index} style={{ fontSize: "12px", position: "relative" }}>
+
+                                                            {/* Action */}
+                                                            <td>
+                                                                <PiDotsThreeOutlineVerticalFill
+                                                                    style={{ fontSize: "18px", cursor: "pointer" }}
+                                                                    onClick={() => setOpenRow1(openRow1 === index ? null : index)}
+                                                                />
+
+                                                                {openRow1 === index && (
+                                                                    <div
+                                                                        style={{
+                                                                            position: "absolute",
+                                                                            left: "60px",
+                                                                            top: "0px",
+                                                                            background: "#fff",
+                                                                            borderRadius: "6px",
+                                                                            zIndex: 9999,
+                                                                            padding: "5px"
+                                                                        }}
+                                                                    >
+                                                                        <button
+                                                                            className="edit-btn"
+                                                                            onClick={() => {
+                                                                                handleDeleteWallet(item.Id,item.Customer_Code);
+                                                                                setOpenRow1(null);
+                                                                            }}
+                                                                        >
+                                                                            <i className="bi bi-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+
+                                                            <td>{index+1}</td>
+                                                            <td>{item.CreditDate}</td>
+                                                            <td>{getCustomer.find(f => f.Customer_Code === item.Customer_Code)?.Customer_Name}</td>
+                                                            <td>{item.Payment_Type}</td>
+                                                            <td>{item.Transation_No}</td>
+                                                            <td>{item.CreditAmount}</td>
+                                                            <td>{item.Balance}</td>
+                                                            <td>{item.Remark}</td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="9" className="text-center">
+                                                        No wallet data found
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                         </div>
                     </Modal >
                 </div >

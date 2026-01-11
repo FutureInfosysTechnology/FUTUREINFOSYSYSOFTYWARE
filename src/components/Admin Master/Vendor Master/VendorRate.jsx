@@ -26,7 +26,7 @@ function VendorRate() {
     const [getCity, setGetCity] = useState([]);               // To Get City Data
     const [getMode, setGetMode] = useState([]);               // To Get Mode Data
     const [getZone, setGetZone] = useState([]);               // To Get Zone Data
-            // To Get Country Data
+    // To Get Country Data
     const [getState, setGetState] = useState([]);             // To Get State Data
     const [getVendor, setGetVendor] = useState([]);
     const [error, setError] = useState(null);
@@ -121,32 +121,32 @@ function VendorRate() {
         }
     };
 
-    
- const filterCities = (zoneCodes = [], stateCodes = []) => {
-  return getCity.filter(city => {
-    const hasZone = zoneCodes.length > 0;
-    const hasState = stateCodes.length > 0;
 
-    if (hasZone && hasState) {
-      // 🔹 both zone and state filters applied
-      return zoneCodes.includes(city.Zone_Code) && stateCodes.includes(city.State_Code);
-    } else if (hasZone) {
-      // 🔹 only zone filter
-      return zoneCodes.includes(city.Zone_Code);
-    } else if (hasState) {
-      // 🔹 only state filter
-      return stateCodes.includes(city.State_Code);
-    } else {
-      // 🔹 no filters → return all cities
-      return true;
-    }
-  });
-};
+    const filterCities = (zoneCodes = [], stateCodes = []) => {
+        return getCity.filter(city => {
+            const hasZone = zoneCodes.length > 0;
+            const hasState = stateCodes.length > 0;
 
-  useEffect(() => {
-  const cities = filterCities(formdata.Zone_Code, formdata.State_Code);
-  setFilteredCity(cities);
-}, [formdata.Zone_Code, formdata.State_Code]);
+            if (hasZone && hasState) {
+                // 🔹 both zone and state filters applied
+                return zoneCodes.includes(city.Zone_Code) && stateCodes.includes(city.State_Code);
+            } else if (hasZone) {
+                // 🔹 only zone filter
+                return zoneCodes.includes(city.Zone_Code);
+            } else if (hasState) {
+                // 🔹 only state filter
+                return stateCodes.includes(city.State_Code);
+            } else {
+                // 🔹 no filters → return all cities
+                return true;
+            }
+        });
+    };
+
+    useEffect(() => {
+        const cities = filterCities(formdata.Zone_Code, formdata.State_Code);
+        setFilteredCity(cities);
+    }, [formdata.Zone_Code, formdata.State_Code]);
     const parseDate = (date) => {
         if (!date) return null;
         // handles both ISO & dd/MM/yyyy
@@ -319,7 +319,7 @@ function VendorRate() {
                 confirmButtonText: 'OK',
             });
         }
-        if (submittedData.length<1) {
+        if (submittedData.length < 1) {
             return Swal.fire({
                 icon: 'warning',
                 title: 'Empty Rate Detail',
@@ -336,7 +336,7 @@ function VendorRate() {
             Destination_Codes: formdata.Destination_Code || [],
             Origin_Code: formdata.Origin_Code,
             Method: "Credit",
-            Dox_Spx: formdata.Dox_Box || "Dox_Spx", // match backend name
+            Dox_Spx: formdata.Dox_Box || "Dox", // match backend name
             Active_Date: formdata.Active_Date,
             Closing_Date: formdata.Closing_Date,
             Amount: formdata.Amount || 0,
@@ -366,7 +366,7 @@ function VendorRate() {
                     Origin_Code: "",
                     Active_Date: firstDayOfMonth,
                     Closing_Date: today,
-                    Dox_Box: "Box",
+                    Dox_Box: "Dox",
                     Amount: "",
                     Weight: "",
                 });
@@ -381,92 +381,91 @@ function VendorRate() {
                 Swal.fire('Saved!', response.message || 'Your changes have been saved.', 'success');
                 setModalIsOpen(false);
             }
-            else
-            {
+            else {
                 Swal.fire('Error!', response.message, 'error');
             }
         } catch (error) {
             console.error('Unable to save Vendor Rate:', error);
         }
     };
-   const handleUpdate = async (e) => {
-    e.preventDefault();
+    const handleUpdate = async (e) => {
+        e.preventDefault();
 
-    if (!formdata.Vendor_Code || !formdata.Mode_Code) {
-        return Swal.fire({
-            icon: 'warning',
-            title: 'Missing Information',
-            text: 'Please fill in the empty fields.',
-            confirmButtonText: 'OK',
-        });
-    }
-
-    // ✅ Match backend key names exactly
-    const requestBody = {
-        Club_No: formdata.Club_No, // required for update
-        Vendor_Code: formdata.Vendor_Code || null,
-        Flag: "Active",
-        Mode_Codes: formdata.Mode_Code || [],          // ✅ plural
-        Zone_Codes: formdata.Zone_Code || [],          // ✅ plural
-        State_Codes: formdata.State_Code || [],        // ✅ plural
-        Destination_Codes: formdata.Destination_Code || [], // ✅ plural
-        Origin_Code: formdata.Origin_Code,
-        Method: "Credit",
-        Dox_Spx: formdata.Dox_Box || "Dox",           // ✅ backend key
-        Active_Date: formatDate(formdata.Active_Date),
-        Closing_Date: formatDate(formdata.Closing_Date),
-        Amount: formdata.Amount || 0,
-        Weight: formdata.Weight || 0,
-        ConnectingHub: JSON.parse(localStorage.getItem("Login"))?.Branch_Code || null,
-        RatePer: 100,
-        RateDetails: submittedData.map((data) => ({
-            On_Addition: data.On_Addition,
-            Lower_Wt: data.Lower_Wt,
-            Upper_Wt: data.Upper_Wt,
-            Rate: data.Rate,
-            Rate_Flag: data.Rate_Flag,
-        })),
-    };
-
-    try {
-        const response = await putApi('/Master/updateVendorRateMultiple', requestBody, 'PUT');
-
-        if (response.status === 1) {
-            setFormdata({
-                Vendor_Code: "",
-                Club_No: "",
-                Mode_Code: [],
-                Zone_Code: [],
-                State_Code: [],
-                Destination_Code: [],
-                Origin_Code: "",
-                Active_Date: firstDayOfMonth,
-                Closing_Date: today,
-                Dox_Box: "Box",
-                Amount: "",
-                Weight: "",
+        if (!formdata.Vendor_Code || !formdata.Mode_Code) {
+            return Swal.fire({
+                icon: 'warning',
+                title: 'Missing Information',
+                text: 'Please fill in the empty fields.',
+                confirmButtonText: 'OK',
             });
-
-            setTableRowData({
-                On_Addition: "",
-                Lower_Wt: "",
-                Upper_Wt: "",
-                Rate: "",
-                Rate_Flag: ""
-            });
-
-            setSubmittedData([]);
-
-            Swal.fire('Updated!', response.message || 'Rate master updated successfully.', 'success');
-            setModalIsOpen(false);
-            await fetchVendorRateData();
-        } else {
-            Swal.fire('Error', response.message || 'Failed to update rate master.', 'error');
         }
-    } catch (error) {
-        console.error('Unable to update Customer Rate:', error);
-    }
-};
+
+        // ✅ Match backend key names exactly
+        const requestBody = {
+            Club_No: formdata.Club_No, // required for update
+            Vendor_Code: formdata.Vendor_Code || null,
+            Flag: "Active",
+            Mode_Codes: formdata.Mode_Code || [],          // ✅ plural
+            Zone_Codes: formdata.Zone_Code || [],          // ✅ plural
+            State_Codes: formdata.State_Code || [],        // ✅ plural
+            Destination_Codes: formdata.Destination_Code || [], // ✅ plural
+            Origin_Code: formdata.Origin_Code,
+            Method: "Credit",
+            Dox_Spx: formdata.Dox_Box || "Dox",           // ✅ backend key
+            Active_Date: formatDate(formdata.Active_Date),
+            Closing_Date: formatDate(formdata.Closing_Date),
+            Amount: formdata.Amount || 0,
+            Weight: formdata.Weight || 0,
+            ConnectingHub: JSON.parse(localStorage.getItem("Login"))?.Branch_Code || null,
+            RatePer: 100,
+            RateDetails: submittedData.map((data) => ({
+                On_Addition: data.On_Addition,
+                Lower_Wt: data.Lower_Wt,
+                Upper_Wt: data.Upper_Wt,
+                Rate: data.Rate,
+                Rate_Flag: data.Rate_Flag,
+            })),
+        };
+
+        try {
+            const response = await putApi('/Master/updateVendorRateMultiple', requestBody, 'PUT');
+
+            if (response.status === 1) {
+                setFormdata({
+                    Vendor_Code: "",
+                    Club_No: "",
+                    Mode_Code: [],
+                    Zone_Code: [],
+                    State_Code: [],
+                    Destination_Code: [],
+                    Origin_Code: "",
+                    Active_Date: firstDayOfMonth,
+                    Closing_Date: today,
+                    Dox_Box: "Dox",
+                    Amount: "",
+                    Weight: "",
+                });
+
+                setTableRowData({
+                    On_Addition: "",
+                    Lower_Wt: "",
+                    Upper_Wt: "",
+                    Rate: "",
+                    Rate_Flag: ""
+                });
+
+                setSubmittedData([]);
+
+                Swal.fire('Updated!', response.message || 'Rate master updated successfully.', 'success');
+                setModalIsOpen(false);
+                await fetchVendorRateData();
+            } else {
+                Swal.fire('Error', response.message || 'Failed to update rate master.', 'error');
+            }
+        } catch (error) {
+            console.error('Unable to update Customer Rate:', error);
+        }
+    };
 
 
 
@@ -577,7 +576,7 @@ function VendorRate() {
                                     Origin_Code: "",
                                     Active_Date: firstDayOfMonth,
                                     Closing_Date: today,
-                                    Dox_Box: "Box",
+                                    Dox_Box: "Dox",
                                     Amount: "",
                                     Weight: "",
                                 });
@@ -1161,13 +1160,13 @@ function VendorRate() {
                                             />
                                         </div>
                                         <div className="input-field1">
-                                            <label htmlFor="">Dox_Spx</label>
+                                            <label htmlFor="">Dox / Non Dox</label>
                                             <Select
                                                 options={[
                                                     {
                                                         value: "Dox", label: "Dox"
                                                     }, {
-                                                        value: "Box", label: "Box"
+                                                        value: "Non Dox", label: "Non Dox"
                                                     }
                                                 ]}
                                                 value={
@@ -1176,7 +1175,7 @@ function VendorRate() {
                                                 onChange={(selectedOption) =>
                                                     setFormdata({ ...formdata, Dox_Box: selectedOption?.value || "" })
                                                 }
-                                                placeholder="Select Dox_Box"
+                                                placeholder="Select Dox/Non Dox"
                                                 isSearchable
                                                 classNamePrefix="blue-selectbooking"
                                                 className="blue-selectbooking"

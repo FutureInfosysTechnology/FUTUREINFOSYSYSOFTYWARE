@@ -4,6 +4,12 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { getApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 import { useLocation, useNavigate } from "react-router-dom";
+import DHL from '../../../VendorLogo/01.png'
+import FDX from '../../../VendorLogo/02.png'
+import BD from '../../../VendorLogo/03.png'
+import AEX from '../../../VendorLogo/04.png'
+import UPS from '../../../VendorLogo/05.png'
+import DPD from '../../../VendorLogo/08.png'
 
 
 
@@ -22,8 +28,30 @@ function RateCal() {
         weight: "",
         country: "",
         zipCode: "",
-        doxNon: "",
+        doxNon: "Dox",
     });
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+
+            const response = await getApi(
+                `/Master/VendorRateSearchonWebsite?Type=${formData.doxNon}&Weight=${formData.weight}&CountryName=${formData.country}`
+            );
+
+            if (response?.status === 1) {
+                setData(response.data);
+            } else {
+                setData([]);
+                Swal.fire("Info", response?.message || "No data found", "info");
+            }
+
+        } catch (err) {
+            console.error(err);
+            Swal.fire("Error", "Failed to fetch proforma booking", "error");
+        }
+    };
 
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -32,6 +60,36 @@ function RateCal() {
 
     const handleFormChange = (value, key) => {
         setFormData({ ...formData, [key]: value })
+    }
+    const logo=[
+        {
+            code:"FDX",
+            img:FDX
+        },
+        {
+            code:"DHL",
+            img:DHL
+        },
+        {
+            code:"AEX",
+            img:AEX
+        },
+        {
+            code:"UPS",
+            img:UPS
+        },
+        {
+            code:"BD",
+            img:BD
+        },
+        {
+            code:"DPD",
+            img:DPD
+        },
+    ]
+    const getLogo=(code)=>
+    {
+        return logo.find(f=>f.code===code)?.img;
     }
 
     // Handle changing page
@@ -53,15 +111,15 @@ function RateCal() {
 
             <div className="body">
                 <div className="container1">
-                    <form style={{ margin: "0px", padding: "0px", backgroundColor: "#f2f4f3" }} >
+                    <form style={{ margin: "0px", padding: "0px", backgroundColor: "#f2f4f3" }} onSubmit={handleSubmit}>
                         <div className="fields2" style={{ display: "flex", alignItems: "center" }}>
 
-                             <div className="input-field3">
-                                <label>Dox / Non Dox</label>
+                            <div className="input-field3">
+                                <label>Dox / Non Doc</label>
                                 <select name="" id="" value={formData.doxNon}
-                                    onChange={(e) => handleFormChange(e.target.value, "doxNon")} >
+                                    onChange={(e) => setFormData({ ...formData, doxNon: e.target.value })} >
                                     <option value="Dox">Dox</option>
-                                    <option value="Non Dox">Non Dox</option>
+                                    <option value="Non Doc">Non Doc</option>
                                 </select>
                             </div>
 
@@ -83,7 +141,7 @@ function RateCal() {
                                     value={formData.zipCode} onChange={(e) => handleFormChange(e.target.value, "zipCode")} />
                             </div>
 
-                           
+
 
 
                             <div className="bottom-buttons" style={{ marginTop: "20px", marginLeft: "10px" }}>
@@ -99,23 +157,31 @@ function RateCal() {
                                 <thead className='table-sm'>
                                     <tr>
                                         <th>Sr.No</th>
-                                        <th>Vendor</th>
-                                        <th>Shipment</th>
-                                        <th>Country</th>
-                                        <th>Zone</th>
-                                        <th>Lower Wt</th>
-                                        <th>Upper Wt</th>
-                                        <th>Rate</th>
+                                        <th>Company Logo</th>
+                                        <th>Company Name</th>
+                                        <th>Country Name</th>
+                                        {/* <th>Zone</th> */}
+                                        <th>Chargeble Wt</th>
+                                        <th>Cost (₹)</th>
+                                        <th>Product Type</th>
 
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {currentRows.map((row, index) => (
                                         <tr key={index} style={{ fontSize: "12px", position: "relative" }}>
-
-
-
-
+                                            <td>{index + 1}</td>
+                                            <td><img
+                                                src={getLogo(row.Vendor_Code)}
+                                                alt='Logo'
+                                                style={{ width: "80px", height: "40px"}}
+                                            /></td>
+                                            <td>{row.Vendor_Name}</td>
+                                            <td>{row.Country_Name}</td>
+                                            {/* <td>{row.Zone_Name}</td> */}
+                                            <td>{row.Lower_Wt}</td>
+                                            <td>Rs. {row.Rate} </td>
+                                            <td>{row.Shipment_Type}</td>
                                         </tr>
                                     ))}
                                 </tbody>

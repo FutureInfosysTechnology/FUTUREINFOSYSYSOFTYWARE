@@ -120,17 +120,17 @@ function VenRateUpload() {
                 Swal.fire("Success", res.message, "success");
                 fileInputRef.current.value = "";
                 setForm({
-                Vendor_Code: "",
-                mode: "",
-                Dox_Spx: "",
-                Rate_Mode: "",
-                FromDate: firstDayOfMonth,
-                ToDate: today,
-            })
+                    Vendor_Code: "",
+                    mode: "",
+                    Dox_Spx: "",
+                    Rate_Mode: "",
+                    FromDate: firstDayOfMonth,
+                    ToDate: today,
+                })
             }
             else {
                 Swal.fire("Warning", res.message, "warning");
-                
+
             }
 
         } catch (err) {
@@ -186,14 +186,14 @@ function VenRateUpload() {
                         </div>
 
                         <div className="input-field3">
-                            <label>Dox / Spx</label>
+                            <label>Dox / Non Dox</label>
                             <select
                                 value={form.Dox_Spx}
                                 onChange={(e) => setForm({ ...form, Dox_Spx: e.target.value })}
                             >
                                 <option value="">Select</option>
                                 <option value="Dox">Dox</option>
-                                <option value="Spx">Spx</option>
+                                <option value="Non Dox">Non Dox</option>
                             </select>
                         </div>
 
@@ -213,6 +213,7 @@ function VenRateUpload() {
                         <div className="input-field3">
                             <label>From</label>
                             <DatePicker
+                                portalId="root-portal"
                                 selected={form.FromDate}
                                 onChange={(date) => setForm({ ...form, FromDate: date })}
                                 dateFormat="dd/MM/yyyy"
@@ -223,6 +224,7 @@ function VenRateUpload() {
                         <div className="input-field3">
                             <label>To Date</label>
                             <DatePicker
+                                portalId="root-portal"
                                 selected={form.ToDate}
                                 onChange={(date) => setForm({ ...form, ToDate: date })}
                                 dateFormat="dd/MM/yyyy"
@@ -233,7 +235,7 @@ function VenRateUpload() {
                         <div className="input-field3">
                             <label>Excel File</label>
                             <input
-                                style={{ display: "flex", justifyContent: "center",paddingTop:"7px" }}
+                                style={{ display: "flex", justifyContent: "center", paddingTop: "7px" }}
                                 type="file"
                                 ref={fileInputRef}
                                 accept=".xlsx,.xls"

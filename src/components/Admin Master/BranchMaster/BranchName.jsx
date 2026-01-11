@@ -145,7 +145,7 @@ function BranchName() {
 
     const handleUpdate = async (e) => {
         e.preventDefault();
-         const errors = [];
+        const errors = [];
         // if (!formData.DocketNo) errors.push("DocketNo is required");
         if (!branchData.branchCode) errors.push("Branch Name is required");
         if (!branchData.bankCode) errors.push("Bank Code is required");
@@ -395,7 +395,7 @@ function BranchName() {
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;
-    
+
     return (
         <>
             <div className="body">
@@ -857,6 +857,7 @@ function BranchName() {
                                         </div>
                                         {branchData.img &&
                                             (<div className="input-field2" style={{ width: "60px" }}>
+                                                
                                                 <img
                                                     src={branchData.img}
                                                     alt="Branch Logo"
@@ -877,6 +878,7 @@ function BranchName() {
                                         </div>
                                         {branchData.stamp &&
                                             (<div className="input-field2" style={{ width: "60px" }}>
+                                                
                                                 <img
                                                     src={branchData.stamp}
                                                     alt="Branch Logo"

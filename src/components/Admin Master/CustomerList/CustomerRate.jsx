@@ -46,7 +46,7 @@ function CustomerRate() {
         Origin_Code: "",
         Active_Date: firstDayOfMonth,
         Closing_Date: today,
-        Dox_Box: "Box",
+        Dox_Box: "Dox",
         Amount: "",
         Weight: "",
     });
@@ -322,7 +322,7 @@ function CustomerRate() {
             Destination_Codes: formdata.Destination_Code || [],
             Origin_Code: formdata.Origin_Code,
             Method: "Credit",
-            Dox_Spx: formdata.Dox_Box || "Dox_Spx", // match backend name
+            Dox_Spx: formdata.Dox_Box || "Dox", // match backend name
             Active_Date: formdata.Active_Date,
             Closing_Date: formdata.Closing_Date,
             Amount: formdata.Amount || 0,
@@ -352,7 +352,7 @@ function CustomerRate() {
                     Origin_Code: "",
                     Active_Date: firstDayOfMonth,
                     Closing_Date: today,
-                    Dox_Box: "Box",
+                    Dox_Box: "Dox",
                     Amount: "",
                     Weight: "",
                 });
@@ -437,7 +437,7 @@ function CustomerRate() {
                     Origin_Code: "",
                     Active_Date: firstDayOfMonth,
                     Closing_Date: today,
-                    Dox_Box: "Box",
+                    Dox_Box: "Dox",
                     Amount: "",
                     Weight: "",
                 });
@@ -566,7 +566,7 @@ function CustomerRate() {
                                     Origin_Code: "",
                                     Active_Date: firstDayOfMonth,
                                     Closing_Date: today,
-                                    Dox_Box: "Box",
+                                    Dox_Box: "Dox",
                                     Amount: "",
                                     Weight: "",
                                 });
@@ -1152,13 +1152,13 @@ function CustomerRate() {
                                             />
                                         </div>
                                         <div className="input-field1">
-                                            <label htmlFor="">Dox_Spx</label>
+                                            <label htmlFor="">Dox / Non Dox</label>
                                             <Select
                                                 options={[
                                                     {
                                                         value: "Dox", label: "Dox"
                                                     }, {
-                                                        value: "Box", label: "Box"
+                                                        value: "Non Dox", label: "Non Dox"
                                                     }
                                                 ]}
                                                 value={
@@ -1167,7 +1167,7 @@ function CustomerRate() {
                                                 onChange={(selectedOption) =>
                                                     setFormdata({ ...formdata, Dox_Box: selectedOption?.value || "" })
                                                 }
-                                                placeholder="Select Dox_Box"
+                                                placeholder="Select Dox/Non Dox"
                                                 isSearchable
                                                 classNamePrefix="blue-selectbooking"
                                                 className="blue-selectbooking"

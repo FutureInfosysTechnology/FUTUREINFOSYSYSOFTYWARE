@@ -342,7 +342,7 @@ function PerformaPdf() {
                                             zIndex: 2, // render on top
                                         }}
                                     >
-                                        {getItem.map((item, i) => (
+                                        {getItem?.map((item, i) => (
                                             <div
                                                 key={i}
                                                 style={{

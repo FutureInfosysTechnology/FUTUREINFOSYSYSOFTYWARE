@@ -218,11 +218,9 @@ function ForwardingInt() {
 
 
                     <Modal overlayClassName="custom-overlay" isOpen={modalIsOpen}
-                        className="custom-modal-stock" contentLabel="Modal" style={{
+                        className="custom-modal-volumetric" contentLabel="Modal" style={{
                             content: {
-                                width: '90%',
-                                top: '50%',             // Center vertically
-                                left: '50%',
+                               height:'auto',
                                 whiteSpace: "nowrap"
                             },
                         }}>
@@ -233,7 +231,18 @@ function ForwardingInt() {
                             <div className='container2'>
                                 <form onSubmit={handleUpdate}>
                                     <div className="fields2">
-                                        <div className="input-field1">
+                                        <div className="input-field">
+                                            <label htmlFor="">Booking Date</label>
+                                            <DatePicker
+                                                portalId="root-portal"
+                                                selected={formData.BookDate}
+                                                onChange={date => setFormData({ ...formData, BookDate: date })}
+                                                dateFormat="dd/MM/yyyy"
+                                            />
+
+                                        </div>
+                                        
+                                        <div className="input-field">
                                             <label htmlFor="">Docket No</label>
                                             <input
                                                 placeholder="Docket No"
@@ -244,7 +253,7 @@ function ForwardingInt() {
 
                                         </div>
 
-                                        <div className="input-field1">
+                                        <div className="input-field">
                                             <label htmlFor="">Vendor Name</label>
                                             <Select
                                                 className="blue-selectbooking"
@@ -273,7 +282,7 @@ function ForwardingInt() {
                                         </div>
 
 
-                                        <div className="input-field1">
+                                        <div className="input-field">
                                             <label htmlFor="">Forwarding No</label>
                                             <input
                                                 placeholder="Forward No"
@@ -283,16 +292,7 @@ function ForwardingInt() {
                                             />
                                         </div>
 
-                                        <div className="input-field1">
-                                            <label htmlFor="">Booking Date</label>
-                                            <DatePicker
-                                                portalId="root-portal"
-                                                selected={formData.BookDate}
-                                                onChange={date => setFormData({ ...formData, BookDate: date })}
-                                                dateFormat="dd/MM/yyyy"
-                                            />
-
-                                        </div>
+                                        
 
                                     </div>
 

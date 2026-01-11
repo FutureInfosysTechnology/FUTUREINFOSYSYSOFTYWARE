@@ -14,6 +14,7 @@ import mail from '../../../Assets/Images/mail-reception-svgrepo-com.png';
 import whatsapp from '../../../Assets/Images/whatsapp-svgrepo-com.png';
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
 import { useLocation, useNavigate } from "react-router-dom";
+import { FcDownload } from "react-icons/fc";
 
 
 function Booking({ selectedDocket, setSelectedDocket }) {
@@ -25,6 +26,37 @@ function Booking({ selectedDocket, setSelectedDocket }) {
     const [inputValue2, setInputValue2] = useState("");
     const [skipGstCalc, setSkipGstCalc] = useState(false);
     const [UseInput, setUseInput] = useState(0);
+
+   const downloadLogo = (dataUrl, fileName = "file") => {
+    if (!dataUrl || typeof dataUrl !== "string") return;
+
+    // Validate
+    if (!dataUrl.startsWith("data:")) {
+        console.error("Not a valid base64 data URL");
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+
+const triggerDownload = (url, filename) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
+
     // Utility function to format date safely
     const formatDate = (inputDate) => {
         if (!inputDate) return null; // if undefined or null
@@ -42,6 +74,60 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
         return `${year}-${month}-${day}`;
     };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    // reduce size (max 300px wide for example)
+                    const scale = 300 / img.width;
+                    canvas.width = 300;
+                    canvas.height = img.height * scale;
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // convert back to base64 (smaller)
+                    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+                    setFormData({ ...formData, uploadkyc1: compressedBase64 });
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    const handleFileChange1 = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
+
+                    // reduce size (max 300px wide for example)
+                    const scale = 300 / img.width;
+                    canvas.width = 300;
+                    canvas.height = img.height * scale;
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // convert back to base64 (smaller)
+                    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+                    setFormData({ ...formData, uploadkyc2: compressedBase64 });
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const [fecthed, setFecthed] = useState("");
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalIsOpen1, setModalIsOpen1] = useState(false);
@@ -383,7 +469,9 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             e.preventDefault();
         }
     };
-
+    useEffect(() => {
+  console.log("KYC1:", formData.uploadkyc1);
+}, [formData.uploadkyc1]);
     const handleSearch = async (docket, source) => {
         // if (!formData.DocketNo) return Swal.fire("Warning", "Enter Docket No", "warning");
         // if (fecthed === formData.DocketNo) {
@@ -495,6 +583,8 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                         SkycType: data.KYC_Type,
                         SkycNo: data.KYC_No,
 
+                        uploadkyc1: res?.KYCPhoto[0]?.KYC_image_1,
+                        uploadkyc2: res?.KYCPhoto[0]?.KYC_image_2,
                         Status: data.Remark,
                         Vendor_Code: data.Vendor_Code,
                         VendorAwbNo: data.VendorAwbNo,
@@ -2320,8 +2410,17 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         let Receiver_Code = !isNumberString(formData.ConsigneeName) ? "" : formData.ConsigneeName;
         let Consignee_Name = !isNumberString(formData.ConsigneeName) ? formData.ConsigneeName : allReceiverOption.find(x => x.value === formData.ConsigneeName)?.label;
         let Shipper_Code = !isNumberString(formData.Shipper_Name) ? "" : formData.Shipper_Name;
-        let Shipper_Name = !isNumberString(formData.Shipper_Name) ? formData.Shipper_Name : allShipperOption.find(x => x.value === formData.Shipper_Name)?.label;
+        let Shipper_Name = !isNumberString(formData.Shipper_Name) ? formData.Shipper_Name : allShipperOption.find(x => x.value === formData.Shipper_Name)?.label
 
+
+
+        const KYC_JSON =
+        {
+            KYCNo: formData.SkycNo,
+            KYCtype: formData.SkycType,
+            KYC_image_1: formData.uploadkyc1,
+            KYC_image_2: formData.uploadkyc2,
+        }
 
         // Step 3: Continue if no errors
         const requestBody = {
@@ -2445,6 +2544,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             Volumetric: submittedData,
             Vendorvolumetric: vendorsubmittedData,
             ProformaDetail: PinvoicesubmittedData,
+            KYC_JSON: KYC_JSON,
 
             Remark1: remarkData.inco,
             Remark2: remarkData.note,
@@ -3172,46 +3272,93 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                         />
                                     </div>
 
-                                    <div className="input-field">
+                                    <div className="input-field" >
                                         <label htmlFor="upload-kyc">Upload KYC</label>
+                                        <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                                            <input
+                                                type="file"
+                                                id="upload-kyc"
+                                                className="form-control custom-input"
+                                                accept="image/*"
+                                                style={{
+                                                    paddingTop: "8px",
+                                                    width: "85%",
+                                                    borderRight: "none",
+                                                    borderRadius: "4px 0 0 4px",
 
-                                        <input
-                                            type="file"
-                                            id="upload-kyc"
-                                            className="form-control custom-input"
-                                            accept=".jpg,.jpeg,.png,.pdf"
-                                            style={{
-                                                paddingTop: "8px",
+                                                }}
+                                                onChange={handleFileChange}
+                                            />
 
+                                            <div style={{
+                                                width: "15%",
+                                                border: "1px solid  #4FD1C5",
+                                                borderLeft: "none",
+                                                borderRadius: "0 4px 4px 0",
+                                                padding: "5px",
+                                                textAlign: "center",
+                                                cursor:"pointer"
                                             }}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    uploadkyc1: e.target.files[0], // ✅ store file object
-                                                })
-                                            }
-                                        />
+                                                onClick={() =>
+                                                    downloadLogo(formData.uploadkyc1, "KYC_1.jpg")
+
+                                                }>
+
+
+
+                                                <FcDownload size={24} />
+
+                                            </div>
+
+
+                                        </div>
+
+
+
                                     </div>
 
-                                    <div className="input-field">
+                                    <div className="input-field" >
                                         <label htmlFor="upload-kyc">Upload KYC</label>
+                                        <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                                            <input
+                                                type="file"
+                                                id="upload-kyc"
+                                                className="form-control custom-input"
+                                                accept="image/*"
+                                                style={{
+                                                    paddingTop: "8px",
+                                                    width: "85%",
+                                                    borderRight: "none",
+                                                    borderRadius: "4px 0 0 4px",
 
-                                        <input
-                                            type="file"
-                                            id="upload-kyc"
-                                            className="form-control custom-input"
-                                            accept=".jpg,.jpeg,.png,.pdf"
-                                            style={{
-                                                paddingTop: "8px",
+                                                }}
+                                                onChange={handleFileChange1}
+                                            />
 
+                                            <div style={{
+                                                width: "15%",
+                                                border: "1px solid  #4FD1C5",
+                                                borderLeft: "none",
+                                                borderRadius: "0 4px 4px 0",
+                                                padding: "5px",
+                                                textAlign: "center",
+                                                cursor:"pointer"
                                             }}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    uploadkyc2: e.target.files[0], // ✅ store file object
-                                                })
-                                            }
-                                        />
+                                                onClick={() =>
+                                                    downloadLogo(formData.uploadkyc2, "KYC_2.jpg")
+                                                }>
+
+
+
+                                                <FcDownload size={24} />
+
+                                            </div>
+
+
+                                        </div>
+
+
+
                                     </div>
 
                                     <div className="fields2" style={{ width: "100%", whiteSpace: "nowrap", paddingRight: "0.5rem" }}>
