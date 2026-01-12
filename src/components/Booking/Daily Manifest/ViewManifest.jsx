@@ -256,8 +256,6 @@
                                             <th>Sr.No</th>
                                             <th>Manifest.No</th>
                                             <th>Manifest.Date</th>
-                                            <th>Customer.Name</th>
-                                            <th>Consignee.Name</th>
                                             <th>From</th>
                                             <th>To</th>
                                             <th>Vendor.Name</th>
@@ -324,8 +322,6 @@
                                                 <td>{index + 1}</td>
                                                 <td>{manifest.manifestNo}</td>
                                                 <td>{manifest.manifestDt}</td>
-                                                <td>{manifest.Customer_Name}</td>
-                                                <td>{manifest.Consignee_Name}</td>
                                                 <td>{manifest.fromDest}</td>
                                                 <td>{manifest.toDest}</td>
                                                 <td>{manifest.vendorName}</td>

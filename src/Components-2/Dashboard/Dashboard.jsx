@@ -156,13 +156,13 @@ function Dashboard() {
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
     };
-    const { dashboardData } = useDashboard();
+    const  dashboardData  = JSON.parse(localStorage.getItem("Dashboard"));
     console.log(dashboardData);
 
-    const bk = dashboardData.booking || {};
-    const mf = dashboardData.manifest || {};
-    const ins = dashboardData.inscon || {};
-    const rs = dashboardData.runsheet || {};
+    const bk = dashboardData?.booking || {};
+    const mf = dashboardData?.manifest || {};
+    const ins = dashboardData?.inscon || {};
+    const rs = dashboardData?.runsheet || {};
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
     const COLORS1 = ["#FFA500", "#000000"];
     const COLORS2 = ["#007BFF", "red"];
@@ -174,6 +174,7 @@ function Dashboard() {
         { id: 5, title: "Status Activity", pending: "10", done: "50", image: statusSvg, total: 0 },
         { id: 6, title: "Delivery Updation", pending: "20", done: "25", image: deliverySvg, total: 0 },
     ];
+    console.log(cards);
 
 
 

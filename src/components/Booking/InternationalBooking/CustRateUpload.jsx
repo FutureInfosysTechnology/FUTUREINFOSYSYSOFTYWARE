@@ -15,6 +15,7 @@ function CustRateUpload() {
     const [getCustomer, setGetCustomer] = useState([]);
     const [getMode, setGetMode] = useState([]);
     const [error, setError] = useState(null);
+    const [getCity,setGetCity]=useState([]);
 
     const [form, setForm] = useState({
         Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
@@ -26,7 +27,23 @@ function CustRateUpload() {
     });
 
     /* ================= FETCH MASTER DATA ================= */
+    const fetchCityData = async () => {
 
+        try {
+            const response = await getApi(`/Master/GetInterDomestic?Product_Type=International`);
+            const data = response.data
+            // Check if the response contains data, then update the corresponding state
+            if (data) {
+                setGetCity(Array.isArray(data) ? data : []);
+            } else {
+                setGetCity([]);
+            }
+        } catch (err) {
+            console.error(`Error fetching data from /Master/GetInterDomestic:`, err);
+
+        }
+
+    };
     const fetchCustomerData = async () => {
         try {
             const res = await getApi("/Master/getCustomerData");
@@ -52,6 +69,7 @@ function CustRateUpload() {
     useEffect(() => {
         fetchCustomerData();
         fetchModeData();
+        fetchCityData();
     }, []);
 
     /* ================= OPTIONS ================= */
@@ -83,6 +101,11 @@ function CustRateUpload() {
         value: p.Mode_Code,
     }));
 
+    const cityOptions = getCity.map(c => ({
+        label: c.City_Name,
+        value: c.City_Code,
+    }));
+
     /* ================= SUBMIT ================= */
 
     const handleSubmit = async (e) => {
@@ -106,7 +129,7 @@ function CustRateUpload() {
         const formData = new FormData();
 
         formData.append("Customer_Code", form.Customer_Code);
-        formData.append("Origin_Code", JSON.parse(localStorage.getItem("Login"))?.Branch_Code || "");
+        formData.append("Origin_Code", form.Rate_Mode || "");
         formData.append("Mode_Codes", JSON.stringify([form.mode]));
         formData.append("Dox_Spx", form.Dox_Spx);
         formData.append("Active_Date", form.FromDate.toISOString().split("T")[0]);
@@ -202,7 +225,7 @@ function CustRateUpload() {
                             />
                         </div>
 
-                        <div className="input-field3">
+                        <div className="input-field1">
                             <label>Dox / Non Dox</label>
                             <select
                                 value={form.Dox_Spx}
@@ -215,16 +238,20 @@ function CustRateUpload() {
                         </div>
 
                         <div className="input-field3">
-                            <label>Rate Mode</label>
-                            <select
-                                value={form.Rate_Mode}
-                                onChange={(e) => setForm({ ...form, Rate_Mode: e.target.value })}
-                            >
-                                <option value="">Select rate mode</option>
-                                <option value="SFC">SFC</option>
-                                <option value="AIR">AIR</option>
-                                <option value="SURFACE">SURFACE</option>
-                            </select>
+                            <label>Origin Name</label>
+                           <Select
+                                className="blue-selectbooking"
+                                classNamePrefix="blue-selectbooking"
+                                options={cityOptions}
+                                value={cityOptions.find(c => c.value === form.Rate_Mode) || null}
+                                onChange={(opt) =>
+                                    setForm({ ...form, Rate_Mode: opt?.value || "" })
+                                }
+                                placeholder="Select Origin"
+                                isSearchable
+                                menuPortalTarget={document.body}
+                                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                            />
                         </div>
 
                         <div className="input-field3">

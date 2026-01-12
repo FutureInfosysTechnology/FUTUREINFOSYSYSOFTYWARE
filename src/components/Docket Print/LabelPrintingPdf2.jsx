@@ -12,6 +12,35 @@ import BarCode from "react-barcode";
 import { toWords } from "number-to-words";
 
 function LabelPrintingPdf2() {
+    const countryList = [
+  { name: "India", code: "+91" },
+  { name: "United States", code: "+1" },
+  { name: "United Kingdom", code: "+44" },
+  { name: "Canada", code: "+1" },
+  { name: "Australia", code: "+61" },
+  { name: "China", code: "+86" },
+  { name: "Japan", code: "+81" },
+  { name: "Singapore", code: "+65" },
+  { name: "Germany", code: "+49" },
+  { name: "France", code: "+33" },
+  { name: "Italy", code: "+39" },
+  { name: "Spain", code: "+34" },
+  { name: "Netherlands", code: "+31" },
+  { name: "Switzerland", code: "+41" },
+  { name: "United Arab Emirates", code: "+971" },
+  { name: "Saudi Arabia", code: "+966" },
+  { name: "Qatar", code: "+974" },
+  { name: "Kuwait", code: "+965" },
+  { name: "Pakistan", code: "+92" },
+  { name: "Bangladesh", code: "+880" }
+];
+function getCountryCode(countryName) {
+  const country = countryList.find(
+    c => c.name.toLowerCase() === countryName?.toLowerCase()
+  );
+  return country ? country.code : null;
+}
+
     const [getBranch, setGetBranch] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
@@ -208,7 +237,7 @@ function LabelPrintingPdf2() {
                                                                     <div>{docket?.Consignee_Country}-{docket?.Consignee_State_Name}-{docket?.Consignee_Pin}</div>
                                                                 </div>
                                                                 <div style={{ display: "flex", flexDirection: "column" }}>
-                                                                <div>(+91) {docket?.Consignee_Mob}</div>
+                                                                <div>({getCountryCode(docket?.Destination_Name)}) {docket?.Consignee_Mob}</div>
                                                                 <div>{docket?.Consignee_Email}</div>
                                                                 </div>
                                                             </div>
@@ -234,7 +263,7 @@ function LabelPrintingPdf2() {
                                                             >
                                                                 <div style={{ width: "100%", display: "flex", flexDirection: "column", justifyContent: "space-around", gap: "15px" }}>
                                                                     <div style={{ border: "3px dashed black" }}></div>
-                                                                    <div style={{ fontWeight: "bold" }}>PUROLATOR YVR</div>
+                                                                    <div style={{ fontWeight: "bold" }}>{docket?.Vendor_Name}</div>
                                                                     <div style={{ border: "3px dashed black" }}></div>
 
                                                                 </div>

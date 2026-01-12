@@ -10,8 +10,6 @@ import { useDashboard } from "./DashboardContext";
 
 function Nav() {
 
-  const { setDashboardData } = useDashboard(); // ✅ CONTEXT
-
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
@@ -26,26 +24,31 @@ function Nav() {
   };
 
   const loadAllDashboardData = async () => {
-    try {
-      const [bk, manifest, inscon, runsheet] = await Promise.all([
-        getApi(`/Master/DashboardBKSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
-        getApi(`/Master/DashboardManifestSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
-        getApi(`/Master/DashboardInsconSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
-        getApi(`/Master/DashboardRunsheetSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`)
-      ]);
+  try {
+    const results = await Promise.allSettled([
+      getApi(`/Master/DashboardBKSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
+      getApi(`/Master/DashboardManifestSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
+      getApi(`/Master/DashboardInsconSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
+      getApi(`/Master/DashboardRunsheetSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`)
+    ]);
 
-      // ✅ SAVE TO CONTEXT (GLOBAL)
-      setDashboardData({
-        booking: bk?.Data || {},
-        manifest: manifest?.Data || {},
-        inscon: inscon?.Data || {},
-        runsheet: runsheet?.Data || {}
-      });
+    const [bk, manifest, inscon, runsheet] = results;
 
-    } catch (error) {
-      console.error("Dashboard API Error:", error);
-    }
-  };
+    const DashboardData = {
+      booking: bk.status === "fulfilled" ? bk.value?.Data : {},
+      manifest: manifest.status === "fulfilled" ? manifest.value?.Data : {},
+      inscon: inscon.status === "fulfilled" ? inscon.value?.Data : {},
+      runsheet: runsheet.status === "fulfilled" ? runsheet.value?.Data : {}
+    };
+
+    console.log("DashboardData:", DashboardData);
+    localStorage.setItem("Dashboard", JSON.stringify(DashboardData));
+
+  } catch (error) {
+    console.error("Dashboard API Error:", error);
+  }
+};
+
 
   useEffect(() => {
     loadAllDashboardData();

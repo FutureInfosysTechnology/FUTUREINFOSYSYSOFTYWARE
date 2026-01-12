@@ -27,34 +27,18 @@ function Booking({ selectedDocket, setSelectedDocket }) {
     const [skipGstCalc, setSkipGstCalc] = useState(false);
     const [UseInput, setUseInput] = useState(0);
 
-   const downloadLogo = (dataUrl, fileName = "file") => {
-    if (!dataUrl || typeof dataUrl !== "string") return;
-
-    // Validate
-    if (!dataUrl.startsWith("data:")) {
-        console.error("Not a valid base64 data URL");
-        return;
-    }
-
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = fileName;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadLogo = (url, filename) => {
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    });
 };
 
 
-const triggerDownload = (url, filename) => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-};
 
 
     // Utility function to format date safely
@@ -510,7 +494,7 @@ const triggerDownload = (url, filename) => {
 
                 setFecthed(docket);
                 const data = res.OrderEntry;
-                console.log(data);
+            
 
                 setFormData(
                     prev => ({
@@ -636,7 +620,7 @@ const triggerDownload = (url, filename) => {
 
                 const multiInvoice = res?.MultiInvoice || [];
 
-                console.log("search", multiInvoice);
+                
                 const formattedInvoices = multiInvoice.length > 0 ? multiInvoice.map(item => ({
                     PoNo: item.PoNo || "",
                     PoDate: new Date(item.PoDate) || "",
@@ -684,10 +668,6 @@ const triggerDownload = (url, filename) => {
         }
     };
 
-    useEffect(() => {
-        console.log(selectedDestPinCode);
-    }
-        , [selectedDestPinCode])
 
     useEffect(() => {
         const fetchData = async (setData, Product_Type) => {
@@ -776,6 +756,7 @@ const triggerDownload = (url, filename) => {
     }, []);
     const handleUpdateSetup = async (e) => {
         e.preventDefault();
+        
 
         const requestPayload = {
             ID: 1, // 🔴 required
@@ -948,7 +929,6 @@ const triggerDownload = (url, filename) => {
                 whatApp: ""
             };
 
-            console.log("POSTING TO API:", requestBody);
 
             const response = await postApi("/Master/AddReceiver", requestBody, "POST");
 
@@ -974,7 +954,6 @@ const triggerDownload = (url, filename) => {
             Swal.fire("Error", "Something went wrong", "error");
         }
     };
-    console.log(formData);
     useEffect(() => {
 
     }, [])
@@ -2020,8 +1999,16 @@ const triggerDownload = (url, filename) => {
         }
     }, [formData.Customer_Code, formData.Mode_Code]);
     useEffect(() => {
-
-        if (volumetricData.Length && volumetricData.Width && volumetricData.Height && volumetricData.Qty) {
+        if (volumetricData.Length==0 ||  volumetricData.Width==0 || volumetricData.Height==0 || volumetricData.Qty==0 || volumetricData.DivideBy==0) {
+            setVolumetricData((prev) => (
+                {
+                    ...prev,
+                    VolmetricWt: 0,
+                }
+            ))
+            return;
+        }
+        if (volumetricData.Length && volumetricData.Width && volumetricData.Height && volumetricData.Qty && volumetricData.DivideBy) {
             console.log(volumetricData)
             let ans = 1;
             ans = ans * Number(volumetricData.Length);
@@ -2041,7 +2028,16 @@ const triggerDownload = (url, filename) => {
                 }
             ))
         }
-    }, [volumetricData.Length, volumetricData.Width, volumetricData.Height, volumetricData.Qty])
+        else
+        {
+            setVolumetricData((prev) => (
+                {
+                    ...prev,
+                    VolmetricWt: 0,
+                }
+            ))
+        }
+    }, [volumetricData.Length, volumetricData.Width, volumetricData.Height, volumetricData.Qty,volumetricData.DivideBy])
     useEffect(() => {
         const getVolum = async (Vendor_Code, Mode_Code) => {
             try {
@@ -2073,8 +2069,16 @@ const triggerDownload = (url, filename) => {
         }
     }, [formData.Vendor_Code, formData.Mode_Code]);
     useEffect(() => {
-
-        if (vendorVolumetric.Length && vendorVolumetric.Width && vendorVolumetric.Height && vendorVolumetric.Qty) {
+        if (vendorVolumetric.Length==0 ||  vendorVolumetric.Width==0 || vendorVolumetric.Height==0 || vendorVolumetric.Qty==0 || vendorVolumetric.DivideBy==0) {
+            setVendorvolumetric((prev) => (
+                {
+                    ...prev,
+                    VolmetricWt: 0,
+                }
+            ))
+            return;
+        }
+        if (vendorVolumetric.Length && vendorVolumetric.Width && vendorVolumetric.Height && vendorVolumetric.Qty && vendorVolumetric.DivideBy) {
             console.log(vendorVolumetric)
             let ans = 1;
             ans = ans * Number(vendorVolumetric.Length);
@@ -2094,7 +2098,16 @@ const triggerDownload = (url, filename) => {
                 }
             ))
         }
-    }, [vendorVolumetric.Length, vendorVolumetric.Width, vendorVolumetric.Height, vendorVolumetric.Qty])
+        else
+        {
+           setVendorvolumetric((prev) => (
+                {
+                    ...prev,
+                    VolmetricWt: 0,
+                }
+            ))   
+        }
+    }, [vendorVolumetric.Length, vendorVolumetric.Width, vendorVolumetric.Height, vendorVolumetric.Qty,vendorVolumetric.DivideBy])
     useEffect(() => {
         const actual = parseFloat(formData.ActualWt) || 0;
         const volumetric = parseFloat(formData.VolumetricWt) || 0;
@@ -2642,7 +2655,16 @@ const triggerDownload = (url, filename) => {
         let Consignee_Name = !isNumberString(formData.ConsigneeName) ? formData.ConsigneeName : allReceiverOption.find(x => x.value === formData.ConsigneeName)?.label;
         let Shipper_Code = !isNumberString(formData.Shipper_Name) ? "" : formData.Shipper_Name;
         let Shipper_Name = !isNumberString(formData.Shipper_Name) ? formData.Shipper_Name : allShipperOption.find(x => x.value === formData.Shipper_Name)?.label;
+
+        const KYC_JSON =
+        {
+            KYCNo: formData.SkycNo,
+            KYCtype: formData.SkycType,
+            KYC_image_1: formData.uploadkyc1,
+            KYC_image_2: formData.uploadkyc2,
+        }
         const requestBody = {
+
             // BASIC
             Location_Code: JSON.parse(localStorage.getItem("Login"))?.Branch_Code,
             DocketNo: formData.DocketNo,
@@ -2747,6 +2769,7 @@ const triggerDownload = (url, filename) => {
             // KYC / FLIGHT / TRAIN
             KYC_Type: formData.SkycType,
             KYC_No: formData.SkycNo,
+            KYC_JSON:KYC_JSON,
             Flight_Code: formData.Flight_Code,
             Train_Code: formData.Train_Code,
 
@@ -3415,7 +3438,7 @@ const triggerDownload = (url, filename) => {
                                             />
                                         </div>
 
-                                        <div className="input-field1" style={{ width: "40%" }}>
+                                        <div className="input-field1" style={{ width: "73%" }}>
                                             <label>Origin Name</label>
                                             <Select
                                                 className="blue-selectbooking"
@@ -3442,10 +3465,10 @@ const triggerDownload = (url, filename) => {
                                             />
                                         </div>
 
-                                        <div className="input-field1" style={{ width: "25%" }}>
+                                        {/* <div className="input-field1" style={{ width: "25%" }}>
                                             <label style={{}}>Origin Zone</label>
                                             <input type="text" placeholder="Zone_Name" value={formData.orgZoneName} readOnly />
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     {/* Destination Row */}
@@ -3760,7 +3783,7 @@ const triggerDownload = (url, filename) => {
                                                                 ...prev,
                                                                 ConsigneeName: selectedOption.value,
                                                                 Consignee_City: selectedOption.City_Code,
-                                                                ConsigneeState: selectedOption.State_Code,
+                                                                ConsigneeState: selectedOption.State_Name,
                                                                 ConsigneePin: selectedOption.Receiver_Pin,
                                                                 ConsigneeMob: selectedOption.Receiver_Mob,
                                                                 ConsigneeEmail: selectedOption.Receiver_Email,
