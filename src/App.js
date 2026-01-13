@@ -157,7 +157,7 @@ import {
 } from "react-router-dom";
 
 /* ================= AUTH ================= */
-import NewLogin from "./components/Login-pages/NewLogin";
+import NewLogin from "./components/Login-pages/Login";
 import Signup from "./components/Login-pages/Signup";
 import SignOut from "./components/Login-pages/SignOut";
 
