@@ -43,12 +43,13 @@ function CustomerRate() {
         Zone_Code: [],
         State_Code: [],
         Destination_Code: [],
-        Origin_Code: "",
+        Origin_Code: "IN",
         Active_Date: firstDayOfMonth,
         Closing_Date: today,
         Dox_Box: "Dox",
         Amount: "",
         Weight: "",
+        Method: "",
     });
     console.log(formdata);
     const [editIndex, setEditIndex] = useState(null);
@@ -212,6 +213,7 @@ function CustomerRate() {
                     Dox_Box: d.Dox_Spx || "",
                     Amount: d.Amount || "",
                     Weight: d.Weight || "",
+                    Method: d.Method || "",
                 });
                 setSubmittedData(d.RateDetails || []);
 
@@ -321,7 +323,7 @@ function CustomerRate() {
             State_Codes: formdata.State_Code || [],
             Destination_Codes: formdata.Destination_Code || [],
             Origin_Code: formdata.Origin_Code,
-            Method: "Credit",
+            Method: formdata.Method,
             Dox_Spx: formdata.Dox_Box || "Dox", // match backend name
             Active_Date: formdata.Active_Date,
             Closing_Date: formdata.Closing_Date,
@@ -349,12 +351,13 @@ function CustomerRate() {
                     Zone_Code: [],
                     State_Code: [],
                     Destination_Code: [],
-                    Origin_Code: "",
+                    Origin_Code: "IN",
                     Active_Date: firstDayOfMonth,
                     Closing_Date: today,
                     Dox_Box: "Dox",
                     Amount: "",
                     Weight: "",
+                    Method: "",
                 });
                 setTableRowData({
                     On_Addition: 0,
@@ -405,7 +408,7 @@ function CustomerRate() {
             State_Codes: formdata.State_Code || [],        // ✅ plural
             Destination_Codes: formdata.Destination_Code || [], // ✅ plural
             Origin_Code: formdata.Origin_Code,
-            Method: "Credit",
+            Method: formdata.Method,
             Dox_Spx: formdata.Dox_Box || "Dox",           // ✅ backend key
             Active_Date: formatDate(formdata.Active_Date),
             Closing_Date: formatDate(formdata.Closing_Date),
@@ -434,12 +437,13 @@ function CustomerRate() {
                     Zone_Code: [],
                     State_Code: [],
                     Destination_Code: [],
-                    Origin_Code: "",
+                    Origin_Code: "IN",
                     Active_Date: firstDayOfMonth,
                     Closing_Date: today,
                     Dox_Box: "Dox",
                     Amount: "",
                     Weight: "",
+                    Method: "",
                 });
                 setTableRowData({
                     On_Addition: 0,
@@ -563,12 +567,13 @@ function CustomerRate() {
                                     Zone_Code: [],
                                     State_Code: [],
                                     Destination_Code: [],
-                                    Origin_Code: "",
+                                    Origin_Code: "IN",
                                     Active_Date: firstDayOfMonth,
                                     Closing_Date: today,
                                     Dox_Box: "Dox",
                                     Amount: "",
                                     Weight: "",
+                                    Method: "",
                                 });
                                 setTableRowData({
                                     On_Addition: "",
@@ -1168,6 +1173,34 @@ function CustomerRate() {
                                                     setFormdata({ ...formdata, Dox_Box: selectedOption?.value || "" })
                                                 }
                                                 placeholder="Select Dox/Non Dox"
+                                                isSearchable
+                                                classNamePrefix="blue-selectbooking"
+                                                className="blue-selectbooking"
+
+                                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                                styles={{
+                                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="input-field1">
+                                            <label htmlFor="">Rate Type</label>
+                                            <Select
+                                                options={[
+                                                    {
+                                                        value: "Rate Per Kg", label: "Rate Per Kg"
+                                                    }, {
+                                                        value: "Additional", label: "Additional"
+                                                    }
+                                                ]}
+                                                value={
+                                                    formdata.Method ? { value: formdata.Method, label: formdata.Method } : null
+                                                }
+                                                onChange={(selectedOption) =>
+                                                    setFormdata({ ...formdata, Method: selectedOption?.value || "" })
+                                                }
+                                                placeholder="Select Rate Type"
                                                 isSearchable
                                                 classNamePrefix="blue-selectbooking"
                                                 className="blue-selectbooking"

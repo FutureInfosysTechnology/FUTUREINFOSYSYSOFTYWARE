@@ -1,9 +1,4 @@
-*{
-    margin: 0;
-    padding:0;
-    box-sizing: border-box;
-    font-family:Arial, Helvetica, sans-serif;
-}
+
 .mobile-logo {
     display: none;
 }
@@ -37,6 +32,10 @@
 }
 
 .contain{
+     margin: 0;
+    padding:0;
+    box-sizing: border-box;
+    font-family:Arial, Helvetica, sans-serif;
     width: 100%;
     height:100vh;
     display: flex;
@@ -66,8 +65,9 @@
     height: 400px;
 }
 .left .logo{
-    width:70%;
-    height: 100px;
+    width:50%;
+    height: 150px;
+    border-radius:10% ;
 }
 .logo-secion{
  color: white;
@@ -104,7 +104,7 @@
     font-size: 30px;
     font-weight: bold;
 }
-form{
+.form{
     width: 100%;
     padding: 10px;
     border-radius: 5px;
@@ -113,7 +113,7 @@ form{
     align-items: center;
     gap: 10px;
 }
-form .input-div{
+.form .input-div{
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -127,13 +127,13 @@ form .input-div{
     cursor: pointer;
     font-size: 18px;
 }
-form .input-div label{
+.form .input-div label{
     color: rgb(89, 89, 89);
     font-size: 20px;
     font-weight: bold;
 
 }
-form .input-div input{
+.form .input-div input{
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #e1e1e1;
@@ -141,7 +141,7 @@ form .input-div input{
     width: 100%;
 
 }
-form button{
+.form button{
     margin-top:10px ;
     font-family:Arial, Helvetica, sans-serif;
     background-color: #4FD1C5;
@@ -192,6 +192,7 @@ form button{
     .mobile-logo img {
         width: 180px;
         height: auto;
+        border-radius:50% ;
     }
 }
 
@@ -220,6 +221,7 @@ form button{
 
     .mobile-logo img {
         width: 120px;
+        border-radius:50% ;
     }
 
     .form-page {

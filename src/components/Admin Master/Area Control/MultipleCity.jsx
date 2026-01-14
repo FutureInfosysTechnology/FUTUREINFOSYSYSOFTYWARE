@@ -36,6 +36,7 @@ function MultipleCity() {
         StateCode: '',
         CityCode: '',
         ProductType: '',
+        OriginCode: 'IN',
 
     })
 
@@ -108,7 +109,8 @@ function MultipleCity() {
             CountryCode: addCity.CountryCode,
             StateCode: addCity.StateCode,
             CityCode: addCity.CityCode,
-            ProductType: addCity.ProductType
+            ProductType: addCity.ProductType,
+            OriginCode:addCity.OriginCode,
         }
 
         try {
@@ -123,6 +125,7 @@ function MultipleCity() {
                     StateCode: '',
                     CityCode: '',
                     ProductType: '',
+                    OriginCode: 'IN',
                 });
                 Swal.fire('Updated!', response.message || 'Zone has been updated.', 'success');
                 setModalIsOpen(false);
@@ -145,7 +148,8 @@ function MultipleCity() {
             CountryCode: addCity.CountryCode,
             StateCode: addCity.StateCode,
             CityCode: addCity.CityCode,
-            ProductType: addCity.ProductType
+            ProductType: addCity.ProductType,
+            OriginCode:addCity.OriginCode,
         }
 
         try {
@@ -160,6 +164,7 @@ function MultipleCity() {
                     StateCode: '',
                     CityCode: '',
                     ProductType: '',
+                    OriginCode: 'IN',
                 });
                 Swal.fire('Saved!', response.message || 'Zone has been saved.', 'success');
                 setModalIsOpen(false);
@@ -279,11 +284,8 @@ function MultipleCity() {
         const q = searchQuery.toLowerCase();
 
         return (
-            (d.Mode_Name || "").toLowerCase().includes(q) ||
-            (d.Zone_Name || "").toLowerCase().includes(q) ||
             (d.Country_Name || "").toLowerCase().includes(q) ||
-            (d.State_Name || "").toLowerCase().includes(q) ||
-            (d.City_Name || "").toLowerCase().includes(q) ||
+            // (d.City_Name || "").toLowerCase().includes(q) ||
             (d.Vendor_Name || "").toLowerCase().includes(q)
         );
     });
@@ -313,6 +315,7 @@ function MultipleCity() {
                                 StateCode: '',
                                 CityCode: '',
                                 ProductType: '',
+                                OriginCode: 'IN',
                             })
                         }}>
                             <i className="bi bi-plus-lg"></i>
@@ -485,6 +488,36 @@ function MultipleCity() {
                                                 })
                                             }
                                             placeholder="Select Product Type"
+                                            isSearchable={true}
+                                            menuPortalTarget={document.body}
+                                            styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                        />
+                                    </div>
+
+                                    <div className="input-field1">
+                                        <label>Origin Name</label>
+                                        <Select
+                                            className="blue-selectbooking"
+                                            classNamePrefix="blue-selectbooking"
+                                            options={getCity.map(city => ({
+                                                value: city.City_Code,
+                                                label: city.City_Name,
+                                            }))}
+                                            value={
+                                                addCity.OriginCode
+                                                    ? {
+                                                        value: addCity.OriginCode,
+                                                        label: getCity.find(c => c.City_Code === addCity.OriginCode)?.City_Name,
+                                                    }
+                                                    : null
+                                            }
+                                            onChange={(selected) =>
+                                                setAddCity({
+                                                    ...addCity,
+                                                    OriginCode: selected ? selected.value : "",
+                                                })
+                                            }
+                                            placeholder="Select Origin Name"
                                             isSearchable={true}
                                             menuPortalTarget={document.body}
                                             styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}

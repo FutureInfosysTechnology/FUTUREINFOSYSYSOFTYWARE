@@ -73,8 +73,11 @@ function Searchbar() {
     };
 
     const fetchTrackingData = async (e) => {
+        if (!searchTrackingValue) {
+            alert('Please enter docket no.');
+            return;
+        }
         e.preventDefault();
-
         try {
             const res = await getApi(`/Master/getTrackingData?DocketNo=${searchTrackingValue}`);
             if (res.status === 1 && res.Data) {
@@ -109,22 +112,22 @@ function Searchbar() {
 
     return (
         <div className="search-bar">
-            <form action="#" className="search-form d-flex align-items-center" method="POST">
+            <form action="#" className="search-section" method="POST">
+                <div className="input-div">
                 <input type="text"
                     name="query"
                     placeholder="Enter Tracking Number"
                     value={searchTrackingValue} onChange={handleInputTrackingChange} />
-                <button type="submit" title="search" onClick={(e) => fetchTrackingData(e)}>
-                    <i className="bi bi-search"></i>
-                </button>
-
+                    <i className="bi bi-search" onClick={(e) => fetchTrackingData(e)}></i>
+                </div>
+                <div className="input-div">
                 <input type="text"
                     name="query"
                     placeholder="Enter 6-digit pincode"
-                    value={searchValue} onChange={handleInputChange} style={{width:"110px"}}/>
-                <button type="submit" title="search" onClick={(e) => fetchData(e)}>
-                    <i className="bi bi-search"></i>
-                </button>
+                    value={searchValue} onChange={handleInputChange}/>
+                 
+                    <i className="bi bi-search" onClick={(e) => fetchData(e)}></i>
+                </div>
 
             </form>
 

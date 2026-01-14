@@ -12,6 +12,7 @@ const Login = () => {
     const navigate = useNavigate();
     const [login, setLogin] = useState(true);
     const [lock, setLock] = useState(true);
+    
     const [formData, setFormData] = useState({ userName: "", password: "" });
     const handleSaveLogin = async (e) => {
         e.preventDefault();
@@ -54,7 +55,7 @@ const Login = () => {
 
     };
     return (
-        <div className="contain">
+        <div className="contain" key={login}>
             <div className="left ">
                 <img src={logo} alt="" className="logo animate-left" />
                 <div className="bike animate-left"><img src={bike} alt="" />
@@ -68,11 +69,11 @@ const Login = () => {
             <div className="right">
                 
                 <div className="form-page">
-                    <div className="mobile-logo">
+                    <div className="mobile-logo animate-rtl">
         <img src={logo} alt="Logo" />
     </div>
                     <div className="tital animate-rtl">{login ? "Login Page" : "Signup Page"}</div>
-                    <form
+                    <form className="form"
                         onSubmit={(e) => {
                             e.preventDefault();
                             if (login) {
