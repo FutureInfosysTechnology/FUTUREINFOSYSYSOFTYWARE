@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 import * as XLSX from 'xlsx';
 import '../../Tabs/tabs.css';
 import { deleteApi, getApi, postApi, putApi } from "../Area Control/Zonemaster/ServicesApi";
+import { all } from 'axios';
 function VendorRate() {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -23,9 +24,11 @@ function VendorRate() {
 
     const [openRow, setOpenRow] = useState(null);
     const [getVenRate, setGetVenRate] = useState([]);
-    const [getCity, setGetCity] = useState([]);               // To Get City Data
+    const [getCity, setGetCity] = useState([]);              // To Get City Data
     const [getMode, setGetMode] = useState([]);               // To Get Mode Data
-    const [getZone, setGetZone] = useState([]);               // To Get Zone Data
+    const [allZones, setAllZones] = useState([]);      // full API data
+    const [getZone, setGetZone] = useState([]);        // filtered zones
+    // To Get Zone Data
     // To Get Country Data
     const [getState, setGetState] = useState([]);             // To Get State Data
     const [getVendor, setGetVendor] = useState([]);
@@ -49,7 +52,7 @@ function VendorRate() {
         Dox_Box: "Box",
         Amount: "",
         Weight: "",
-        Method:"",
+        Method: "",
     });
     console.log(formdata);
     const [editIndex, setEditIndex] = useState(null);
@@ -61,6 +64,7 @@ function VendorRate() {
         Rate: "",
         Rate_Flag: ""
     })
+
 
     const handleDateChange = (field, date) => {
         setFormdata({ ...formdata, [field]: date });
@@ -80,6 +84,7 @@ function VendorRate() {
             setLoading(false);
         }
     };
+
     const fetchCityData = async () => {
 
         try {
@@ -110,10 +115,12 @@ function VendorRate() {
         }
     };
 
-    const fetchZoneData = async () => {
+   
+
+const fetchStateData = async () => {
         try {
-            const response = await getApi('/Master/getZone');
-            setGetZone(Array.isArray(response.Data) ? response.Data : []);
+            const response = await getApi('/Master/GetState');
+            setGetState(Array.isArray(response.Data) ? response.Data : []);
         } catch (err) {
             console.error('Fetch Error:', err);
             setError(err);
@@ -122,32 +129,89 @@ function VendorRate() {
         }
     };
 
-
-    const filterCities = (zoneCodes = [], stateCodes = []) => {
-        return getCity.filter(city => {
-            const hasZone = zoneCodes.length > 0;
-            const hasState = stateCodes.length > 0;
-
-            if (hasZone && hasState) {
-                // 🔹 both zone and state filters applied
-                return zoneCodes.includes(city.Zone_Code) && stateCodes.includes(city.State_Code);
-            } else if (hasZone) {
-                // 🔹 only zone filter
-                return zoneCodes.includes(city.Zone_Code);
-            } else if (hasState) {
-                // 🔹 only state filter
-                return stateCodes.includes(city.State_Code);
-            } else {
-                // 🔹 no filters → return all cities
-                return true;
-            }
-        });
+    const fetchVendorData = async () => {
+        try {
+            const response = await getApi('/Master/getVendor');
+            setGetVendor(Array.isArray(response.Data) ? response.Data : []);
+        } catch (err) {
+            console.error('Fetch Error:', err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-        const cities = filterCities(formdata.Zone_Code, formdata.State_Code);
+        fetchVendorRateData();
+        fetchVendorData();
+        fetchCityData();
+        fetchModeData();
+        fetchStateData();
+    }, [])
+    const filterCities = (zoneCodes = []) => {
+    if (!zoneCodes || zoneCodes.length === 0) {
+        setFormdata((pre)=>({
+            ...pre,
+            Destination_Code:[],
+
+        }))
+        return []; 
+    }
+// 
+    return allZones.filter(city =>
+        zoneCodes.includes(String(city.Zone_Code))
+    );
+};
+// 
+    useEffect(() => {
+        const cities = filterCities(formdata.Zone_Code);
         setFilteredCity(cities);
-    }, [formdata.Zone_Code, formdata.State_Code]);
+    }, [formdata.Zone_Code]);
+
+
+
+     useEffect(()=>{
+       const fetchZoneData = async () => {
+        
+           let Vendor_Name=formdata.Vendor_Code?getVendor.find(v=>v.Vendor_Code==formdata.Vendor_Code)?.Vendor_Name : "";
+        try {
+            const apiResponse = await getApi(`/Master/GetAllInternatioanlzone?pageNumber=1&pageSize=2000&Vendor_Name=${Vendor_Name}`);
+            console.log(apiResponse);
+            const uniqueZones = Array.from(
+            new Map(
+                apiResponse.data.map(item => [
+                    item.Zone_Code, // key
+                    item
+                ])
+            ).values()
+        );
+            setAllZones(apiResponse.data);
+            setGetZone(uniqueZones);
+
+        } catch (err) {
+            console.error('Fetch Error:', err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    setFormdata((pre)=>({
+            ...pre,
+            Zone_Code:[],
+            Destination_Code:[]
+        }));
+    if(!formdata.Vendor_Code)
+    {
+        setGetZone([]);
+        setAllZones([]);
+        return;
+    }
+    fetchZoneData();
+    },[formdata.Vendor_Code])
+
+
+
     const parseDate = (date) => {
         if (!date) return null;
         // handles both ISO & dd/MM/yyyy
@@ -178,7 +242,7 @@ function VendorRate() {
                     Dox_Box: d.Dox_Spx || "",
                     Amount: d.Amount || "",
                     Weight: d.Weight || "",
-                    Method:d.Method || "",
+                    Method: d.Method || "",
                 });
                 setSubmittedData(d.RateDetails || []);
 
@@ -192,39 +256,7 @@ function VendorRate() {
         }
     };
 
-    const fetchStateData = async () => {
-        try {
-            const response = await getApi('/Master/GetState');
-            setGetState(Array.isArray(response.Data) ? response.Data : []);
-        } catch (err) {
-            console.error('Fetch Error:', err);
-            setError(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchVendorData = async () => {
-        try {
-            const response = await getApi('/Master/getVendor');
-            setGetVendor(Array.isArray(response.Data) ? response.Data : []);
-        } catch (err) {
-            console.error('Fetch Error:', err);
-            setError(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchVendorRateData();
-        fetchVendorData();
-        fetchCityData();
-        fetchModeData();
-        fetchZoneData();
-        fetchStateData();
-        fetchVendorData();
-    }, [])
+    
     useEffect(() => {
         console.log(formdata);
     }, [formdata])

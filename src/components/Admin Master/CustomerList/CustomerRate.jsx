@@ -26,9 +26,12 @@ function CustomerRate() {
     const [getCustomer, setGetCustomer] = useState([]);       // To Get Customer Data
     const [getCity, setGetCity] = useState([]);               // To Get City Data
     const [getMode, setGetMode] = useState([]);               // To Get Mode Data
-    const [getZone, setGetZone] = useState([]);               // To Get Zone Data        // To Get Country Data
+    const [allZones, setAllZones] = useState([]);      // full API data
+    const [getZone, setGetZone] = useState([]);        // filtered zones
+    // To Get Zone Data
+    // To Get Country Data
     const [getState, setGetState] = useState([]);             // To Get State Data
-
+    const [getVendor, setGetVendor] = useState([]);
     const [error, setError] = useState(null);
     const [filteredCity, setFilteredCity] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,6 +41,7 @@ function CustomerRate() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [formdata, setFormdata] = useState({
         Client_Code: "",
+        Vendor_Code: "",
         Club_No: "",
         Mode_Code: [],
         Zone_Code: [],
@@ -115,6 +119,18 @@ function CustomerRate() {
         }
     };
 
+    const fetchVendorData = async () => {
+        try {
+            const response = await getApi('/Master/getVendor');
+            setGetVendor(Array.isArray(response.Data) ? response.Data : []);
+        } catch (err) {
+            console.error('Fetch Error:', err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const fetchCityData = async () => {
 
         try {
@@ -145,44 +161,29 @@ function CustomerRate() {
         }
     };
 
-    const fetchZoneData = async () => {
-        try {
-            const response = await getApi('/Master/getZone');
-            setGetZone(Array.isArray(response.Data) ? response.Data : []);
-        } catch (err) {
-            console.error('Fetch Error:', err);
-            setError(err);
-        } finally {
-            setLoading(false);
+    
+
+
+
+    const filterCities = (zoneCodes = []) => {
+        if (!zoneCodes || zoneCodes.length === 0) {
+            setFormdata((pre) => ({
+                ...pre,
+                Destination_Code: [],
+
+            }))
+            return [];
         }
+        // 
+        return allZones.filter(city =>
+            zoneCodes.includes(String(city.Zone_Code))
+        );
     };
-
-
-    const filterCities = (zoneCodes = [], stateCodes = []) => {
-        return getCity.filter(city => {
-            const hasZone = zoneCodes.length > 0;
-            const hasState = stateCodes.length > 0;
-
-            if (hasZone && hasState) {
-                // 🔹 both zone and state filters applied
-                return zoneCodes.includes(city.Zone_Code) && stateCodes.includes(city.State_Code);
-            } else if (hasZone) {
-                // 🔹 only zone filter
-                return zoneCodes.includes(city.Zone_Code);
-            } else if (hasState) {
-                // 🔹 only state filter
-                return stateCodes.includes(city.State_Code);
-            } else {
-                // 🔹 no filters → return all cities
-                return true;
-            }
-        });
-    };
-
+    // 
     useEffect(() => {
-        const cities = filterCities(formdata.Zone_Code, formdata.State_Code);
+        const cities = filterCities(formdata.Zone_Code);
         setFilteredCity(cities);
-    }, [formdata.Zone_Code, formdata.State_Code]);
+    }, [formdata.Zone_Code]);
     const parseDate = (date) => {
         if (!date) return null;
         // handles both ISO & dd/MM/yyyy
@@ -242,11 +243,51 @@ function CustomerRate() {
 
     useEffect(() => {
         fetchCustomerData();
+        fetchVendorData();
         fetchCityData();
         fetchModeData();
-        fetchZoneData();
         fetchStateData();
     }, [])
+
+     useEffect(()=>{
+           const fetchZoneData = async () => {
+            
+               let Vendor_Name=formdata.Vendor_Code?getVendor.find(v=>v.Vendor_Code==formdata.Vendor_Code)?.Vendor_Name : "";
+            try {
+                const apiResponse = await getApi(`/Master/GetAllInternatioanlzone?pageNumber=1&pageSize=2000&Vendor_Name=${Vendor_Name}`);
+                console.log(apiResponse);
+                const uniqueZones = Array.from(
+                new Map(
+                    apiResponse.data.map(item => [
+                        item.Zone_Code, // key
+                        item
+                    ])
+                ).values()
+            );
+                setAllZones(apiResponse.data);
+                setGetZone(uniqueZones);
+    
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        setFormdata((pre)=>({
+                ...pre,
+                Zone_Code:[],
+                Destination_Code:[]
+            }));
+        if(!formdata.Vendor_Code)
+        {
+            setGetZone([]);
+            setAllZones([]);
+            return;
+        }
+        fetchZoneData();
+        },[formdata.Vendor_Code])
     useEffect(() => {
         console.log(formdata);
     }, [formdata])
@@ -346,6 +387,7 @@ function CustomerRate() {
                 await fetchCustomerRateData();
                 setFormdata({
                     Client_Code: "",
+                    Vendor_Code: "",
                     Club_No: "",
                     Mode_Code: [],
                     Zone_Code: [],
@@ -432,6 +474,7 @@ function CustomerRate() {
             if (response.status === 1) {
                 setFormdata({
                     Client_Code: "",
+                    Vendor_Code: "",
                     Club_No: "",
                     Mode_Code: [],
                     Zone_Code: [],
@@ -562,6 +605,7 @@ function CustomerRate() {
                                 setModalIsOpen(true); setIsEditMode(false);
                                 setFormdata({
                                     Client_Code: "",
+                                    Vendor_Code: "",
                                     Club_No: "",
                                     Mode_Code: [],
                                     Zone_Code: [],
@@ -766,6 +810,35 @@ function CustomerRate() {
                                                     })
                                                 }}
                                                 placeholder="Select Customer"
+                                                isSearchable
+                                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                                styles={{
+                                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="input-field1">
+                                            <label htmlFor="">Vendor Name</label>
+                                            <Select
+                                                className="blue-selectbooking"
+                                                classNamePrefix="blue-selectbooking"
+                                                options={getVendor.map(ven => ({
+                                                    value: ven.Vendor_Code,   // adjust keys from your API
+                                                    label: ven.Vendor_Name
+                                                }))}
+                                                value={
+                                                    formdata.Vendor_Code
+                                                        ? { value: formdata.Vendor_Code, label: getVendor.find(ven => ven.Vendor_Code === formdata.Vendor_Code)?.Vendor_Name || "" }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    setFormdata({
+                                                        ...formdata,
+                                                        Vendor_Code: selectedOption ? selectedOption.value : ""
+                                                    })
+                                                }}
+                                                placeholder="Select Vendor"
                                                 isSearchable
                                                 menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
                                                 styles={{
