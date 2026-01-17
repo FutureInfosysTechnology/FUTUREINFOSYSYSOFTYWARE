@@ -96,7 +96,7 @@ const Login = () => {
                             <div onClick={() => setLock(p => !p)}>{!lock ? <IoLockOpen className="passLogo" /> :
                                 <IoLockClosed className="passLogo" />}</div>
                         </div>
-                        <button className="animate-rtl" >{login ? "Login" : "Signup"}</button>
+                        <button className="animate-rtl button" >{login ? "Login" : "Signup"}</button>
                     </form>
                     <div className="account">{login ? "Don't have an account ?" : "Already Registered ?"}
                         <span onClick={() => setLogin((p) => !p)}>{login ? "Signup" : "Login"}</span></div>

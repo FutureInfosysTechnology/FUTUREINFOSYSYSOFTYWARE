@@ -16,10 +16,11 @@ function CustomerRate() {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const flagOptions = [
-        { value: "RatePerKg", label: "RatePerKg" },
-        { value: "Dox", label: "Dox" },
-        { value: "Box", label: "Box" },
+        { value: "Active", label: "Active" },
     ];
+    const [isPostal, setIsPostal] = useState(null);
+    const [skipGstCalc, setSkipGstCalc] = useState(false);
+    const [postal, setPostal] = useState([]);
 
     const [openRow, setOpenRow] = useState(null);
     const [getCustRate, setGetCustRate] = useState([]);
@@ -54,8 +55,8 @@ function CustomerRate() {
         Amount: "",
         Weight: "",
         Method: "",
+        postal: "",
     });
-    console.log(formdata);
     const [editIndex, setEditIndex] = useState(null);
     const [submittedData, setSubmittedData] = useState([]);
     const [tableRowData, setTableRowData] = useState({
@@ -63,7 +64,7 @@ function CustomerRate() {
         Lower_Wt: 0,
         Upper_Wt: 0,
         Rate: 0,
-        Rate_Flag: ""
+        Rate_Flag: "Active"
     })
 
     const handleDateChange = (field, date) => {
@@ -161,29 +162,6 @@ function CustomerRate() {
         }
     };
 
-    
-
-
-
-    const filterCities = (zoneCodes = []) => {
-        if (!zoneCodes || zoneCodes.length === 0) {
-            setFormdata((pre) => ({
-                ...pre,
-                Destination_Code: [],
-
-            }))
-            return [];
-        }
-        // 
-        return allZones.filter(city =>
-            zoneCodes.includes(String(city.Zone_Code))
-        );
-    };
-    // 
-    useEffect(() => {
-        const cities = filterCities(formdata.Zone_Code);
-        setFilteredCity(cities);
-    }, [formdata.Zone_Code]);
     const parseDate = (date) => {
         if (!date) return null;
         // handles both ISO & dd/MM/yyyy
@@ -193,7 +171,92 @@ function CustomerRate() {
         }
         return new Date(date);
     };
+
+
+    useEffect(() => {
+        const fetchZoneData = async () => {
+
+            let Vendor_Name = formdata.Vendor_Code ? getVendor.find(v => v.Vendor_Code == formdata.Vendor_Code)?.Vendor_Name : "";
+            try {
+                const apiResponse = await getApi(`/Master/GetAllInternatioanlzone?pageNumber=1&pageSize=2000&Vendor_Name=${Vendor_Name}`);
+                setIsPostal(apiResponse.data[0]?.PostalCode)
+                const uniqueZones = Array.from(
+                    new Map(
+                        apiResponse.data.map(item => [
+                            item.Zone_Code, // key
+                            item
+                        ])
+                    ).values()
+                );
+                setAllZones(apiResponse.data);
+                setGetZone(uniqueZones);
+
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (!skipGstCalc) {
+            setFormdata((pre) => ({
+                ...pre,
+                Zone_Code: [],
+                Destination_Code: [],
+                postal: "",
+            }));
+        }
+        if (!formdata.Vendor_Code) {
+            setGetZone([]);
+            setAllZones([]);
+            return;
+        }
+        fetchZoneData();
+    }, [formdata.Vendor_Code])
+
+    const filterCities = (zoneCodes = []) => {
+        if (!zoneCodes || zoneCodes.length === 0) {
+            setFormdata((pre) => ({
+                ...pre,
+                Destination_Code: [],
+                postal: "",
+
+            }))
+            setFilteredCity([]);
+            setPostal([]);
+        } else {
+
+            const filter = allZones.filter(city => zoneCodes.includes(String(city.Zone_Code)));
+            setFilteredCity(!isPostal ? filter : []);
+            setPostal(isPostal ? filter : []);
+        }
+    };
+    useEffect(() => {
+        if (allZones.length === 0) return;
+        filterCities(formdata.Zone_Code);
+    }, [allZones, formdata.Zone_Code]);
+    ;
+
+    const filterCities1 = (pos) => {
+        if (!pos) {
+            setFormdata((pre) => ({
+                ...pre,
+                Destination_Code: [],
+            }))
+            setFilteredCity([]);
+        } else {
+
+            const filter = postal.filter(p => p.PostalCode === pos);
+            setFilteredCity(filter);
+        }
+    };
+    useEffect(() => {
+        if (postal.length === 0) return;
+        filterCities1(formdata.postal);
+    }, [formdata.postal, postal]);
+
     const handleGet = async (Club_No) => {
+        setSkipGstCalc(true);
         try {
             const res = await getApi(`/Master/GetRateMasterByClubNo?Club_No=${Club_No}`);
 
@@ -217,14 +280,20 @@ function CustomerRate() {
                     Method: d.Method || "",
                 });
                 setSubmittedData(d.RateDetails || []);
+                setTimeout(() => {
+                    setSkipGstCalc(false);
+                }, 1000);
+
 
                 // 🧠 if you also have a separate state for RateDetails
                 // setRateDetails(d.RateDetails || []);
             } else {
                 console.warn("No data found for this Club_No");
+                setSkipGstCalc(false);
             }
         } catch (error) {
             console.error("Error fetching rate master:", error);
+            setSkipGstCalc(false);
         }
     };
 
@@ -249,48 +318,7 @@ function CustomerRate() {
         fetchStateData();
     }, [])
 
-     useEffect(()=>{
-           const fetchZoneData = async () => {
-            
-               let Vendor_Name=formdata.Vendor_Code?getVendor.find(v=>v.Vendor_Code==formdata.Vendor_Code)?.Vendor_Name : "";
-            try {
-                const apiResponse = await getApi(`/Master/GetAllInternatioanlzone?pageNumber=1&pageSize=2000&Vendor_Name=${Vendor_Name}`);
-                console.log(apiResponse);
-                const uniqueZones = Array.from(
-                new Map(
-                    apiResponse.data.map(item => [
-                        item.Zone_Code, // key
-                        item
-                    ])
-                ).values()
-            );
-                setAllZones(apiResponse.data);
-                setGetZone(uniqueZones);
-    
-            } catch (err) {
-                console.error('Fetch Error:', err);
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-    
-        setFormdata((pre)=>({
-                ...pre,
-                Zone_Code:[],
-                Destination_Code:[]
-            }));
-        if(!formdata.Vendor_Code)
-        {
-            setGetZone([]);
-            setAllZones([]);
-            return;
-        }
-        fetchZoneData();
-        },[formdata.Vendor_Code])
-    useEffect(() => {
-        console.log(formdata);
-    }, [formdata])
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -370,7 +398,7 @@ function CustomerRate() {
             Closing_Date: formdata.Closing_Date,
             Amount: formdata.Amount || 0,
             Weight: formdata.Weight || 0,
-            ConnectingHub: JSON.parse(localStorage.getItem("Login"))?.Branch_Code || null,
+            ConnectingHub: formdata.postal || null,
             RatePer: 100, // or calculate dynamically
             RateDetails: submittedData.map((data) => ({
                 On_Addition: data.On_Addition,
@@ -456,7 +484,7 @@ function CustomerRate() {
             Closing_Date: formatDate(formdata.Closing_Date),
             Amount: formdata.Amount || 0,
             Weight: formdata.Weight || 0,
-            ConnectingHub: JSON.parse(localStorage.getItem("Login"))?.Branch_Code || null,
+            ConnectingHub: formdata.postal || null,
             RatePer: 100,
             RateDetails: submittedData.map((data) => ({
                 Club_No: formdata.Club_No,
@@ -487,13 +515,14 @@ function CustomerRate() {
                     Amount: "",
                     Weight: "",
                     Method: "",
+                    postal: "",
                 });
                 setTableRowData({
                     On_Addition: 0,
                     Lower_Wt: 0,
                     Upper_Wt: 0,
                     Rate: 0,
-                    Rate_Flag: ""
+                    Rate_Flag: "Active"
                 });
                 setSubmittedData([]);
 
@@ -618,13 +647,14 @@ function CustomerRate() {
                                     Amount: "",
                                     Weight: "",
                                     Method: "",
+                                    postal: "",
                                 });
                                 setTableRowData({
-                                    On_Addition: "",
-                                    Lower_Wt: "",
-                                    Upper_Wt: "",
-                                    Rate: "",
-                                    Rate_Flag: ""
+                                    On_Addition: 0,
+                                    Lower_Wt: 0,
+                                    Upper_Wt: 0,
+                                    Rate: 0,
+                                    Rate_Flag: "Active"
                                 });
                                 setSubmittedData([]);
                             }}>
@@ -1124,6 +1154,45 @@ function CustomerRate() {
                                                 }}
                                             />
                                         </div>
+
+                                        {isPostal && <div className="input-field1">
+                                            <label htmlFor="">Postal Code</label>
+                                            <Select
+                                                options={postal.map(p => ({
+                                                    value: p.PostalCode,
+                                                    label: p.PostalCode,
+                                                    City_Code: p.City_Code
+                                                }))}
+                                                value={
+                                                    formdata.postal
+                                                        ? { value: formdata.postal, label: formdata.postal }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    console.log(selectedOption);
+                                                    setFormdata({
+                                                        ...formdata,
+                                                        postal: selectedOption ? selectedOption.value : "",
+                                                        Destination_Code: selectedOption ? [selectedOption.City_Code] : []
+                                                    })
+                                                }
+                                                }
+                                                placeholder="Select postal"
+                                                isSearchable
+                                                classNamePrefix="blue-selectbooking"
+                                                className="blue-selectbooking"
+                                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll container
+                                                styles={{
+                                                    placeholder: (base) => ({
+                                                        ...base,
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis"
+                                                    }),
+                                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps dropdown on top
+                                                }}
+                                            />
+                                        </div>}
 
                                         <div className="input-field1">
                                             <label htmlFor="">Destination</label>

@@ -10,10 +10,12 @@ import * as XLSX from 'xlsx';
 import '../../Tabs/tabs.css';
 import { deleteApi, getApi, postApi, putApi } from "./Zonemaster/ServicesApi";
 import { IoSearchOutline } from "react-icons/io5";
+import { Dropdown } from 'bootstrap';
 
 
 function MultipleCity() {
     const [openRow, setOpenRow] = useState(null);
+    const [totalPages, setTotalPages] = useState(0);
     const [multipleCity, setmultipleCity] = useState([]);
     const [getMode, setGetMode] = useState([]);                       // To Get Mode Data
     const [getCity, setGetCity] = useState([]);                       // To Get City Data
@@ -43,21 +45,39 @@ function MultipleCity() {
     });
 
 
-    const fetchMultipleCityData = async () => {
-        try {
-            const response = await getApi('/Master/GetAllInternatioanlzone');
-            console.log("Response size:", response.data.length);
-            setmultipleCity(Array.isArray(response.data) ? response.data : []);
-        } catch (err) {
-            console.error('Fetch Error:', err);
-            setError(err);
-        } finally {
-            setLoading(false);
+    const handleSearch = async () => {
+
+    try {
+        let query = `/Master/GetAllInternatioanlzone?pageNumber=${currentPage}&pageSize=${rowsPerPage}`;
+
+        if (drop === "V") {
+            query += `&Vendor_Name=${searchQuery}`;
+        } 
+        else if (drop === "C") {
+            query += `&Country_Name=${searchQuery}`;
+        } 
+        else if (drop === "D") {
+            query += `&City_Name=${searchQuery}`;
+        } 
+        else if (drop === "P") {
+            query += `&PostalCode=${searchQuery}`;
         }
-    };
+
+        const response = await getApi(query);
+
+        setmultipleCity(Array.isArray(response.data) ? response.data : []);
+        setTotalPages(Math.ceil(response.totalRecords / rowsPerPage));
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        setError(err);
+    } 
+};
+
+
+   
     useEffect(() => {
-        fetchMultipleCityData();
-    }, []);
+        handleSearch();
+    }, [rowsPerPage, currentPage,searchQuery,drop]);
 
     const fetchData = async (endpoint, setData) => {
         try {
@@ -134,7 +154,7 @@ function MultipleCity() {
                 });
                 Swal.fire('Updated!', response.message || 'Zone has been updated.', 'success');
                 setModalIsOpen(false);
-                await fetchMultipleCityData();
+                await handleSearch();
             } else {
                 Swal.fire('Error!', response.message || 'Failed to update the zone.', 'error');
             }
@@ -174,7 +194,7 @@ function MultipleCity() {
                 });
                 Swal.fire('Saved!', response.message || 'Zone has been saved.', 'success');
                 setModalIsOpen(false);
-                await fetchMultipleCityData();
+                await handleSearch();
             } else {
                 Swal.fire('Error!', response.message || 'Failed to save zone.', 'error');
 
@@ -221,12 +241,12 @@ function MultipleCity() {
             }
         });
     };
-    const handleSearchChange = (e) => { setSearchQuery(e.target.value); setCurrentPage(1); };
+    const handleSearchChange = (e) => { setSearchQuery(e.target.value);setCurrentPage(1) };
 
     const handleExportExcel = () => {
 
         // Create custom export rows in same order as table
-        const exportData = currentRows.map((row, index) => ({
+        const exportData = multipleCity.map((row, index) => ({
             "Mode Name": row.Mode_Name,
             "Zone Name": row.Zone_Name,
             "Country Name": row.Country_Name,
@@ -260,7 +280,7 @@ function MultipleCity() {
         const headers = [['index', 'Vendor Name', 'Mode', 'Zone', 'Country', 'State', 'City']];
 
         // Prepare table rows exactly like your table columns
-        const pdfData = currentRows.map((item, index) => [
+        const pdfData = multipleCity.map((item, index) => [
             index + 1,           // Sr.No
             item.Vendor_Name,
             item.Mode_Name,
@@ -281,20 +301,8 @@ function MultipleCity() {
         pdf.save('internationalZone.pdf');
     };
 
-    const filteredRows = multipleCity.filter((d) => {
-        const q = searchQuery.toLowerCase();
 
-        return (
-            (d?.Country_Name && d?.Country_Name.toLowerCase().includes(q)) ||
-            (d?.Vendor_Name && d?.Vendor_Name.toLowerCase().includes(q)) ||
-            (d?.City_Name && d?.City_Name.toLowerCase().includes(q))
-        );
-    });
 
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = filteredRows.slice(indexOfFirstRow, indexOfLastRow);
-    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
 
 
     const handlePreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
@@ -311,69 +319,69 @@ function MultipleCity() {
                 <div className="addNew row align-items-center g-2">
 
                     {/* LEFT SECTION — ADD NEW + Export */}
-                    
-                        <div className="col-md-4 col-sm-6 d-flex align-items-center gap-2" >
 
-                            <button
-                                style={{ width: "100px" }}
-                                className="add-btn"
-                                onClick={() => {
-                                    setModalIsOpen(true);
-                                    setIsEditMode(false);
-                                    setAddCity({
-                                        ID: '',
-                                        VendorCode: '',
-                                        ModeCode: '',
-                                        ZoneCode: '',
-                                        CountryCode: '',
-                                        StateCode: '',
-                                        CityCode: '',
-                                        ProductType: '',
-                                        OriginCode: 'IN',
-                                    });
-                                }}
-                            >
-                                + ADD NEW
+                    <div className="col-md-4 col-sm-6 d-flex align-items-center gap-2" >
+
+                        <button
+                            style={{ width: "100px" }}
+                            className="add-btn"
+                            onClick={() => {
+                                setModalIsOpen(true);
+                                setIsEditMode(false);
+                                setAddCity({
+                                    ID: '',
+                                    VendorCode: '',
+                                    ModeCode: '',
+                                    ZoneCode: '',
+                                    CountryCode: '',
+                                    StateCode: '',
+                                    CityCode: '',
+                                    ProductType: '',
+                                    OriginCode: 'IN',
+                                });
+                            }}
+                        >
+                            + ADD NEW
+                        </button>
+
+                        <div className="dropdown">
+                            <button className="dropbtn">
+                                <i className="bi bi-file-earmark-arrow-down"></i> Export
                             </button>
-
-                            <div className="dropdown">
-                                <button className="dropbtn">
-                                    <i className="bi bi-file-earmark-arrow-down"></i> Export
-                                </button>
-                                <div className="dropdown-content">
-                                    <button onClick={handleExportExcel}>Export to Excel</button>
-                                    <button onClick={handleExportzonePDF}>Export to PDF</button>
-                                </div>
+                            <div className="dropdown-content">
+                                <button onClick={handleExportExcel}>Export to Excel</button>
+                                <button onClick={handleExportzonePDF}>Export to PDF</button>
                             </div>
-
                         </div>
+
+                    </div>
 
                     {/* RIGHT SECTION — Search */}
                     <div className="col-12 col-md-4 col-sm-6 row g-2" >
-                       
-                            <div className="col-12 col-md-4 col-sm-4">
-                                <select className="">
-                                    <option value="V">Vendor</option>
-                                    <option value="C">Country</option>
-                                    <option value="D">City</option>
-                                    <option value="P">Postal</option>
-                                </select>
-                            </div>
 
-                            {/* Input */}
-                            <div className="col-12 col-md-8 col-sm-8" style={{position:"relative"}}>
-                                <input
-                                style={{background:"#ececec",borderRadius:"20px"}}
-                                    className="add-input form-control w-100"
-                                    type="text"
-                                    placeholder="search"
-                                    value={searchQuery}
-                                    onChange={handleSearchChange}
-                                />
-                                <div style={{position:"absolute",top:"7%",right:"15px"}}>
-                                <IoSearchOutline style={{color:" #4FD1C5"}}/>
+                        <div className="col-12 col-md-4 col-sm-4">
+                            <select className="" value={drop} onChange={(e)=>setDrop(e.target.value)}>
+                                <option value="V">Vendor</option>
+                                <option value="C">Country</option>
+                                <option value="D">City</option>
+                                <option value="P">Postal</option>
+                            </select>
+                        </div>
+
+                        {/* Input */}
+                        <div className="col-12 col-md-8 col-sm-8" style={{ position: "relative" }}>
+                            <input
+                                style={{ background: "#ececec", borderRadius: "20px" }}
+                                className="add-input form-control w-100"
+                                type="text"
+                                placeholder="search"
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                            />
+                            <div style={{ position: "absolute", top: "7%", right: "15px" }}>
+                                <IoSearchOutline style={{ color: " #4FD1C5" }} />
                             </div>
-                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -397,7 +405,7 @@ function MultipleCity() {
                             </tr>
                         </thead>
                         <tbody className='table-body'>
-                            {currentRows.map((multiple, index) => (
+                            {multipleCity.map((multiple, index) => (
                                 <tr key={index} style={{ fontSize: "12px", position: "relative" }}>
                                     <td>
                                         <PiDotsThreeOutlineVerticalFill

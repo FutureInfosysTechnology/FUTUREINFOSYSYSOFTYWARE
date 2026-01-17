@@ -83,8 +83,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 const apiClient = axios.create({
-  // baseURL: 'http://localhost:3200',
-  baseURL: 'https://speedlogisticsindia.com/Tracking',
+  baseURL: 'http://localhost:3200',
+  // baseURL: 'https://speedlogisticsindia.com/Tracking',
   headers: {
     'Content-Type': 'application/json',
   },
