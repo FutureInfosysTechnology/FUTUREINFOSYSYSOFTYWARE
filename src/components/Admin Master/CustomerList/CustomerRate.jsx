@@ -38,7 +38,10 @@ function CustomerRate() {
     const [loading, setLoading] = useState(true);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [totalPages, setTotalPages] = useState(0);
     const [isEditMode, setIsEditMode] = useState(false);
     const [formdata, setFormdata] = useState({
         Client_Code: "",
@@ -70,10 +73,6 @@ function CustomerRate() {
     const handleDateChange = (field, date) => {
         setFormdata({ ...formdata, [field]: date });
     };
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = getCustRate.slice(indexOfFirstRow, indexOfLastRow);
-    const totalPages = Math.ceil(getCustRate.length / rowsPerPage);
 
     const fetchCustomerRateData = async () => {
         setLoading(true);
@@ -81,7 +80,7 @@ function CustomerRate() {
             const queryParams = new URLSearchParams({
                 pageNumber: currentPage,
                 pageSize: rowsPerPage,
-                // search: searchValue || ""   // enable if needed
+                search: searchQuery || ""  
             }).toString();
 
             const response = await getApi(
@@ -93,6 +92,7 @@ function CustomerRate() {
             }
 
             setGetCustRate(Array.isArray(response.data) ? response.data : []);
+            setTotalPages(Math.ceil(response.totalRecords / rowsPerPage));
 
             // Optional: backend already returns pageNumber
             // setCurrentPage(response.pageNumber);
@@ -107,7 +107,7 @@ function CustomerRate() {
 
     useEffect(() => {
         fetchCustomerRateData();
-    }, [rowsPerPage])
+    }, [rowsPerPage,currentPage,searchQuery])
 
     const fetchCustomerData = async () => {
         try {
@@ -266,6 +266,7 @@ function CustomerRate() {
                 // 🧠 set formdata using API response
                 setFormdata({
                     Client_Code: d.Client_Code || "",
+                    Vendor_Code:d.Vendor_Code || "",
                     Club_No: d.Club_No || "",
                     Mode_Code: d.Mode_Codes || [],
                     Zone_Code: d.Zone_Codes || [],
@@ -296,6 +297,7 @@ function CustomerRate() {
             setSkipGstCalc(false);
         }
     };
+    const handleSearchChange = (e) => { setSearchQuery(e.target.value);setCurrentPage(1) };
 
     const fetchStateData = async () => {
         try {
@@ -367,7 +369,7 @@ function CustomerRate() {
     };
     const handlesave = async (e) => {
         e.preventDefault();
-        if (!formdata.Client_Code || !formdata.Mode_Code) {
+        if (!formdata.Client_Code || !formdata.Mode_Code || !formdata.Method) {
             return Swal.fire({
                 icon: 'warning',
                 title: 'Missing Information',
@@ -672,7 +674,9 @@ function CustomerRate() {
                         </div>
 
                         <div className="search-input">
-                            <input className="add-input" type="text" placeholder="search" />
+                            <input className="add-input" type="text" placeholder="search" 
+                            value={searchQuery}
+                                onChange={handleSearchChange} />
                             <button type="submit" title="search">
                                 <i className="bi bi-search"></i>
                             </button>
@@ -701,7 +705,7 @@ function CustomerRate() {
                                 </tr>
                             </thead>
                             <tbody className='table-body'>
-                                {currentRows.map((rate, index) => (
+                                {getCustRate.map((rate, index) => (
                                     <tr key={index} style={{ fontSize: "12px", position: "relative" }}>
                                         <td>
                                             <PiDotsThreeOutlineVerticalFill
@@ -1304,9 +1308,14 @@ function CustomerRate() {
                                                 options={[
                                                     {
                                                         value: "Dox", label: "Dox"
-                                                    }, {
+                                                    },
+                                                    {
                                                         value: "Non Dox", label: "Non Dox"
+                                                    },
+                                                    {
+                                                        value: "Rate Per Kg", label: "Rate Per Kg"
                                                     }
+
                                                 ]}
                                                 value={
                                                     formdata.Dox_Box ? { value: formdata.Dox_Box, label: formdata.Dox_Box } : null
@@ -1333,7 +1342,7 @@ function CustomerRate() {
                                                     {
                                                         value: "Rate Per Kg", label: "Rate Per Kg"
                                                     }, {
-                                                        value: "Additional", label: "Additional"
+                                                        value: "Credit", label: "Credit"
                                                     }
                                                 ]}
                                                 value={

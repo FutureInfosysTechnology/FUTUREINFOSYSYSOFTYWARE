@@ -15,13 +15,14 @@ function VenRateUpload() {
     const [getVendor, setGetVendor] = useState([]);
     const [getMode, setGetMode] = useState([]);
     const [error, setError] = useState(null);
-    const [getCity,setGetCity]=useState([]);
+    const [getCity, setGetCity] = useState([]);
 
     const [form, setForm] = useState({
         Vendor_Code: "",
-        mode: "",
-        Dox_Spx: "",
-        Rate_Mode: "",
+        Rate_type: "Credit",
+        mode: "AIR",
+        Dox_Spx: "Dox",
+        Rate_Mode: "IN",
         FromDate: firstDayOfMonth,
         ToDate: today,
     });
@@ -81,7 +82,7 @@ function VenRateUpload() {
         value: v.Vendor_Code,
     }));
 
-     const cityOptions = getCity.map(c => ({
+    const cityOptions = getCity.map(c => ({
         label: c.City_Name,
         value: c.City_Code,
     }));
@@ -106,6 +107,11 @@ function VenRateUpload() {
             return;
         }
 
+        if (!form.Rate_type) {
+            Swal.fire("Validation Error", "Rate Type is required", "warning");
+            return;
+        }
+
         if (!fileInputRef.current?.files[0]) {
             Swal.fire("Validation Error", "Please select Excel file", "warning");
             return;
@@ -115,6 +121,7 @@ function VenRateUpload() {
 
         formData.append("Vendor_Code", form.Vendor_Code);
         formData.append("Origin_Code", form.Rate_Mode || "");
+        formData.append("Method", form.Rate_type);
         formData.append("Mode_Codes", JSON.stringify([form.mode]));
         formData.append("Dox_Spx", form.Dox_Spx);
         formData.append("Active_Date", form.FromDate.toISOString().split("T")[0]);
@@ -146,9 +153,10 @@ function VenRateUpload() {
                 fileInputRef.current.value = "";
                 setForm({
                     Vendor_Code: "",
-                    mode: "",
-                    Dox_Spx: "",
-                    Rate_Mode: "",
+                    Rate_type: "Credit",
+                    mode: "AIR",
+                    Dox_Spx: "Dox",
+                    Rate_Mode: "IN",
                     FromDate: firstDayOfMonth,
                     ToDate: today,
                 })
@@ -210,21 +218,63 @@ function VenRateUpload() {
                             />
                         </div>
 
+
                         <div className="input-field1">
                             <label>Dox / Non Dox</label>
-                            <select
-                                value={form.Dox_Spx}
-                                onChange={(e) => setForm({ ...form, Dox_Spx: e.target.value })}
-                            >
-                                <option value="">Select</option>
-                                <option value="Dox">Dox</option>
-                                <option value="Non Dox">Non Dox</option>
-                            </select>
+                            <Select
+                                options={[
+                                    { value: "Dox", label: "Dox" },
+                                    { value: "Non Dox", label: "Non Dox" },
+                                    { value: "Rate Per Kg", label: "Rate Per Kg" }
+                                ]}
+                                value={form.Dox_Spx ? { value: form.Dox_Spx, label: form.Dox_Spx } : null}
+                                onChange={(selectedOption) =>
+                                    setForm({ ...form, Dox_Spx: selectedOption.value })
+                                }
+                                placeholder="Select Dox / Non Dox"
+                                isSearchable
+                                classNamePrefix="blue-selectbooking"
+                                className="blue-selectbooking"
+
+                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                styles={{
+                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                }}
+                            />
+
+                        </div>
+
+                        <div className="input-field1">
+                            <label htmlFor="">Rate Type</label>
+                            <Select
+                                options={[
+                                    {
+                                        value: "Rate Per Kg", label: "Rate Per Kg"
+                                    }, {
+                                        value: "Credit", label: "Credit"
+                                    }
+                                ]}
+                                value={
+                                    form.Rate_type ? { value: form.Rate_type, label: form.Rate_type } : null
+                                }
+                                onChange={(selectedOption) =>
+                                    setForm({ ...form, Rate_type: selectedOption?.value || "" })
+                                }
+                                placeholder="Select Rate Type"
+                                isSearchable
+                                classNamePrefix="blue-selectbooking"
+                                className="blue-selectbooking"
+
+                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                styles={{
+                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                }}
+                            />
                         </div>
 
                         <div className="input-field3">
                             <label>Origin Name</label>
-                           <Select
+                            <Select
                                 className="blue-selectbooking"
                                 classNamePrefix="blue-selectbooking"
                                 options={cityOptions}

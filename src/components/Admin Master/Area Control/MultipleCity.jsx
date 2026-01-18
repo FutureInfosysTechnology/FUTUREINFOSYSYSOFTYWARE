@@ -66,7 +66,8 @@ function MultipleCity() {
         const response = await getApi(query);
 
         setmultipleCity(Array.isArray(response.data) ? response.data : []);
-        setTotalPages(Math.ceil(response.totalRecords / rowsPerPage));
+        
+        
     } catch (err) {
         console.error("Fetch Error:", err);
         setError(err);

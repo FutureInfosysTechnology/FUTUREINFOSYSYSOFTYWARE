@@ -27,16 +27,16 @@ function Booking({ selectedDocket, setSelectedDocket }) {
     const [skipGstCalc, setSkipGstCalc] = useState(false);
     const [UseInput, setUseInput] = useState(0);
 
-  const downloadLogo = (url, filename) => {
-  fetch(url)
-    .then(res => res.blob())
-    .then(blob => {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-    });
-};
+    const downloadLogo = (url, filename) => {
+        fetch(url)
+            .then(res => res.blob())
+            .then(blob => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+            });
+    };
 
 
 
@@ -454,8 +454,8 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         }
     };
     useEffect(() => {
-  console.log("KYC1:", formData.uploadkyc1);
-}, [formData.uploadkyc1]);
+        console.log("KYC1:", formData.uploadkyc1);
+    }, [formData.uploadkyc1]);
     const handleSearch = async (docket, source) => {
         // if (!formData.DocketNo) return Swal.fire("Warning", "Enter Docket No", "warning");
         // if (fecthed === formData.DocketNo) {
@@ -494,7 +494,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
                 setFecthed(docket);
                 const data = res.OrderEntry;
-            
+
 
                 setFormData(
                     prev => ({
@@ -620,7 +620,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
                 const multiInvoice = res?.MultiInvoice || [];
 
-                
+
                 const formattedInvoices = multiInvoice.length > 0 ? multiInvoice.map(item => ({
                     PoNo: item.PoNo || "",
                     PoDate: new Date(item.PoDate) || "",
@@ -756,7 +756,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
     }, []);
     const handleUpdateSetup = async (e) => {
         e.preventDefault();
-        
+
 
         const requestPayload = {
             ID: 1, // 🔴 required
@@ -1999,7 +1999,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         }
     }, [formData.Customer_Code, formData.Mode_Code]);
     useEffect(() => {
-        if (volumetricData.Length==0 ||  volumetricData.Width==0 || volumetricData.Height==0 || volumetricData.Qty==0 || volumetricData.DivideBy==0) {
+        if (volumetricData.Length == 0 || volumetricData.Width == 0 || volumetricData.Height == 0 || volumetricData.Qty == 0 || volumetricData.DivideBy == 0) {
             setVolumetricData((prev) => (
                 {
                     ...prev,
@@ -2028,8 +2028,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                 }
             ))
         }
-        else
-        {
+        else {
             setVolumetricData((prev) => (
                 {
                     ...prev,
@@ -2037,7 +2036,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                 }
             ))
         }
-    }, [volumetricData.Length, volumetricData.Width, volumetricData.Height, volumetricData.Qty,volumetricData.DivideBy])
+    }, [volumetricData.Length, volumetricData.Width, volumetricData.Height, volumetricData.Qty, volumetricData.DivideBy])
     useEffect(() => {
         const getVolum = async (Vendor_Code, Mode_Code) => {
             try {
@@ -2069,7 +2068,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         }
     }, [formData.Vendor_Code, formData.Mode_Code]);
     useEffect(() => {
-        if (vendorVolumetric.Length==0 ||  vendorVolumetric.Width==0 || vendorVolumetric.Height==0 || vendorVolumetric.Qty==0 || vendorVolumetric.DivideBy==0) {
+        if (vendorVolumetric.Length == 0 || vendorVolumetric.Width == 0 || vendorVolumetric.Height == 0 || vendorVolumetric.Qty == 0 || vendorVolumetric.DivideBy == 0) {
             setVendorvolumetric((prev) => (
                 {
                     ...prev,
@@ -2098,16 +2097,15 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                 }
             ))
         }
-        else
-        {
-           setVendorvolumetric((prev) => (
+        else {
+            setVendorvolumetric((prev) => (
                 {
                     ...prev,
                     VolmetricWt: 0,
                 }
-            ))   
+            ))
         }
-    }, [vendorVolumetric.Length, vendorVolumetric.Width, vendorVolumetric.Height, vendorVolumetric.Qty,vendorVolumetric.DivideBy])
+    }, [vendorVolumetric.Length, vendorVolumetric.Width, vendorVolumetric.Height, vendorVolumetric.Qty, vendorVolumetric.DivideBy])
     useEffect(() => {
         const actual = parseFloat(formData.ActualWt) || 0;
         const volumetric = parseFloat(formData.VolumetricWt) || 0;
@@ -2427,12 +2425,23 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
 
 
-        const KYC_JSON =
-        {
-            KYCNo: formData.SkycNo,
-            KYCtype: formData.SkycType,
-            KYC_image_1: formData.uploadkyc1,
-            KYC_image_2: formData.uploadkyc2,
+        try {
+
+
+            const formData = new FormData();
+            formData.append("KYC_image_1", formData.uploadkyc1);
+            formData.append("KYC_image_2", formData.uploadkyc2);
+
+
+            const res = await postApi(
+                "https://speedlogisticsindia.com/Tracking/K",
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+
+            alert("Uploaded Successfully");
+        } catch (err) {
+            alert(err.message);
         }
 
         // Step 3: Continue if no errors
@@ -2557,7 +2566,6 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             Volumetric: submittedData,
             Vendorvolumetric: vendorsubmittedData,
             ProformaDetail: PinvoicesubmittedData,
-            KYC_JSON: KYC_JSON,
 
             Remark1: remarkData.inco,
             Remark2: remarkData.note,
@@ -2769,7 +2777,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             // KYC / FLIGHT / TRAIN
             KYC_Type: formData.SkycType,
             KYC_No: formData.SkycNo,
-            KYC_JSON:KYC_JSON,
+            KYC_JSON: KYC_JSON,
             Flight_Code: formData.Flight_Code,
             Train_Code: formData.Train_Code,
 
@@ -3294,6 +3302,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                             className="form-control custom-input"
                                         />
                                     </div>
+                                    <img src={formData.uploadkyc1} alt="" />
 
                                     <div className="input-field" >
                                         <label htmlFor="upload-kyc">Upload KYC</label>
@@ -3310,7 +3319,8 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                     borderRadius: "4px 0 0 4px",
 
                                                 }}
-                                                onChange={handleFileChange}
+
+                                                onChange={(e) => setFormData({ ...formData, uploadkyc1: e.target.files[0] })}
                                             />
 
                                             <div style={{
@@ -3320,7 +3330,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                 borderRadius: "0 4px 4px 0",
                                                 padding: "5px",
                                                 textAlign: "center",
-                                                cursor:"pointer"
+                                                cursor: "pointer"
                                             }}
                                                 onClick={() =>
                                                     downloadLogo(formData.uploadkyc1, "KYC_1.jpg")
@@ -3355,7 +3365,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                     borderRadius: "4px 0 0 4px",
 
                                                 }}
-                                                onChange={handleFileChange1}
+                                                onChange={(e) => setFormData({ ...formData, uploadkyc2: e.target.files[0] })}
                                             />
 
                                             <div style={{
@@ -3365,7 +3375,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                 borderRadius: "0 4px 4px 0",
                                                 padding: "5px",
                                                 textAlign: "center",
-                                                cursor:"pointer"
+                                                cursor: "pointer"
                                             }}
                                                 onClick={() =>
                                                     downloadLogo(formData.uploadkyc2, "KYC_2.jpg")

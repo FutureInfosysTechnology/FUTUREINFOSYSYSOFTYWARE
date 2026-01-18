@@ -38,6 +38,8 @@ function VendorRate() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [totalPages, setTotalPages] = useState(0);
     const [isEditMode, setIsEditMode] = useState(false);
     const [formdata, setFormdata] = useState({
         Vendor_Code: "",
@@ -69,21 +71,26 @@ function VendorRate() {
     const handleDateChange = (field, date) => {
         setFormdata({ ...formdata, [field]: date });
     };
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = getVenRate.slice(indexOfFirstRow, indexOfLastRow);
-    const totalPages = Math.ceil(getVenRate.length / rowsPerPage);
 
     const fetchVendorRateData = async () => {
         try {
-            const response = await getApi('Master/GetVendorRateDetailsData');
+             const queryParams = new URLSearchParams({
+                pageNumber: currentPage,
+                pageSize: rowsPerPage,
+                search: searchQuery || ""  
+            }).toString();
+            const response = await getApi(`Master/GetVendorRateDetailsData?${queryParams}`);
             setGetVenRate(Array.isArray(response.data) ? response.data : []);
+            setTotalPages(Math.ceil(response.totalRecords / rowsPerPage));
         } catch (err) {
             setError(err);
         } finally {
             setLoading(false);
         }
     };
+    useEffect(() => {
+            fetchVendorRateData();
+        }, [rowsPerPage,currentPage,searchQuery])
 
     const fetchCityData = async () => {
 
@@ -149,8 +156,7 @@ function VendorRate() {
         fetchStateData();
     }, [])
 
-
-
+    const handleSearchChange = (e) => { setSearchQuery(e.target.value);setCurrentPage(1) };
 
     useEffect(() => {
         const fetchZoneData = async () => {
@@ -177,14 +183,13 @@ function VendorRate() {
                 setLoading(false);
             }
         };
-        if(!skipGstCalc)
-        {
-             setFormdata((pre) => ({
-            ...pre,
-            Zone_Code: [],
-            Destination_Code: [],
-            postal: "",
-        }));
+        if (!skipGstCalc) {
+            setFormdata((pre) => ({
+                ...pre,
+                Zone_Code: [],
+                Destination_Code: [],
+                postal: "",
+            }));
         }
         if (!formdata.Vendor_Code) {
             setGetZone([]);
@@ -204,18 +209,18 @@ function VendorRate() {
             }))
             setFilteredCity([]);
             setPostal([]);
-        }else{
+        } else {
 
-          const filter=allZones.filter(city =>zoneCodes.includes(String(city.Zone_Code)));
-          setFilteredCity(!isPostal ? filter : []);
-          setPostal(isPostal ? filter : []);
+            const filter = allZones.filter(city => zoneCodes.includes(String(city.Zone_Code)));
+            setFilteredCity(!isPostal ? filter : []);
+            setPostal(isPostal ? filter : []);
         }
     };
     useEffect(() => {
-    if (allZones.length === 0) return;
-    filterCities(formdata.Zone_Code);
-}, [allZones, formdata.Zone_Code]);
-;
+        if (allZones.length === 0) return;
+        filterCities(formdata.Zone_Code);
+    }, [allZones, formdata.Zone_Code]);
+    ;
 
     const filterCities1 = (pos) => {
         if (!pos) {
@@ -224,16 +229,16 @@ function VendorRate() {
                 Destination_Code: [],
             }))
             setFilteredCity([]);
-        }else{
+        } else {
 
-          const filter=postal.filter(p =>p.PostalCode===pos);
-          setFilteredCity(filter);
+            const filter = postal.filter(p => p.PostalCode === pos);
+            setFilteredCity(filter);
         }
     };
     useEffect(() => {
         if (postal.length === 0) return;
-        filterCities1(formdata.postal);       
-    }, [formdata.postal,postal]);
+        filterCities1(formdata.postal);
+    }, [formdata.postal, postal]);
 
 
 
@@ -338,7 +343,7 @@ function VendorRate() {
     };
     const handlesave = async (e) => {
         e.preventDefault();
-        if (!formdata.Vendor_Code || !formdata.Mode_Code) {
+        if (!formdata.Vendor_Code || !formdata.Mode_Code || !formdata.Method) {
             return Swal.fire({
                 icon: 'warning',
                 title: 'Missing Information',
@@ -397,7 +402,7 @@ function VendorRate() {
                     Amount: "",
                     Weight: "",
                     Method: "",
-                    postal:"",
+                    postal: "",
                 });
                 setTableRowData({
                     On_Addition: "",
@@ -529,7 +534,7 @@ function VendorRate() {
 
             if (res.status === 1 && res.data) {
                 const d = res.data;
-                
+
 
                 // 🧠 set formdata using API response
                 setFormdata({
@@ -546,10 +551,10 @@ function VendorRate() {
                     Amount: d.Amount || "",
                     Weight: d.Weight || "",
                     Method: d.Method || "",
-                    postal:d.ConnectingHub || ""
+                    postal: d.ConnectingHub || ""
                 });
                 setSubmittedData(d.RateDetails || []);
-                 setTimeout(() => {
+                setTimeout(() => {
                     setSkipGstCalc(false);
                 }, 1000);
 
@@ -678,7 +683,8 @@ function VendorRate() {
                         </div>
 
                         <div className="search-input">
-                            <input className="add-input" type="text" placeholder="search" />
+                            <input className="add-input" type="text" placeholder="search" 
+                            value={searchQuery} onChange={handleSearchChange} />
                             <button type="submit" title="search">
                                 <i className="bi bi-search"></i>
                             </button>
@@ -706,7 +712,7 @@ function VendorRate() {
                                 </tr>
                             </thead>
                             <tbody className='table-body'>
-                                {currentRows.map((rate, index) => (
+                                {getVenRate.map((rate, index) => (
                                     <tr key={index} style={{ fontSize: "12px", position: "relative" }}>
                                         <td>
                                             <PiDotsThreeOutlineVerticalFill
@@ -817,7 +823,7 @@ function VendorRate() {
                         }}>
                         <div className="custom-modal-content">
                             <div className="header-tittle">
-                                <header>Customer Rate Master</header>
+                                <header>Vendor Rate Master</header>
                             </div>
 
                             <div className='container2'>
@@ -1135,9 +1141,9 @@ function VendorRate() {
                                             <label htmlFor="">Postal Code</label>
                                             <Select
                                                 options={postal.map(p => ({
-                                                    value: p.PostalCode,   
+                                                    value: p.PostalCode,
                                                     label: p.PostalCode,
-                                                    City_Code:p.City_Code
+                                                    City_Code: p.City_Code
                                                 }))}
                                                 value={
                                                     formdata.postal
@@ -1280,9 +1286,14 @@ function VendorRate() {
                                                 options={[
                                                     {
                                                         value: "Dox", label: "Dox"
-                                                    }, {
+                                                    },
+                                                    {
                                                         value: "Non Dox", label: "Non Dox"
+                                                    },
+                                                    {
+                                                        value: "Rate Per Kg", label: "Rate Per Kg"
                                                     }
+                                                    
                                                 ]}
                                                 value={
                                                     formdata.Dox_Box ? { value: formdata.Dox_Box, label: formdata.Dox_Box } : null
@@ -1309,7 +1320,7 @@ function VendorRate() {
                                                     {
                                                         value: "Rate Per Kg", label: "Rate Per Kg"
                                                     }, {
-                                                        value: "Additional", label: "Additional"
+                                                        value: "Credit", label: "Credit"
                                                     }
                                                 ]}
                                                 value={

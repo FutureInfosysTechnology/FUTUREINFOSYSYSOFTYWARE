@@ -427,7 +427,6 @@ function RateCal() {
                   <th>Company Logo</th>
                   <th>Company Name</th>
                   <th>Country Name</th>
-                  <th>Rate Type</th>
                   <th>Chargeble Wt</th>
                   <th>Cost (₹)</th>
                   <th>Product Type</th>
@@ -445,8 +444,7 @@ function RateCal() {
                     /></td>
                     <td>{row.Vendor_Name}</td>
                     <td>{row.Country_Name}</td>
-                    <td>{row.Method}</td>
-                    <td>{row.Lower_Wt}</td>
+                    <td>{row.Weight}</td>
                     <td>Rs. {row.Rate} </td>
                     <td>{row.Shipment_Type}</td>
                   </tr>

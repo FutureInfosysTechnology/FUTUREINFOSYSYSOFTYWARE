@@ -13,20 +13,35 @@ function CustRateUpload() {
 
     const [loading, setLoading] = useState(true);
     const [getCustomer, setGetCustomer] = useState([]);
+    const [getVendor, setGetVendor] = useState([]);
     const [getMode, setGetMode] = useState([]);
     const [error, setError] = useState(null);
-    const [getCity,setGetCity]=useState([]);
+    const [getCity, setGetCity] = useState([]);
 
     const [form, setForm] = useState({
         Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
-        mode: "",
-        Dox_Spx: "",
-        Rate_Mode: "",
+        Vendor_Code: "",
+        Rate_type: "Credit",
+        mode: "AIR",
+        Dox_Spx: "Dox",
+        Rate_Mode: "IN",
         FromDate: firstDayOfMonth,
         ToDate: today,
     });
 
     /* ================= FETCH MASTER DATA ================= */
+
+    const fetchVendorData = async () => {
+        try {
+            const res = await getApi("/Master/getVendor");
+            setGetVendor(Array.isArray(res.Data) ? res.Data : []);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const fetchCityData = async () => {
 
         try {
@@ -70,6 +85,7 @@ function CustRateUpload() {
         fetchCustomerData();
         fetchModeData();
         fetchCityData();
+        fetchVendorData();
     }, []);
 
     /* ================= OPTIONS ================= */
@@ -79,7 +95,7 @@ function CustRateUpload() {
         JSON.parse(localStorage.getItem("Login"))?.UserType === "Admin"
             ?
             [
-                
+
                 ...getCustomer.map((cust) => ({
                     label: cust.Customer_Name,
                     value: cust.Customer_Code,
@@ -99,6 +115,11 @@ function CustRateUpload() {
     const modeOptions = getMode.map(p => ({
         label: p.Mode_Name,
         value: p.Mode_Code,
+    }));
+
+    const vendorOptions = getVendor.map(v => ({
+        label: v.Vendor_Name,
+        value: v.Vendor_Code,
     }));
 
     const cityOptions = getCity.map(c => ({
@@ -121,6 +142,11 @@ function CustRateUpload() {
             return;
         }
 
+        if (!form.Rate_type) {
+            Swal.fire("Validation Error", "Rate Type is required", "warning");
+            return;
+        }
+
         if (!fileInputRef.current?.files[0]) {
             Swal.fire("Validation Error", "Please select Excel file", "warning");
             return;
@@ -128,8 +154,10 @@ function CustRateUpload() {
 
         const formData = new FormData();
 
-        formData.append("Customer_Code", form.Customer_Code);
+        formData.append("Customer_Code", form.Customer_Code?.toString());
+        formData.append("Vendor_Code", form.Vendor_Code);
         formData.append("Origin_Code", form.Rate_Mode || "");
+        formData.append("Method", form.Rate_type);
         formData.append("Mode_Codes", JSON.stringify([form.mode]));
         formData.append("Dox_Spx", form.Dox_Spx);
         formData.append("Active_Date", form.FromDate.toISOString().split("T")[0]);
@@ -161,9 +189,11 @@ function CustRateUpload() {
                 fileInputRef.current.value = "";
                 setForm({
                     Customer_Code: JSON.parse(localStorage.getItem("Login"))?.Customer_Code,
-                    mode: "",
-                    Dox_Spx: "",
-                    Rate_Mode: "",
+                    Vendor_Code: "",
+                    Rate_type: "Credit",
+                    mode: "AIR",
+                    Dox_Spx: "Dox",
+                    Rate_Mode: "IN",
                     FromDate: firstDayOfMonth,
                     ToDate: today,
                 })
@@ -209,6 +239,23 @@ function CustRateUpload() {
                         </div>
 
                         <div className="input-field1">
+                            <label>Vendor Name</label>
+                            <Select
+                                className="blue-selectbooking"
+                                classNamePrefix="blue-selectbooking"
+                                options={vendorOptions}
+                                value={vendorOptions.find(v => v.value === form.Vendor_Code) || null}
+                                onChange={(opt) =>
+                                    setForm({ ...form, Vendor_Code: opt?.value || "" })
+                                }
+                                placeholder="Select Vendor"
+                                isSearchable
+                                menuPortalTarget={document.body}
+                                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                            />
+                        </div>
+
+                        <div className="input-field1">
                             <label>Mode Name</label>
                             <Select
                                 className="blue-selectbooking"
@@ -227,19 +274,60 @@ function CustRateUpload() {
 
                         <div className="input-field1">
                             <label>Dox / Non Dox</label>
-                            <select
-                                value={form.Dox_Spx}
-                                onChange={(e) => setForm({ ...form, Dox_Spx: e.target.value })}
-                            >
-                                <option value="">Select</option>
-                                <option value="Dox">Dox</option>
-                                <option value="Non Dox">Non Dox</option>
-                            </select>
+                            <Select
+                                options={[
+                                    { value: "Dox", label: "Dox" },
+                                    { value: "Non Dox", label: "Non Dox" },
+                                    { value: "Rate Per Kg", label: "Rate Per Kg" }
+                                ]}
+                                value={form.Dox_Spx ? { value: form.Dox_Spx, label: form.Dox_Spx } : null}
+                                onChange={(selectedOption) =>
+                                    setForm({ ...form, Dox_Spx: selectedOption.value })
+                                }
+                                placeholder="Select Dox / Non Dox"
+                                isSearchable
+                                classNamePrefix="blue-selectbooking"
+                                className="blue-selectbooking"
+
+                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                styles={{
+                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                }}
+                            />
+
+                        </div>
+
+                        <div className="input-field1">
+                            <label htmlFor="">Rate Type</label>
+                            <Select
+                                options={[
+                                    {
+                                        value: "Rate Per Kg", label: "Rate Per Kg"
+                                    }, {
+                                        value: "Credit", label: "Credit"
+                                    }
+                                ]}
+                                value={
+                                    form.Rate_type ? { value: form.Rate_type, label: form.Rate_type } : null
+                                }
+                                onChange={(selectedOption) =>
+                                    setForm({ ...form, Rate_type: selectedOption?.value || "" })
+                                }
+                                placeholder="Select Rate Type"
+                                isSearchable
+                                classNamePrefix="blue-selectbooking"
+                                className="blue-selectbooking"
+
+                                menuPortalTarget={document.body} // ✅ Moves dropdown out of scroll area
+                                styles={{
+                                    menuPortal: base => ({ ...base, zIndex: 9999 }) // ✅ Keeps it above other UI
+                                }}
+                            />
                         </div>
 
                         <div className="input-field3">
                             <label>Origin Name</label>
-                           <Select
+                            <Select
                                 className="blue-selectbooking"
                                 classNamePrefix="blue-selectbooking"
                                 options={cityOptions}

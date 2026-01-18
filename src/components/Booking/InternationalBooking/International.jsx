@@ -44,7 +44,7 @@ function DailyBooking() {
         <div className="container">
 
           {/* ===================== NAVIGATION ===================== */}
-          <nav style={{ height: "38px" }}>
+          <nav style={{ }}>
             {visibleTabs.map((tab) => (
               <label
               style={{lineHeight:"1"}}
