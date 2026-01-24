@@ -20,10 +20,6 @@ function DailyBooking() {
 
   // ===================== TABS LIST WITH PERMISSIONS =====================
   const tabs = [
-
-    
-    { id: "CRate", label: "Customer Rate Upload", component: <CustRateUpload />, show: 1 },
-    { id: "CVRate", label: "Vendor Rate Upload", component: <VenRateUpload />, show: 1 },
     { id: "Manifest", label: "Activity Upload", component: <ActivityUpload />, show:1 },
    
   ];

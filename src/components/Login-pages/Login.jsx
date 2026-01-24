@@ -1,9 +1,8 @@
-import { Link } from "react-router-dom";
 import "./Login1.css";
 import { useState } from "react";
 import { IoLockOpen, IoLockClosed } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import bike from "../../Assets/Images/bike3.png"
+import bike from "../../Assets/Images/LOGO.png"
 import logo from "../../Assets/Images/LOGO.jfif"
 import Swal from "sweetalert2";
 import { getApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";

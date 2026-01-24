@@ -9,6 +9,7 @@ const ProductWiseFuel = React.lazy(() => import("./ProductWiseFuel"));
 const OdaMaster = React.lazy(() => import("../Customer Charges/OdaMaster"));
 const CustomerRate = React.lazy(() => import("./CustomerRate"));
 const CustomerVolumetric = React.lazy(() => import("./CustomerVolumetric"));
+const CustRateUpload = React.lazy(() => import("../../Booking/InternationalBooking/CustRateUpload"));
 
 function CustomerList() {
   // 🔹 Load permissions
@@ -19,6 +20,7 @@ function CustomerList() {
   const allTabs = [
     { id: "zone", label: "Customer Name", component: <CustomerName />, show: has("CustomerName") },
     { id: "state", label: "Customer Rate", component: <CustomerRate />, show: has("CustomerRate") },
+    { id: "CRate", label: "Customer Rate Upload", component: <CustRateUpload />, show: 1 },
     { id: "multiple", label: "Customer Charges", component: <ProductWiseFuel />, show: has("CustomerCharges") },
     { id: "shipper", label: "Customer ODA", component: <OdaMaster />, show: has("CustomerOda") },
     { id: "country", label: "Customer Volumetric", component: <CustomerVolumetric />, show: has("CustomerVolumetric") }

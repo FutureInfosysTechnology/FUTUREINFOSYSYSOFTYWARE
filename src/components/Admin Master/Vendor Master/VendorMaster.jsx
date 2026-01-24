@@ -7,6 +7,7 @@ const VendorName = React.lazy(() => import("./VendorName"));
 const VendorRate = React.lazy(() => import("./VendorRate"));
 const VendorFuel = React.lazy(() => import("./VendorFuel"));
 const VendorGst = React.lazy(() => import("./VendorGst"));
+const VenRateUpload = React.lazy(() => import("../../Booking/InternationalBooking/VenRateUpload"));
 
 function VendorMaster() {
   // Load permissions
@@ -27,6 +28,7 @@ function VendorMaster() {
       component: <VendorRate />,
       show: has("VendorRate"),
     },
+    { id: "CVRate", label: "Vendor Rate Upload", component: <VenRateUpload />, show: 1 },
     {
       id: "state",
       label: "Vendor Charges",
