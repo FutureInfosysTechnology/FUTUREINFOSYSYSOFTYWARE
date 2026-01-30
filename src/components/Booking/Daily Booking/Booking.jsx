@@ -2255,10 +2255,19 @@ const TARGET_SIZE = 100 * 1024;       // compressed target
         setFormData(prev => ({
             ...prev,
             Customer_Code: selectedRateData.Customer_Code,
-            Vendor_Code:selectedRateData.Vendor_Code
+            Vendor_Code:selectedRateData.Vendor_Code,
+            Mode_Code:selectedRateData.Mode_Code,
+            DestinationCode:selectedRateData.City_Code,
+            RateType:selectedRateData.Method,
+            DoxSpx:selectedRateData.Shipment_Type,
+            Rate:selectedRateData.Rate,
+            RatePerkg:selectedRateData.Rate_PerKg?selectedRateData.Rate_PerKg:0,
+            ActualWt:selectedRateData.Weight
+
+
         }));
 
-        setSelectedRateData({});
+        setSelectedRateData(null);
 
     }, [selectedRateData]);
 

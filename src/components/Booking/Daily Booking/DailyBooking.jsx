@@ -22,7 +22,7 @@ function DailyBooking() {
 
   // 🔥 NEW: shared docket state
   const [selectedDocket, setSelectedDocket] = useState(null);
-  const [selectedRateData, setSelectedRateData] = useState({});
+  const [selectedRateData, setSelectedRateData] = useState(null);
 
   const tabs = [
     {
