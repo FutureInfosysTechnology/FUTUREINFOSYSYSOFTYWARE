@@ -362,7 +362,7 @@ function VendorFuel() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteVendorCharges?VendorCode=${Vendor_Code}`);
+                await postApi(`/Master/DeleteVendorCharges?VendorCode=${Vendor_Code}`);
                 setGetVendorCharges(getVendorCharges.filter((vendor) => vendor.VendorCode !== Vendor_Code));
                 Swal.fire('Deleted!', 'Vendor Charges has been deleted.', 'success');
                 await fetchVendorChargesData();

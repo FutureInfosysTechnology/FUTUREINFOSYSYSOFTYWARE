@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
 import { useLocation, useNavigate } from "react-router-dom"
-import { getApi, deleteApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi, deleteApi,postApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
@@ -135,7 +135,7 @@ function CreditPrint() {
         if (!confirm.isConfirmed) return;
 
         try {
-            const response = await deleteApi(`/Smart/DeleteCreditNote?CreditNote_ID=${CreditNote_ID}`);
+            const response = await postApi(`/Smart/DeleteCreditNote?CreditNote_ID=${CreditNote_ID}`);
             Swal.fire("Deleted!", response.message || "Credit Note Deleted Successfully", "success");
             setCreditNotes(creditNotes.filter(d => d.CreditNote_ID !== CreditNote_ID));
         } catch (err) {

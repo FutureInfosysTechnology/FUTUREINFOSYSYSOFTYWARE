@@ -57,7 +57,7 @@ const FlightEntry = () => {
     };
 
     try {
-      const response = await putApi('/Master/UpdateFlightMaster', body);
+      const response = await postApi('/Master/UpdateFlightMaster', body);
 
       if (response.status === 1) {
         Swal.fire("Updated!", response.message, "success");
@@ -125,7 +125,7 @@ const FlightEntry = () => {
 
     if (confirmDelete.isConfirmed) {
       try {
-        await deleteApi(`/Master/DeleteFlightMaster?Flight_ID=${flightId}`);
+        await postApi(`/Master/DeleteFlightMaster?Flight_ID=${flightId}`);
 
         Swal.fire("Deleted!", "Flight removed", "success");
         fetchData();

@@ -253,7 +253,7 @@ function PinCode() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeletePincode?Pincode=${Pincode}`);
+                await postApi(`/Master/DeletePincode?Pincode=${Pincode}`);
                 setGetPinCode(getPinCode.filter((pin) => pin.Pincode !== Pincode));
                 Swal.fire('Deleted!', 'Pin Code has been deleted.', 'success');
                 await fetchPinCodeData();

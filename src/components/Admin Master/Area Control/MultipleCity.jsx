@@ -140,7 +140,7 @@ function MultipleCity() {
         }
 
         try {
-            const response = await putApi('/Master/UpdateInternatioanlzone', requestBody);
+            const response = await postApi('/Master/UpdateInternatioanlzone', requestBody);
             if (response.status === 1) {
                 setAddCity({
                     ID: '',
@@ -220,7 +220,7 @@ function MultipleCity() {
             if (result.isConfirmed) {
 
                 try {
-                    const response = await deleteApi(
+                    const response = await postApi(
                         `/Master/DeleteInternatioanlzone?ID=${ID}`
                     );
 

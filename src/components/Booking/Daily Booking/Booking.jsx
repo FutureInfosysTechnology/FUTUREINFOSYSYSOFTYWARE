@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Modal from 'react-modal';
 // import { getApi, postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 import { getApi, postApi, putApi, deleteApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
@@ -17,9 +17,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FcDownload } from "react-icons/fc";
 
 
-function Booking({ selectedDocket, setSelectedDocket }) {
+function Booking({ selectedDocket, setSelectedDocket ,selectedRateData,setSelectedRateData}) {
     const navigate = useNavigate();
     const location = useLocation();
+    const kyc1Ref = useRef(null);
+    const kyc2Ref = useRef(null);
+    const [kyc1, setKyc1] = useState(null);
+    const [kyc2, setKyc2] = useState(null);
     const [inputValue, setInputValue] = useState("");
     const [inputValue1, setInputValue1] = useState("");
     const [inputValue3, setInputValue3] = useState("");
@@ -27,16 +31,29 @@ function Booking({ selectedDocket, setSelectedDocket }) {
     const [skipGstCalc, setSkipGstCalc] = useState(false);
     const [UseInput, setUseInput] = useState(0);
 
-    const downloadLogo = (url, filename) => {
-        fetch(url)
-            .then(res => res.blob())
-            .then(blob => {
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = filename;
-                a.click();
-            });
-    };
+ const downloadLogo = async (imageUrl, filename) => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Download failed", err);
+    alert("Image download failed");
+  }
+};
+
+
+
 
 
 
@@ -59,58 +76,92 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         return `${year}-${month}-${day}`;
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const img = new Image();
-                img.src = reader.result;
-                img.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
+    // Convert JPG/JPEG/PNG → PNG (~8KB)
+    const MAX_ORIGINAL_SIZE = 100 * 1024; // 100 KB
+const TARGET_SIZE = 100 * 1024;       // compressed target
 
-                    // reduce size (max 300px wide for example)
-                    const scale = 300 / img.width;
-                    canvas.width = 300;
-                    canvas.height = img.height * scale;
 
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const convertToPng = (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
 
-                    // convert back to base64 (smaller)
-                    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-                    setFormData({ ...formData, uploadkyc1: compressedBase64 });
-                };
-            };
-            reader.readAsDataURL(file);
-        }
+    reader.onload = () => {
+      img.src = reader.result;
     };
-    const handleFileChange1 = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const img = new Image();
-                img.src = reader.result;
-                img.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
 
-                    // reduce size (max 300px wide for example)
-                    const scale = 300 / img.width;
-                    canvas.width = 300;
-                    canvas.height = img.height * scale;
+    reader.onerror = reject;
 
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
-                    // convert back to base64 (smaller)
-                    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-                    setFormData({ ...formData, uploadkyc2: compressedBase64 });
-                };
-            };
-            reader.readAsDataURL(file);
-        }
+      let width = img.width;
+      let height = img.height;
+
+      const compress = () => {
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject("Conversion failed");
+
+            if (blob.size <= TARGET_SIZE || width < 120) {
+              resolve(
+                new File(
+                  [blob],
+                  file.name.replace(/\.\w+$/, ".png"),
+                  { type: "image/png" }
+                )
+              );
+            } else {
+              width *= 0.75;
+              height *= 0.75;
+              compress();
+            }
+          },
+          "image/png"
+        );
+      };
+
+      compress();
     };
+
+    reader.readAsDataURL(file);
+  });
+};
+
+
+    const handleFileChange = async (e, setFile) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // ✅ Allow only JPG / PNG
+  const allowedTypes = ["image/jpeg", "image/png"];
+  if (!allowedTypes.includes(file.type)) {
+    alert("Only JPG, JPEG, PNG images allowed");
+    return;
+  }
+
+  // ✅ If original file already under 100KB → KEEP IT
+  if (file.size <= MAX_ORIGINAL_SIZE) {
+    setFile(file); // 🔥 original preserved
+    return;
+  }
+
+  // 🔁 Else compress & convert
+  try {
+    const png = await convertToPng(file);
+    setFile(png);
+  } catch (error) {
+    alert("Image compression failed");
+  }
+};
+
+
+
 
     const [fecthed, setFecthed] = useState("");
     const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -246,7 +297,8 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         DestinationCode: "",
         DocketChrgs: 0,
         DocketNo: "",
-        DoxSpx: "Box",
+        DoxSpx: "Dox",
+        RateType: "Credit",
         DispatchDate: getTodayDate(),
         EwayBill: "",
         ExptDateOfDelvDt: "",
@@ -263,8 +315,6 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         InvoiceNo: "",
         SkycType: "",
         SkycNo: "",
-        uploadkyc1: "",
-        uploadkyc2: "",
         Location_Code: "",
         Mode_Code: "",
         ODAChrgs: 0,
@@ -366,6 +416,9 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         TotalAmount: 0
     });
 
+    useEffect(() => {
+        console.log("KYC1 changed:", kyc1);
+    }, [kyc1]);
 
     const [gstData, setGstData] = useState({
         CGSTPer: 0,
@@ -494,6 +547,34 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
                 setFecthed(docket);
                 const data = res.OrderEntry;
+
+               try {
+  const res = await getApi(
+    `/Booking/DocketWiseKycGet?Ticket_No=${docketNo}`
+  );
+
+  if (res.Status === 1 && Array.isArray(res.Data)) {
+
+    // reset first
+    setKyc1(null);
+    setKyc2(null);
+
+    res.Data.forEach(item => {
+      if (item.fileName.toUpperCase().startsWith("KYC1")) {
+        setKyc1(`http://localhost:3200${item.url}`);
+      }
+
+      if (item.fileName.toUpperCase().startsWith("KYC2")) {
+        setKyc2(`http://localhost:3200${item.url}`);
+      }
+    });
+  }
+
+} catch (error) {
+  console.error(error);
+  alert("Fetched KYC failed");
+}
+
 
 
                 setFormData(
@@ -801,7 +882,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         };
 
         try {
-            const response = await putApi(
+            const response = await postApi(
                 '/Master/UpdateOrderEntrySetup',
                 requestPayload
             );
@@ -2166,8 +2247,20 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
     }, [PinvoiceData.Qty, PinvoiceData.UnitRate]);
 
+        useEffect(() => {
+            console.log("rate",selectedRateData);
+        if (!selectedRateData) return;
 
+        
+        setFormData(prev => ({
+            ...prev,
+            Customer_Code: selectedRateData.Customer_Code,
+            Vendor_Code:selectedRateData.Vendor_Code
+        }));
 
+        setSelectedRateData({});
+
+    }, [selectedRateData]);
 
     useEffect(() => {
         if (!selectedDocket) return;
@@ -2236,6 +2329,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             DocketChrgs: 0,
             DocketNo: "",
             DoxSpx: "Dox",
+            RateType: "Credit",
             DispatchDate: getTodayDate(),
             EwayBill: "",
             ExptDateOfDelvDt: "",
@@ -2252,8 +2346,6 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             InvoiceNo: "",
             SkycType: "",
             SkycNo: "",
-            uploadkyc1: "",
-            uploadkyc2: "",
             Location_Code: "",
             Mode_Code: "",
             ODAChrgs: 0,
@@ -2295,6 +2387,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         setInputValue1('');
         setInputValue2('');
         setInputValue3('');
+
 
         setSelectedOriginPinCode('');
         setSelectedDestPinCode('');
@@ -2425,24 +2518,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
 
 
-        try {
 
-
-            const formData = new FormData();
-            formData.append("KYC_image_1", formData.uploadkyc1);
-            formData.append("KYC_image_2", formData.uploadkyc2);
-
-
-            const res = await postApi(
-                "https://speedlogisticsindia.com/Tracking/K",
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-
-            alert("Uploaded Successfully");
-        } catch (err) {
-            alert(err.message);
-        }
 
         // Step 3: Continue if no errors
         const requestBody = {
@@ -2580,6 +2656,32 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                 console.log(response);
                 const generatedDocketNo = formData.DocketNo || response?.DocketNo;
 
+
+                const FORMDATA = new FormData();
+                FORMDATA.append("Ticket_No", generatedDocketNo);
+                if (kyc1) FORMDATA.append("KYC1", kyc1);
+                if (kyc2) FORMDATA.append("KYC2", kyc2);
+
+                try {
+                    const res = await postApi(
+                        "/Booking/DocketWiseKycUpload",
+                        FORMDATA,
+                        {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  }
+                    );
+                    setKyc1(null);
+                    setKyc2(null);
+
+                    if (kyc1Ref.current) kyc1Ref.current.value = "";
+                    if (kyc2Ref.current) kyc2Ref.current.value = "";
+
+                } catch {
+                    alert("Upload KYC failed ");
+                }
+
                 // Show confirmation popup
                 const result = await Swal.fire({
                     title: `Docket Saved Successfully!: ${generatedDocketNo}`,
@@ -2664,13 +2766,6 @@ function Booking({ selectedDocket, setSelectedDocket }) {
         let Shipper_Code = !isNumberString(formData.Shipper_Name) ? "" : formData.Shipper_Name;
         let Shipper_Name = !isNumberString(formData.Shipper_Name) ? formData.Shipper_Name : allShipperOption.find(x => x.value === formData.Shipper_Name)?.label;
 
-        const KYC_JSON =
-        {
-            KYCNo: formData.SkycNo,
-            KYCtype: formData.SkycType,
-            KYC_image_1: formData.uploadkyc1,
-            KYC_image_2: formData.uploadkyc2,
-        }
         const requestBody = {
 
             // BASIC
@@ -2777,7 +2872,6 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             // KYC / FLIGHT / TRAIN
             KYC_Type: formData.SkycType,
             KYC_No: formData.SkycNo,
-            KYC_JSON: KYC_JSON,
             Flight_Code: formData.Flight_Code,
             Train_Code: formData.Train_Code,
 
@@ -2800,7 +2894,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
             Remark3: remarkData.noteCont,
         };
         try {
-            const res = await putApi(`/Booking/OrderEntryUpdate`, requestBody);
+            const res = await postApi(`/Booking/OrderEntryUpdate`, requestBody);
             if (res.Success) {
                 Swal.fire('Updated!', res.message || 'Booking updated.', 'success');
                 // ✅ Always reset after save (whether user confirms or not)
@@ -2851,7 +2945,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
 
         if (confirm.isConfirmed) {
             try {
-                const res = await deleteApi(`/Booking/deleteOrderByDocket?docketNo=${docketNo}`);
+                const res = await postApi(`/Booking/deleteOrderByDocket?docketNo=${docketNo}`);
                 if (res.Success) {
                     Swal.fire('Deleted!', res.message, 'success');
                     resetAllForms();
@@ -3308,10 +3402,8 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                         <label htmlFor="upload-kyc">Upload KYC</label>
                                         <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                                             <input
-                                                type="file"
                                                 id="upload-kyc"
                                                 className="form-control custom-input"
-                                                accept="image/*"
                                                 style={{
                                                     paddingTop: "8px",
                                                     width: "85%",
@@ -3319,8 +3411,10 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                     borderRadius: "4px 0 0 4px",
 
                                                 }}
-
-                                                onChange={(e) => setFormData({ ...formData, uploadkyc1: e.target.files[0] })}
+                                                ref={kyc1Ref}
+                                                type="file"
+                                                accept=".jpg,.jpeg,.png"
+                                                onChange={(e) => handleFileChange(e, setKyc1)}
                                             />
 
                                             <div style={{
@@ -3333,7 +3427,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                 cursor: "pointer"
                                             }}
                                                 onClick={() =>
-                                                    downloadLogo(formData.uploadkyc1, "KYC_1.jpg")
+                                                    downloadLogo(kyc1, "KYC_1.jpg")
 
                                                 }>
 
@@ -3354,10 +3448,9 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                         <label htmlFor="upload-kyc">Upload KYC</label>
                                         <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                                             <input
-                                                type="file"
+
                                                 id="upload-kyc"
                                                 className="form-control custom-input"
-                                                accept="image/*"
                                                 style={{
                                                     paddingTop: "8px",
                                                     width: "85%",
@@ -3365,7 +3458,10 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                     borderRadius: "4px 0 0 4px",
 
                                                 }}
-                                                onChange={(e) => setFormData({ ...formData, uploadkyc2: e.target.files[0] })}
+                                                ref={kyc2Ref}
+                                                type="file"
+                                                accept=".jpg,.jpeg,.png"
+                                                onChange={(e) => handleFileChange(e, setKyc2)}
                                             />
 
                                             <div style={{
@@ -3378,7 +3474,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                                 cursor: "pointer"
                                             }}
                                                 onClick={() =>
-                                                    downloadLogo(formData.uploadkyc2, "KYC_2.jpg")
+                                                    downloadLogo(kyc2, "KYC_2.jpg")
                                                 }>
 
 
@@ -3921,7 +4017,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                             <input
                                                 type="tel"
                                                 placeholder="Mobile No"
-                                                maxLength={10}
+                                                maxLength={15}
                                                 value={formData.ConsigneeMob}
                                                 onChange={(e) => setFormData({ ...formData, ConsigneeMob: e.target.value })}
                                             />
@@ -4088,16 +4184,26 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                     }}
                                 >
                                     <div className="fields2">
-                                        {isChecked2.Package_Type && <div className="input-field" style={{ whiteSpace: "nowrap" }}>
+                                        {isChecked2.Package_Type && <div className="input-field1" style={{ whiteSpace: "nowrap" }}>
                                             <label>Package Type</label>
                                             <select name="" id="" value={formData.DoxSpx}
                                                 onChange={(e) => setFormData({ ...formData, DoxSpx: e.target.value })}>
                                                 <option value="Dox">Dox</option>
                                                 <option value="Non Dox">Non Dox</option>
+                                                <option value="Rate Per Kg">Rate Per Kg</option>
                                             </select>
                                         </div>}
 
-                                        <div className="input-field3">
+                                        <div className="input-field1" style={{ whiteSpace: "nowrap" }}>
+                                            <label>Rate Type</label>
+                                            <select name="" id="" value={formData.DoxSpx}
+                                                onChange={(e) => setFormData({ ...formData, DoxSpx: e.target.value })}>
+                                                <option value="Credit">Credit</option>
+                                                <option value="Rate Per Kg">Rate Per Kg</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="input-field1">
                                             <label>Qty</label>
                                             <input
                                                 type="tel"
@@ -4107,7 +4213,7 @@ function Booking({ selectedDocket, setSelectedDocket }) {
                                             />
                                         </div>
 
-                                        <div className="input-field3">
+                                        <div className="input-field1">
                                             <label>Wt.Fixed</label>
                                             <select
                                                 value={formData.RateType}

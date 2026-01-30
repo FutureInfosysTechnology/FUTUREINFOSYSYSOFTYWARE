@@ -179,7 +179,8 @@ function CustomerRate() {
             let Vendor_Name = formdata.Vendor_Code ? getVendor.find(v => v.Vendor_Code == formdata.Vendor_Code)?.Vendor_Name : "";
             try {
                 const apiResponse = await getApi(`/Master/GetAllInternatioanlzone?pageNumber=1&pageSize=2000&Vendor_Name=${Vendor_Name}`);
-                setIsPostal(apiResponse.data[0]?.PostalCode)
+                const temp=apiResponse.data[0]?.PostalCode=="NULL" || apiResponse.data[0]?.PostalCode=="" ? null:apiResponse.data[0]?.PostalCode
+                setIsPostal(temp)
                 const uniqueZones = Array.from(
                     new Map(
                         apiResponse.data.map(item => [
@@ -499,7 +500,7 @@ function CustomerRate() {
         };
 
         try {
-            const response = await putApi('Master/updateRateMasterMultiple', requestBody, 'PUT');
+            const response = await postApi('Master/updateRateMasterMultiple', requestBody, 'PUT');
 
             if (response.status === 1) {
                 setFormdata({
@@ -553,7 +554,7 @@ function CustomerRate() {
         });
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteRateMaster?clubNo=${Club_No}`);
+                await postApi(`/Master/DeleteRateMaster?clubNo=${Club_No}`);
                 Swal.fire('Deleted!', 'Customer Rate has been deleted.', 'success');
                 setSubmittedData([]);
                 await fetchCustomerRateData();
@@ -602,7 +603,6 @@ function CustomerRate() {
 
     const handlePreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
     const handleNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-
 
 
     return (
@@ -691,6 +691,7 @@ function CustomerRate() {
                                     <th scope="col">Club.No</th>
                                     <th scope="col">Customer_Code</th>
                                     <th scope="col">Customer_Name</th>
+                                    <th scope="col">Vendor_Name</th>
                                     <th scope="col">Mode_Name</th>
                                     <th scope="col">Zone_Name</th>
                                     <th scope="col">Origin_Name</th>
@@ -705,7 +706,7 @@ function CustomerRate() {
                                 </tr>
                             </thead>
                             <tbody className='table-body'>
-                                {getCustRate.map((rate, index) => (
+                                {getCustRate?.map((rate, index) => (
                                     <tr key={index} style={{ fontSize: "12px", position: "relative" }}>
                                         <td>
                                             <PiDotsThreeOutlineVerticalFill
@@ -756,6 +757,7 @@ function CustomerRate() {
                                         <td>{rate?.Club_No}</td>
                                         <td>{rate?.Client_Code}</td>
                                         <td>{rate?.Customer_Name}</td>
+                                        <td>{rate?.Vendor_Name}</td>
                                         <td>{rate?.Mode_Name}</td>
                                         <td>{rate?.Zone_Name}</td>
                                         <td>{rate?.Origin_Name}</td>

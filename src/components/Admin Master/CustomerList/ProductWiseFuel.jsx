@@ -320,7 +320,7 @@ function ProductWiseFuel()
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteCustomerCharges?Customer_Code=${Customer_Code}`);
+                await postApi(`/Master/DeleteCustomerCharges?Customer_Code=${Customer_Code}`);
                 setGetCust(getCust.filter((charges) => charges.Customer_Code !== Customer_Code));
                 Swal.fire('Deleted!', 'Charges has been deleted.', 'success');
                 await fetchCustChargesData();

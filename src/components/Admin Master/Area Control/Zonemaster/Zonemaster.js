@@ -105,7 +105,7 @@ const ZoneMaster = () => {
 
     if (confirmDelete.isConfirmed) {
       try {
-        await deleteApi(`/Master/DeleteZone?ZoneCode=${Zone_Code}`);
+        await postApi(`/Master/DeleteZone?ZoneCode=${Zone_Code}`);
         setZones(zones.filter((zone) => zone.ZoneCode !== Zone_Code));
         Swal.fire('Deleted!', 'The zone has been deleted.', 'success');
         await fetchData();

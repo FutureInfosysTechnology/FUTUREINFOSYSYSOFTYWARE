@@ -105,7 +105,7 @@ const Countrylist = () => {
       });
 
       if (confirmation.isConfirmed) {
-        await deleteApi(`/Master/deleteCountry?CountryCode=${Country_Code}`);
+        await postApi(`/Master/deleteCountry?CountryCode=${Country_Code}`);
         setCountry(country.filter((country) => country.CountryCode !== Country_Code));
         Swal.fire('Deleted!', 'Country has been deleted.', 'success');
         await fetchData();

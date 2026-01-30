@@ -168,7 +168,7 @@ function BranchAdmin() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteOperationManagement?ID=${ID}`);
+                await postApi(`/Master/DeleteOperationManagement?ID=${ID}`);
                 setGetData(getData.filter((data) => data.ID !== ID));
                 Swal.fire('Deleted!', 'The User has been deleted.', 'success');
                 setFormData({
@@ -624,7 +624,7 @@ function BranchAdmin() {
 
 
         try {
-            const response = await putApi('/Master/UpdateOperationManagement', requestBody, 'PUT');
+            const response = await postApi('/Master/UpdateOperationManagement', requestBody, 'PUT');
             if (response.status === 1) {
                 ResetAll(e);
                 Swal.fire('Saved!', response.message || 'Your changes have been Updated.', 'success');

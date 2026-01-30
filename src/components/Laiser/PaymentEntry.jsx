@@ -9,7 +9,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
-import { getApi, putApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi, putApi,postApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
 function PaymentEntry() {
     const extrectArray = (response) => {
         if (Array.isArray(response?.data)) return response.data;
@@ -235,7 +235,7 @@ function PaymentEntry() {
                 Remark: addPayment.Remark || null
             };
 
-            const response = await putApi(
+            const response = await postApi(
                 "/Updatebillwise",
                 payload
             );

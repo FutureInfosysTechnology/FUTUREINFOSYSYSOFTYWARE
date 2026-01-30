@@ -176,7 +176,7 @@ function BranchStock() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteBranchstockissue?CityCode=${Branch_Code}`);
+                await postApi(`/Master/DeleteBranchstockissue?CityCode=${Branch_Code}`);
                 setGetBranchStock(getBranchStock.filter((branch) => branch.CityCode !== Branch_Code));
                 Swal.fire('Deleted!', 'Branch Stock has been deleted.', 'success');
                 await fetchBranchStockData();

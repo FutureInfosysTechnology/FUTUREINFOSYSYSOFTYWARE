@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
-import { getApi, putApi } from "../Area Control/Zonemaster/ServicesApi";
+import { getApi, putApi,postApi } from "../Area Control/Zonemaster/ServicesApi";
 
 
 
@@ -43,7 +43,7 @@ function UpdateCustomerRate() {
             Customer_Code: addCust.custCode,
         }
         try {
-            const response = await putApi(`Master/updateAllRateCharges`, payload);
+            const response = await postApi(`Master/updateAllRateCharges`, payload);
             if (response.data.length > 0) {
                 console.log(response);
                 console.log(response.data);

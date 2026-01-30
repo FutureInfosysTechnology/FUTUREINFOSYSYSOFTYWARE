@@ -264,7 +264,7 @@ function ReceiverName() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteReciever?RecieverCode=${Receiver_Code}`);
+                await postApi(`/Master/DeleteReciever?RecieverCode=${Receiver_Code}`);
                 setGetReceiver(getReceiver.filter((receiver) => receiver.RecieverCode !== Receiver_Code));
                 Swal.fire('Deleted!', 'Receiver Name has been deleted.', 'success');
                 await fetchReceiverData();

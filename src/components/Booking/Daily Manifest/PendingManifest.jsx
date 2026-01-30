@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import "../../Tabs/tabs.css";
-import { getApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { refeshPend } from "../../../App";

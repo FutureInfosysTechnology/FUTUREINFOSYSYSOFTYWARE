@@ -239,7 +239,7 @@ function CustomerVolumetric() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteCustvolumetric?Customer_Code=${Customer_Code}`);
+                await postApi(`/Master/DeleteCustvolumetric?Customer_Code=${Customer_Code}`);
                 setGetVolumetric(getVolumetric.filter((vol) => vol.Customer_Code !== Customer_Code));
                 Swal.fire('Deleted!', 'Volumetric has been deleted.', 'success');
                 await fetchCustVolumetricData();

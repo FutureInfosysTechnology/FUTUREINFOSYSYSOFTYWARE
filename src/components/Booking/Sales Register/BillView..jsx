@@ -352,7 +352,7 @@ function BillView() {
         });
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Smart/ResetInvoiceBill?BillNo=${BillNo}`);
+                await postApi(`/Smart/ResetInvoiceBill?BillNo=${BillNo}`);
                 setInvoice(invoice.filter(inv => inv.BillNo !== BillNo));
                 Swal.fire('Deleted!', 'this invoie has been deleted.', 'success');
             } catch (error) {
@@ -468,7 +468,7 @@ function BillView() {
                     ? "/Smart/AddMissingDocketToBill"
                     : "/Smart/RemoveDocketFromBill";
 
-            const response = await putApi(
+            const response = await postApi(
                 `${endpoint}?DocketNo=${docketNo}&BillNo=${billNo}`
             );
 

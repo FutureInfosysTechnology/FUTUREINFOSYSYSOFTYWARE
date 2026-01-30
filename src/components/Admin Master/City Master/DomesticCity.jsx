@@ -229,7 +229,7 @@ function DomesticCity() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteCity?CityCode=${City_Code}`);
+                await postApi(`/Master/DeleteCity?CityCode=${City_Code}`);
                 setGetCIty(getCIty.filter((city) => city.CityCode !== City_Code));
                 Swal.fire('Deleted!', 'City has been deleted.', 'success');
                 await fetchCityData();

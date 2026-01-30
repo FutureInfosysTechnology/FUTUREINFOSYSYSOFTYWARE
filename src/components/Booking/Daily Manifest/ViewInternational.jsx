@@ -1,5 +1,5 @@
     import React, { useState, useEffect } from "react";
-    import { getApi, deleteApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+    import { getApi, deleteApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
     import Modal from 'react-modal';
     import Swal from "sweetalert2";
     import DatePicker from 'react-datepicker';
@@ -122,12 +122,12 @@
                 }
 
                 if (manifestNo && !docketNo) {
-                    await deleteApi(
+                    await postApi(
                         `/Manifest/deleteManifest?inputName=deleteByManifestNo&sessionLocationCode=MUM&manifestNo=${manifestNo}`
                     );
                     Swal.fire({ icon: "success", text: "Manifest deleted!" });
                 } else if (manifestNo && docketNo) {
-                    await deleteApi(
+                    await postApi(
                         `/Manifest/deleteManifest?inputName=deleteByDocket&sessionLocationCode=MUM&manifestNo=${manifestNo}&DocketNo=${docketNo}`
                     );
                     Swal.fire({ icon: "success", text: "Docket deleted from Manifest!" });

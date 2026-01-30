@@ -203,7 +203,7 @@ function EmployeeStock() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteEmployeestockissue?Employeecode=${Employee_Code}`);
+                await postApi(`/Master/DeleteEmployeestockissue?Employeecode=${Employee_Code}`);
                 setGetEmpStock(getEmpStock.filter((emp) => emp.Employeecode !== Employee_Code));
                 Swal.fire('Deleted!', 'Employee Stock has been deleted.', 'success');
                 await fetchEmployeeStockData();

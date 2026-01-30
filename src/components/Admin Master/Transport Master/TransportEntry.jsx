@@ -148,7 +148,7 @@ function TransportEntry() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeletetransportDetail?transportCode=${Transport_Code}`);
+                await postApi(`/Master/DeletetransportDetail?transportCode=${Transport_Code}`);
                 setGetTransport(getTransport.filter((transport) => transport.transportCode !== Transport_Code));
                 Swal.fire('Deleted!', 'The Transport has been deleted.', 'success');
                 await fetchData();

@@ -142,7 +142,7 @@ const Statemast = () => {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/deleteState?StateCode=${State_Code}`);
+                await postApi(`/Master/deleteState?StateCode=${State_Code}`);
                 setState(state.filter((state) => state.StateCode !== State_Code));
                 Swal.fire('Deleted!', 'State has been deleted.', 'success');
                 await fetchData();

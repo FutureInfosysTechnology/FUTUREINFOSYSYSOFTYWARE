@@ -252,7 +252,7 @@ function VendorName() {
                 cancelButtonText: 'Cancel'
             });
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/deleteVendor?VendorCode=${Customer_Code}`);
+                await postApi(`/Master/deleteVendor?VendorCode=${Customer_Code}`);
                 setGetVendor(getVendor.filter((vendor) => vendor.VendorCode !== Customer_Code));
                 Swal.fire('Deleted!', 'Vendor has been deleted.', 'success');
                 await fetchVendorData();

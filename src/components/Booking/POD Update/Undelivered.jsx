@@ -5,7 +5,7 @@ import 'react-toggle/style.css';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
-import { getApi, putApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi, putApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 
 function Undelivered() {
     const today = new Date();
@@ -98,7 +98,7 @@ function Undelivered() {
         };
 
         try {
-            const res = await putApi("DocketBooking/Deliveryupdate", payload);
+            const res = await postApi("DocketBooking/Deliveryupdate", payload);
 
             if (res.status === 1) {
                 Swal.fire("Success", res.message, "success");

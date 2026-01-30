@@ -6,12 +6,12 @@ import Navavtar from "./Navavtar";
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { getApi } from "../../components/Admin Master/Area Control/Zonemaster/ServicesApi"; // ✅ ADD
-import { useDashboard } from "./DashboardContext";
 
 function Nav() {
 
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const Customer_Code=JSON.parse(localStorage.getItem("Login"))?.Customer_Code;
 
   const [formData, setFormData] = useState({
     fromdt: firstDayOfMonth,
@@ -26,10 +26,10 @@ function Nav() {
   const loadAllDashboardData = async () => {
   try {
     const results = await Promise.allSettled([
-      getApi(`/Master/DashboardBKSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
-      getApi(`/Master/DashboardManifestSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
-      getApi(`/Master/DashboardInsconSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`),
-      getApi(`/Master/DashboardRunsheetSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}`)
+      getApi(`/Master/DashboardBKSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}&Customer_Code=${Customer_Code}`),
+      getApi(`/Master/DashboardManifestSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}&Customer_Code=${Customer_Code}`),
+      getApi(`/Master/DashboardInsconSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}&Customer_Code=${Customer_Code}`),
+      getApi(`/Master/DashboardRunsheetSummary?Location_Code=${formData.BranchName}&FromDate=${formData.fromdt}&ToDate=${formData.todt}&Customer_Code=${Customer_Code}`)
     ]);
 
     const [bk, manifest, inscon, runsheet] = results;

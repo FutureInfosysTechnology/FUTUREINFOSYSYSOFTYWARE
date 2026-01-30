@@ -182,7 +182,7 @@ function DriverEntry() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteDriverDetail?DriverCode=${Driver_Code}`);
+                await postApi(`/Master/DeleteDriverDetail?DriverCode=${Driver_Code}`);
                 setGetDriver(getDriver.filter((driver) => driver.DriverCode !== Driver_Code));
                 Swal.fire('Deleted!', 'The Driver has been deleted.', 'success');
                 await fetchData();

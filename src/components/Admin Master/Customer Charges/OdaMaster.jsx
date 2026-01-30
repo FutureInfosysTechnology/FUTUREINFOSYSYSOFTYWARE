@@ -229,7 +229,7 @@ function OdaMaster() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteODAData?clubNo=${Club_No}`);
+                await postApi(`/Master/DeleteODAData?clubNo=${Club_No}`);
                 Swal.fire('Deleted!', 'The zone has been deleted.', 'success');
                 await fetchODAData();
             } catch (error) {

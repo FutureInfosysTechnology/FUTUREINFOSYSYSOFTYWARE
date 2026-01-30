@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
-import { putApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { putApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 
 const ExcelImport = () => {
   const [excelData, setExcelData] = useState([]);
@@ -108,7 +108,7 @@ const headers = ['DocketNo', 'DelvDt', 'DelvTime', 'Origin_Name', 'Destination_N
       if (chunk.length === 0) continue;
 
       try {
-        const response = await putApi('/DocketBooking/StatusEntryBulk', { excelData: chunk });
+        const response = await postApi('/DocketBooking/StatusEntryBulk', { excelData: chunk });
 
         if (response.errorFileUrl) errorFile = response.errorFileUrl;
 

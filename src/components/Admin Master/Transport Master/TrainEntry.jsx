@@ -77,7 +77,7 @@ const TrainEntry = () => {
             Train_No: trainData.trainNo,
         };
         try {
-            const response = await putApi('/Master/UpdateTrainMaster', body);
+            const response = await postApi('/Master/UpdateTrainMaster', body);
             if (response.status === 1) {
                 Swal.fire("Updated!", response.message, "success");
                 setTrainData({ trainId: '', trainCode: '', trainName: '', trainNo: '' });
@@ -103,7 +103,7 @@ const TrainEntry = () => {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteTrainMaster?Train_ID=${trainId}`);
+                await postApi(`/Master/DeleteTrainMaster?Train_ID=${trainId}`);
                 Swal.fire("Deleted!", "Train removed", "success");
                 fetchData();
             } catch (err) {

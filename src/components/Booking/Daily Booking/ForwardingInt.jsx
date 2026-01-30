@@ -56,7 +56,7 @@ function ForwardingInt() {
     };
 
     try {
-        const response = await putApi(
+        const response = await postApi(
             '/Booking/UpdateVendorAwbnoforTracking',
             requestBody,
         );

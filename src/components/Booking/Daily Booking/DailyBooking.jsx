@@ -22,6 +22,7 @@ function DailyBooking() {
 
   // 🔥 NEW: shared docket state
   const [selectedDocket, setSelectedDocket] = useState(null);
+  const [selectedRateData, setSelectedRateData] = useState({});
 
   const tabs = [
     {
@@ -31,6 +32,8 @@ function DailyBooking() {
         <Booking
           selectedDocket={selectedDocket}
           setSelectedDocket={setSelectedDocket}
+          selectedRateData={selectedRateData}
+          setSelectedRateData={setSelectedRateData}
         />
       ),
       show: has("DocketBooking"),
@@ -57,7 +60,11 @@ function DailyBooking() {
     {
       id: "rate",
       label: "Rate Calculator",
-      component: <RateCal />,
+      component: <RateCal 
+      switchToBooking={(row) => {
+            setSelectedRateData(row);
+            setActiveTab("vendor"); // 🔥 SWITCH TAB
+          }}/>,
       show: 1,
     },
     {

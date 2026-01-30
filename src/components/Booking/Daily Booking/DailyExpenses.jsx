@@ -143,7 +143,7 @@ function DailyExpenses() {
 
             if (!confirmDelete.isConfirmed) return;
 
-            const res = await deleteApi(`/DeleteCashToPayGP?ID=${id}`);
+            const res = await postApi(`/DeleteCashToPayGP?ID=${id}`);
 
             if (res.status === 1) {
                 Swal.fire("Deleted!", res.message, "success");

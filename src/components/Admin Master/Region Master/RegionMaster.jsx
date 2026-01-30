@@ -86,7 +86,7 @@ function RegionMaster() {
 
         try {
             // ✅ Use PUT to match backend route
-            const response = await putApi('/Master/updateActivityByCode', requestBody);
+            const response = await postApi('/Master/updateActivityByCode', requestBody);
 
             if (response.status === 1) {
                 // Update activity list in state
@@ -177,7 +177,7 @@ function RegionMaster() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/deleteActivityByCode?Activity_Code=${Activity_Code}`);
+                await postApi(`/Master/deleteActivityByCode?Activity_Code=${Activity_Code}`);
                 setGetStatus(getStatus.filter(f => f.Activity_Code !== Activity_Code));
                 Swal.fire('Deleted!', 'The activity has been deleted.', 'success');
                 await fetchActivityData(); // Refresh list after deletion

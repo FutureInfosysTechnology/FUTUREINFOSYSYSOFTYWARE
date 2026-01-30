@@ -9,7 +9,7 @@ import Select from 'react-select';
 import 'react-toggle/style.css';
 import Swal from "sweetalert2";
 import * as XLSX from 'xlsx';
-import { getApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi,postApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
 
 
 function PendingInvoice() {

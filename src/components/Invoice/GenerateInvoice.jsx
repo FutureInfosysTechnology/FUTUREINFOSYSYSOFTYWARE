@@ -5,7 +5,7 @@ import Select from 'react-select';
 import Toggle from 'react-toggle';
 import 'react-toggle/style.css';
 import Swal from "sweetalert2";
-import { getApi, putApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi, putApi,postApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
 function GenerateInvoice() {
     const extrectArray = (response) => {
         if (Array.isArray(response?.data)) return response.data;
@@ -149,7 +149,7 @@ function GenerateInvoice() {
                 Mode_Code: formData.mode || null,
             };
             console.log(payload);
-            const response = await putApi("/Smart/InvoiceGenerate",
+            const response = await postApi("/Smart/InvoiceGenerate",
                 payload
             );
             console.log(response);
@@ -179,7 +179,7 @@ function GenerateInvoice() {
                 Mode_Code: formData.mode || null,
             };
             console.log(payload);
-            const response = await putApi("/Smart/InvoiceGenerate",
+            const response = await postApi("/Smart/InvoiceGenerate",
                 payload
             );
             console.log(response);

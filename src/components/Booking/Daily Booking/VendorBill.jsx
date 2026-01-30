@@ -186,7 +186,7 @@ function VendorBill() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await deleteApi(`/deleteVendorBill?VendorID=${vendorId}`);
+                    const res = await postApi(`/deleteVendorBill?VendorID=${vendorId}`);
 
                     if (res.status === 1) {
                         // remove row from UI
@@ -287,7 +287,7 @@ function VendorBill() {
                 Mode_Code: formData.modeCode,
             };
 
-            const res = await putApi("/UpdateVendorBillMaster", payload);
+            const res = await postApi("/UpdateVendorBillMaster", payload);
 
             if (res.status === 1) {
                 Swal.fire("Success", "Vendor Bill Updated Successfully!", "success");

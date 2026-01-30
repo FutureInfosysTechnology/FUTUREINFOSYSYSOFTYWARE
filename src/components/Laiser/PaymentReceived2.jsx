@@ -8,7 +8,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-select';
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
-import { getApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi,postApi} from "../Admin Master/Area Control/Zonemaster/ServicesApi";
 function PaymentReceived2() {
     const extrectArray = (response) => {
         if (Array.isArray(response?.data)) return response.data;

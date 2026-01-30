@@ -193,7 +193,7 @@ function CustomerStock() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteClientstockissue?ClientCode=${Customer_Code}`);
+                await postApi(`/Master/DeleteClientstockissue?ClientCode=${Customer_Code}`);
                 setGetCustStock(getCustStock.filter((cust) => cust.ClientCode !== Customer_Code));
                 Swal.fire('Deleted!', 'Customer Stock has been deleted.', 'success');
                 await fetchCustomerStockData();

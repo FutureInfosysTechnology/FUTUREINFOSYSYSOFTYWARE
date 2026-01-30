@@ -129,7 +129,7 @@ function CustomerName() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await deleteApi(
+                    const response = await postApi(
                         `/Master/deleteWalletLedgerById?Id=${id}`
                     );
 
@@ -382,7 +382,7 @@ function CustomerName() {
         try {
             const response = await postApi('/Master/updateCustomer', requestBody, 'POST');
             if (response.status === 1) {
-                setGetCustomer(getCustomer.map((cust) => cust.Customer_Code === addCustData.custCode ? response.Data : cust));
+                setGetCustomer(getCustomer?.map((cust) => cust?.Customer_Code === addCustData.custCode ? response.Data : cust));
                 setAddCustData({
                     custCode: '',
                     custName: '',
@@ -554,7 +554,7 @@ function CustomerName() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/deleteCustomer?CustomerCode=${Customer_Code}`);
+                await postApi(`/Master/deleteCustomer?CustomerCode=${Customer_Code}`);
                 setGetCustomer(getCustomer.filter((cust) => cust.CustomerCode !== Customer_Code));
                 Swal.fire('Deleted!', 'Customer Name has been deleted.', 'success');
                 await fetchCustomerData();
@@ -1565,7 +1565,7 @@ function CustomerName() {
 
                                                             <td>{index+1}</td>
                                                             <td>{item.CreditDate}</td>
-                                                            <td>{getCustomer.find(f => f.Customer_Code === item.Customer_Code)?.Customer_Name}</td>
+                                                            <td>{getCustomer?.find(f => f?.Customer_Code === item?.Customer_Code)?.Customer_Name}</td>
                                                             <td>{item.Payment_Type}</td>
                                                             <td>{item.Transation_No}</td>
                                                             <td>{item.CreditAmount}</td>

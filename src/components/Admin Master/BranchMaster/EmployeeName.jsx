@@ -179,7 +179,7 @@ function EmployeeName() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteEmployee?empcode=${Employee_Code}`);
+                await postApi(`/Master/DeleteEmployee?empcode=${Employee_Code}`);
                 setGetEmp(getEmp.filter((emp) => emp.empcode !== Employee_Code));
                 Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
                 await fetchEmpData();

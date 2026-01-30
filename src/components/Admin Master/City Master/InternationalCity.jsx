@@ -253,7 +253,7 @@ function InternationalCity() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteCityInt?CityCode=${City_Code}`);
+                await postApi(`/Master/DeleteCityInt?CityCode=${City_Code}`);
                 setInternational(international.filter((city) => city.CityCode !== City_Code));
                 Swal.fire('Deleted!', 'International City has been deleted.', 'success');
                 await fetchInternationalData();

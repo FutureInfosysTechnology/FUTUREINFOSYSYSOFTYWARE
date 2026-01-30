@@ -3,7 +3,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
 import { useLocation, useNavigate } from "react-router-dom"
-import { getApi } from '../Admin Master/Area Control/Zonemaster/ServicesApi';;
+import { getApi,postApi,postApi } from '../Admin Master/Area Control/Zonemaster/ServicesApi';;
 const DocketInvoicePrint = () => {
     const [formData, setFormData] = useState({
         from: "",

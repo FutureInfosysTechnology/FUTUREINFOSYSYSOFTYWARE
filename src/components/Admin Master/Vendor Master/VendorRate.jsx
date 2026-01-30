@@ -164,7 +164,8 @@ function VendorRate() {
             let Vendor_Name = formdata.Vendor_Code ? getVendor.find(v => v.Vendor_Code == formdata.Vendor_Code)?.Vendor_Name : "";
             try {
                 const apiResponse = await getApi(`/Master/GetAllInternatioanlzone?pageNumber=1&pageSize=2000&Vendor_Name=${Vendor_Name}`);
-                setIsPostal(apiResponse.data[0]?.PostalCode)
+                const temp=apiResponse.data[0]?.PostalCode=="NULL" || apiResponse.data[0]?.PostalCode=="" ? null:apiResponse.data[0]?.PostalCode
+                setIsPostal(temp)
                 const uniqueZones = Array.from(
                     new Map(
                         apiResponse.data.map(item => [
@@ -462,7 +463,7 @@ function VendorRate() {
         };
 
         try {
-            const response = await putApi('/Master/updateVendorRateMultiple', requestBody, 'PUT');
+            const response = await postApi('/Master/updateVendorRateMultiple', requestBody, 'PUT');
 
             if (response.status === 1) {
                 setFormdata({
@@ -517,7 +518,7 @@ function VendorRate() {
         });
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteVendorRateMaster?clubNo=${Club_No}`);
+                await postApi(`/Master/DeleteVendorRateMaster?clubNo=${Club_No}`);
                 Swal.fire('Deleted!', 'Vendor Rate has been deleted.', 'success');
                 setSubmittedData([]);
                 await fetchVendorRateData();

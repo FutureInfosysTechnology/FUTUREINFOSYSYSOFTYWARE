@@ -175,7 +175,7 @@ function ProductionEntry() {
         };
 
         try {
-            const response = await putApi("/Smart/UpdateCreditNote", payload);
+            const response = await postApi("/Smart/UpdateCreditNote", payload);
             Swal.fire("Updated", response.message || "Credit Note Updated Successfully", "success");
             handleReset();
             await fetchCreditNotes();
@@ -199,7 +199,7 @@ function ProductionEntry() {
         if (!confirm.isConfirmed) return;
 
         try {
-            const response = await deleteApi(`/Smart/DeleteCreditNote?CreditNote_ID=${CreditNote_ID}`);
+            const response = await postApi(`/Smart/DeleteCreditNote?CreditNote_ID=${CreditNote_ID}`);
             Swal.fire("Deleted!", response.message || "Credit Note Deleted Successfully", "success");
             handleReset();
             fetchCreditNotes();

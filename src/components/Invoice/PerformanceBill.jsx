@@ -358,7 +358,7 @@ function PerformanceBill() {
                 Items: invoiceSubmittedData,
             };
             console.log(payload);
-            const response = await putApi("/Smart/updateProformaInvoice", payload);
+            const response = await postApi("/Smart/updateProformaInvoice", payload);
 
             if (response.success) {
                 Swal.fire({
@@ -394,7 +394,7 @@ function PerformanceBill() {
             });
         }
         try {
-            const response = await deleteApi(`Smart/DeleteProformaInvoice?InvoiceID=${formData.invoiceID}`);
+            const response = await postApi(`Smart/DeleteProformaInvoice?InvoiceID=${formData.invoiceID}`);
 
             if (response.status == 1) {
                 Swal.fire({

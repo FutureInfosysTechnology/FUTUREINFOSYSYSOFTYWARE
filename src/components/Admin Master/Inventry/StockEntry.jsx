@@ -182,7 +182,7 @@ function StockEntry() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeletStockDetails?CityCode=${Customer_Code}`);
+                await postApi(`/Master/DeletStockDetails?CityCode=${Customer_Code}`);
                 setGetStockEntry(getStockEntry.filter((stock) => stock.CityCode !== Customer_Code));
                 Swal.fire('Deleted!', 'Stock Entry has been deleted.', 'success');
                 await fetchStockEntryData();

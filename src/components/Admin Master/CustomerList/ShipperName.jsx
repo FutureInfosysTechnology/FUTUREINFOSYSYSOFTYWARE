@@ -148,7 +148,7 @@ function ShipperName() {
         };
 
         try {
-            const response = await putApi('/Master/UpdateSmartShipperMaster', requestBody, 'POST');
+            const response = await postApi('/Master/UpdateSmartShipperMaster', requestBody, 'POST');
             if (response.status === 1) {
                 setGetShipper(getShipper.map((shipper) => shipper.Shipper_Code === addShipper.shipperCode ? response.data : shipper));
                 setAddShipper({
@@ -250,7 +250,7 @@ function ShipperName() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteShipperMaster?shipperCode=${Shipper_Code}`);
+                await postApi(`/Master/DeleteShipperMaster?shipperCode=${Shipper_Code}`);
                 setGetShipper(getShipper.filter((shipper) => shipper.Shipper_Code !== Shipper_Code));
                 Swal.fire('Deleted!', 'Shipper Name has been deleted.', 'success');
                 await fetchShipper();

@@ -77,18 +77,94 @@
 // };
 
 
+// import axios from 'axios';
+// import { toast } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
+
+
+// const apiClient = axios.create({
+//   baseURL: 'http://localhost:3200',
+//   // baseURL: 'https://speedlogisticsindia.com/WebApi/TCI/Tracking',
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+//   timeout: 30000, // ✅ IMPORTANT for production
+// });
+
+// /* =========================
+//    API METHODS
+// ========================= */
+
+// export const getApi = async (url, config = {}) => {
+//   try {
+//     const { data } = await apiClient.get(url, config);
+//     return data;
+//   } catch (error) {
+//     handleApiError(error);
+//     throw error;
+//   }
+// };
+
+// export const postApi = async (url, data, config = {}) => {
+//   try {
+//     const { data: resData } = await apiClient.post(url, data, config);
+//     return resData;
+//   } catch (error) {
+//     handleApiError(error);
+//     throw error;
+//   }
+// };
+
+// export const putApi = async (url, data, config = {}) => {
+//   try {
+//     const { data: resData } = await apiClient.put(url, data, config);
+//     return resData;
+//   } catch (error) {
+//     handleApiError(error);
+//     throw error;
+//   }
+// };
+
+// export const deleteApi = async (url, config = {}) => {
+//   try {
+//     const { data } = await apiClient.delete(url, config);
+//     return data;
+//   } catch (error) {
+//     handleApiError(error);
+//     throw error;
+//   }
+// };
+
+// /* =========================
+//    ERROR HANDLER
+// ========================= */
+// const handleApiError = (error) => {
+//   if (error.response) {
+//     toast.error(error.response.data?.message || 'Server error');
+//   } else if (error.request) {
+//     toast.error('Server not responding (CORS / Network)');
+//   } else {
+//     toast.error(error.message || 'Unexpected error');
+//   }
+// };
+
+
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
+/* =========================
+   AXIOS INSTANCE
+========================= */
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3200',
-  // baseURL: 'https://speedlogisticsindia.com/WebApi/TCI/Tracking',
+  //  baseURL: 'http://localhost:3200',
+ 
+  baseURL: 'https://jaimarutilogistics.com/ShipwayApi',
+
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // ✅ IMPORTANT for production
+  timeout: 30000, // 30 sec timeout
 });
 
 /* =========================
@@ -97,8 +173,8 @@ const apiClient = axios.create({
 
 export const getApi = async (url, config = {}) => {
   try {
-    const { data } = await apiClient.get(url, config);
-    return data;
+    const response = await apiClient.get(url, config);
+    return response.data;
   } catch (error) {
     handleApiError(error);
     throw error;
@@ -107,8 +183,8 @@ export const getApi = async (url, config = {}) => {
 
 export const postApi = async (url, data, config = {}) => {
   try {
-    const { data: resData } = await apiClient.post(url, data, config);
-    return resData;
+    const response = await apiClient.post(url, data, config);
+    return response.data;
   } catch (error) {
     handleApiError(error);
     throw error;
@@ -117,8 +193,8 @@ export const postApi = async (url, data, config = {}) => {
 
 export const putApi = async (url, data, config = {}) => {
   try {
-    const { data: resData } = await apiClient.put(url, data, config);
-    return resData;
+    const response = await apiClient.put(url, data, config);
+    return response.data;
   } catch (error) {
     handleApiError(error);
     throw error;
@@ -127,8 +203,8 @@ export const putApi = async (url, data, config = {}) => {
 
 export const deleteApi = async (url, config = {}) => {
   try {
-    const { data } = await apiClient.delete(url, config);
-    return data;
+    const response = await apiClient.delete(url, config);
+    return response.data;
   } catch (error) {
     handleApiError(error);
     throw error;
@@ -139,11 +215,18 @@ export const deleteApi = async (url, config = {}) => {
    ERROR HANDLER
 ========================= */
 const handleApiError = (error) => {
-  if (error.response) {
-    toast.error(error.response.data?.message || 'Server error');
-  } else if (error.request) {
-    toast.error('Server not responding (CORS / Network)');
+  if (error?.response) {
+    // Backend responded with error
+    toast.error(
+      error.response.data?.message ||
+      error.response.data?.error ||
+      'Server error'
+    );
+  } else if (error?.request) {
+    // Request made but no response
+    toast.error('Server not responding (Network / CORS issue)');
   } else {
-    toast.error(error.message || 'Unexpected error');
+    // Something else happened
+    toast.error(error?.message || 'Unexpected error');
   }
 };

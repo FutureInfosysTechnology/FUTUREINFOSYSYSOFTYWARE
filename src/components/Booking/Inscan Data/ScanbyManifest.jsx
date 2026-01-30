@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { getApi, deleteApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi, deleteApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 import Swal from 'sweetalert2';
 import { refeshPend } from "../../../App";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
@@ -46,7 +46,7 @@ function ScanbyManifest() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Inscan/deleteInscan?DocketNo=${DocketNo}&SessionLocationCode=DEL`);
+                await postApi(`/Inscan/deleteInscan?DocketNo=${DocketNo}&SessionLocationCode=DEL`);
                 setGetData(getData.filter((inscan) => inscan.DocketNo !== DocketNo));
                 Swal.fire('Deleted!', 'The Inscan has been deleted.', 'success');
                 await fetchData();

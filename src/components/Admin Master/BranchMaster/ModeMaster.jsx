@@ -125,7 +125,7 @@ function ModeMaster() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/Deletemode?modecode=${Mode_Code}`);
+                await postApi(`/Master/Deletemode?modecode=${Mode_Code}`);
                 setGetMode(getMode.filter((mode) => mode.modecode !== Mode_Code));
                 Swal.fire('Deleted!', 'Mode has been deleted.', 'success');
                 await fetchModeData();

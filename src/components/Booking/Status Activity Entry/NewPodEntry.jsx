@@ -215,7 +215,7 @@ function NewPodEntry() {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await deleteApi(`/DocketBooking/StatusEntryDelete?id=${id}`);
+                    const res = await postApi(`/DocketBooking/StatusEntryDelete?id=${id}`);
                     if (res.success) {
                         Swal.fire('Deleted!', res.message, 'success');
                         const newList = status.filter((data) => data.ID !== id);

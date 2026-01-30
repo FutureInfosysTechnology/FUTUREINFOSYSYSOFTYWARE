@@ -186,7 +186,7 @@ function VehicleEntry() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteVehicleDetail?VehicleCode=${Vehicle_Code}`);
+                await postApi(`/Master/DeleteVehicleDetail?VehicleCode=${Vehicle_Code}`);
                 setGetVehicle(getVehicle.filter((vehicle) => vehicle.VehicleCode !== Vehicle_Code));
                 Swal.fire('Deleted!', 'The Vehicle has been deleted.', 'success');
                 await fetchData();

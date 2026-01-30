@@ -18,18 +18,45 @@ import { getApi, postApi } from "../../components/Admin Master/Area Control/Zone
 
 function Header() {
    
+const [walletBalance, setWalletBalance] = useState(0);
+const [walletAmount, setWalletAmount] = useState(0);
+
     
-    
+const getWalletLedger = async (CustomerCode) => {
+    if (!CustomerCode) return;
+
+    try {
+        const response = await getApi(`/Master/getWalletLedger?Customer_Code=${CustomerCode}`);
+
+        if (response.status === 1 && response.Data.length > 0) {
+            const lastIndex = response.Data.length - 1;
+            const lastRow = response.Data[lastIndex];
+
+            setWalletBalance(lastRow.Balance);
+            setWalletAmount(lastRow.CreditAmount);
+        } else {
+            setWalletBalance(0);
+            setWalletAmount(0);
+        }
+    } catch (error) {
+        console.error(error);
+        setWalletBalance(0);
+        setWalletAmount(0);
+    }
+};
+useEffect(() => {
+    getWalletLedger(JSON.parse(localStorage.getItem('Login'))?.Customer_Code);
+}, []);
 
 
 
     return (
         <header id="header" className="header fixed-top d-flex align-items-center justify-content-between ">
             <Logo />
-            <div className="credit-box" style={{ marginLeft: "10px", display: "flex", gap: "10px", justifyContent: "center", whiteSpace: "nowrap", fontSize: "15px", fontWeight: "bold" }}>
-                <span style={{ display: "flex", justifyContent: "center", alignItems: "center", background: "silver", padding: "5px", borderRadius: "5px", color: "" }}>Add.Wallet : 100000</span>
-                <span style={{ display: "flex", justifyContent: "center", alignItems: "center", background: "silver", padding: "5px", borderRadius: "5px", color: "" }}>Balance : 100000</span>
-            </div>
+            {JSON.parse(localStorage.getItem('Login'))?.UserType=="User" && <div className="credit-box" style={{ marginLeft: "10px", display: "flex", gap: "10px", justifyContent: "center", whiteSpace: "nowrap", fontSize: "15px", fontWeight: "bold" }}>
+                <span style={{ display: "flex", justifyContent: "center", alignItems: "center", background: "silver", padding: "5px", borderRadius: "5px", color: "" }}>Add.Wallet : {walletAmount}</span>
+                <span style={{ display: "flex", justifyContent: "center", alignItems: "center", background: "silver", padding: "5px", borderRadius: "5px", color: "" }}>Balance : {walletBalance}</span>
+            </div>}
             <Searchbar />
             <Nav />
             

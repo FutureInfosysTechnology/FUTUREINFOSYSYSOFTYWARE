@@ -126,7 +126,7 @@ function BankName() {
 
         if (confirmDelete.isConfirmed) {
             try {
-                await deleteApi(`/Master/DeleteBank?BankCode=${Bank_Code}`);
+                await postApi(`/Master/DeleteBank?BankCode=${Bank_Code}`);
                 setGetBankName(getBankName.filter((bank) => bank.BankCode !== Bank_Code));
                 Swal.fire('Deleted!', 'The Bank has been deleted.', 'success');
                 await fetchBankData();

@@ -560,7 +560,7 @@ function CreateManifest() {
             BagNo: isChecked.BagNo,
         };
         try {
-            const response = await putApi('/Master/updateManifestSetup', requestPayload);
+            const response = await postApi('/Master/updateManifestSetup', requestPayload);
             setModalIsOpen2(false);
         } catch (error) {
             console.error("Error submitting manifest: ", error);

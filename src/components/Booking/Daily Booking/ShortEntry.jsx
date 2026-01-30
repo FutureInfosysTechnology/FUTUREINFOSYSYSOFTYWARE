@@ -245,7 +245,7 @@ function ShortEntry() {
       Branch_Code: JSON.parse(localStorage.getItem("Login")).Branch_Code,
     };
     try {
-      const res = await putApi(`/Booking/UpdateShortBooking?docketNo=${formData.Docket_No}`, payload);
+      const res = await postApi(`/Booking/UpdateShortBooking?docketNo=${formData.Docket_No}`, payload);
       if (res.status === 1) {
         Swal.fire('Updated!', res.message || 'Booking updated.', 'success');
         resetForm();
@@ -316,7 +316,7 @@ function ShortEntry() {
 
     if (confirm.isConfirmed) {
       try {
-        const res = await deleteApi(`/Booking/deleteShortBooking?docketNo=${docketNo}`);
+        const res = await postApi(`/Booking/deleteShortBooking?docketNo=${docketNo}`);
         if (res.status === 1) {
           Swal.fire('Deleted!', res.message, 'success');
           resetForm();

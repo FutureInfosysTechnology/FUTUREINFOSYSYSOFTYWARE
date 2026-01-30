@@ -143,7 +143,7 @@ function ProductWiseGst() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/DeleteGst?Modecode=${Mode_Code}`);
+                await postApi(`/Master/DeleteGst?Modecode=${Mode_Code}`);
                 setGetGST(getGST.filter((gst) => gst.Modecode !== Mode_Code));
                 Swal.fire('Deleted!', 'GST Data has been deleted.', 'success');
                 await fetchGSTData();

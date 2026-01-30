@@ -2,7 +2,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { getApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { getApi,postApi } from "../Admin Master/Area Control/Zonemaster/ServicesApi";
 import { PiDotsThreeOutlineVerticalFill } from "react-icons/pi";
 import { useLocation, useNavigate } from "react-router-dom";
 

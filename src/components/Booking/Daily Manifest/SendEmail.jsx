@@ -19,7 +19,7 @@ function SendEmail() {
         e.preventDefault();
 
         try {
-            const response = await fetch('http://localhost:2600/send-email', {
+            const response = await fetch('https://jaimarutilogistics.com/ShipwayApi/send-email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

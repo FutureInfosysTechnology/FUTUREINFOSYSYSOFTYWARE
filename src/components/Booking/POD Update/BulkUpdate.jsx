@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
-import { putApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
+import { putApi,postApi } from "../../Admin Master/Area Control/Zonemaster/ServicesApi";
 
 const BulkUpdate = () => {
   const [excelData, setExcelData] = useState([]);
@@ -128,7 +128,7 @@ const formatTimeForBackend = (value) => {
       if (chunk.length === 0) continue;
 
       try {
-        const response = await putApi('/DocketBooking/DeliveryUpfromexcel', { excelData: chunk });
+        const response = await postApi('/DocketBooking/DeliveryUpfromexcel', { excelData: chunk });
         if (response.errorFileUrl) errorFile = response.errorFileUrl;
         if (response.status === 1) {
           successCount += chunk.length;

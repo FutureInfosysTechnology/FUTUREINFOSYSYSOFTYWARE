@@ -325,7 +325,7 @@ function BranchName() {
             });
 
             if (confirmation.isConfirmed) {
-                await deleteApi(`/Master/deleteBranch?Branch_Code=${Branch_Code}`);
+                await postApi(`/Master/deleteBranch?Branch_Code=${Branch_Code}`);
                 setGetBranchData(getBranchData.filter((branch) => branch.Branch_Code !== Branch_Code));
                 Swal.fire('Deleted!', 'Branch Name has been deleted.', 'success');
                 await fetchBranchData();

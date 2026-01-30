@@ -72,7 +72,7 @@ const ProductEntry = () => {
       Product_Name: productData.productName
     };
     try {
-      const response = await putApi('/Master/UpdateProductMaster', body);
+      const response = await postApi('/Master/UpdateProductMaster', body);
       if (response.status === 1) {
         Swal.fire("Updated!", response.message, "success");
         setProductData({ productId: '', productCode: '', productName: '' });
@@ -97,7 +97,7 @@ const ProductEntry = () => {
     });
     if (confirmDelete.isConfirmed) {
       try {
-        await deleteApi(`/Master/DeleteProductMaster?Product_ID=${productId}`);
+        await postApi(`/Master/DeleteProductMaster?Product_ID=${productId}`);
         Swal.fire("Deleted!", "Product removed", "success");
         fetchData();
       } catch (err) {
